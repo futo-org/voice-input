@@ -10,7 +10,12 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
+
+        flatDir {
+            dirs 'libs'
+        }
     }
 }
-rootProject.name = "WhisperVoiceInput"
+
+rootProject.name = "VoiceInput"
 include ':app'
