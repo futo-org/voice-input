@@ -1,4 +1,4 @@
-package net.sapples.WhisperVoiceInput
+package org.futo.voiceinput
 
 import android.app.Service
 import android.content.Intent

@@ -1,4 +1,4 @@
-package net.sapples.WhisperVoiceInput;
+package org.futo.voiceinput;
 
 import java.util.ArrayList;
 import java.util.Arrays;

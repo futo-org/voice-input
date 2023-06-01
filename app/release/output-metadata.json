@@ -4,7 +4,7 @@
     "type": "APK",
     "kind": "Directory"
   },
-  "applicationId": "net.sapples.WhisperVoiceInput",
+  "applicationId": "org.futo.voiceinput",
   "variantName": "release",
   "elements": [
     {

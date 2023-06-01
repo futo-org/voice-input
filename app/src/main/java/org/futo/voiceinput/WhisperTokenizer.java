@@ -1,7 +1,9 @@
-package net.sapples.WhisperVoiceInput;
+package org.futo.voiceinput;
 
 import android.content.Context;
 import android.content.res.Resources;
+
+import org.futo.voiceinput.R;
 
 import org.tensorflow.lite.DataType;
 import org.tensorflow.lite.support.tensorbuffer.TensorBuffer;

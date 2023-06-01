@@ -1,4 +1,4 @@
-package net.sapples.WhisperVoiceInput.ui.theme
+package org.futo.voiceinput.ui.theme
 
 import androidx.compose.ui.graphics.Color
 

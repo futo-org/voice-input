@@ -1,4 +1,4 @@
-package net.sapples.WhisperVoiceInput
+package org.futo.voiceinput
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -10,7 +10,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import net.sapples.WhisperVoiceInput.ui.theme.WhisperVoiceInputTheme
+import org.futo.voiceinput.ui.theme.WhisperVoiceInputTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

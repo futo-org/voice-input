@@ -1,4 +1,4 @@
-package net.sapples.WhisperVoiceInput
+package org.futo.voiceinput
 
 import android.Manifest
 import android.content.Intent
@@ -11,8 +11,10 @@ import android.speech.RecognizerIntent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.view.WindowCompat
-import net.sapples.WhisperVoiceInput.databinding.ActivityRecognizeBinding
-import net.sapples.WhisperVoiceInput.ml.Whisper
+import org.futo.voiceinput.AudioFeatureExtraction
+import org.futo.voiceinput.WhisperTokenizer
+import org.futo.voiceinput.databinding.ActivityRecognizeBinding
+import org.futo.voiceinput.ml.Whisper
 import org.tensorflow.lite.DataType
 import org.tensorflow.lite.support.tensorbuffer.TensorBuffer
 import java.util.Timer
@@ -135,12 +137,13 @@ class RecognizeActivity : AppCompatActivity() {
     fun runModel(shorts: ShortArray){
         // todo: this still only do 5 seconds we need 30 seconds or whatever
         // lenght we recorded
-        val audioSamples = FloatArray(16000 * 5)
-        for (i in 0 until 16000 * 5) {
+        val audioSamples = FloatArray(16000 * 30)
+        for (i in 0 until 16000 * 30) {
             audioSamples[i] = (shorts[i].toDouble() / 32768.0).toFloat()
         }
 
-        val extractor = AudioFeatureExtraction()
+        val extractor =
+            AudioFeatureExtraction()
         extractor.hop_length = 160
         extractor.n_fft = 512
         extractor.sampleRate = 16000.0
@@ -151,6 +154,9 @@ class RecognizeActivity : AppCompatActivity() {
         val data = extractor.melSpectrogram(audioSamples)
         for (i in 0..79) {
             for (j in data[i].indices) {
+                if((i * 3000 + j) >= (80 * 3000)) {
+                    continue
+                }
                 mel[i * 3000 + j] = ((extractor.log10(
                     Math.max(
                         0.000000001,

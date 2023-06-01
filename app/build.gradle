@@ -4,11 +4,11 @@ plugins {
 }
 
 android {
-    namespace 'net.sapples.WhisperVoiceInput'
+    namespace 'org.futo.voiceinput'
     compileSdk 33
 
     defaultConfig {
-        applicationId "net.sapples.WhisperVoiceInput"
+        applicationId "org.futo.voiceinput"
         minSdk 24
         targetSdk 33
         versionCode 1
