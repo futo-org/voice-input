@@ -2,8 +2,9 @@ image:
   name: "docker.io/abb128/android-build:latest"
 
 stages:          # List of stages for jobs, and their order of execution
-  - test
   - build
+  - test
+  - lint
 
 build-job:
   stage: build
@@ -13,7 +14,7 @@ build-job:
     - echo keyPassword=$KEY_PASSWORD >> keystore.properties
     - echo keyAlias=$KEYSTORE_ALIAS >> keystore.properties
     - echo storeFile=key.jks >> keystore.properties
-    - ./gradlew assembleRelease
+    - gradle assembleRelease -s -i
   artifacts:
     paths: 
       - ./app/build/outputs/apk/release/app-release.apk
@@ -22,8 +23,17 @@ build-job:
 unit-test-job:
   stage: test
   script:
-    - ./gradlew testDebugUnitTest
+    - gradle testDebugUnitTest -s -i
   artifacts:
     reports:
       junit:
         - ./app/build/test-results/testDebugUnitTest/*.xml 
+
+lint-job:
+  stage: lint
+  script:
+    - gradle lint -s -i
+  artifacts:
+    reports:
+      codequality:
+        - ./app/build/reports/lint-results-*.xml
