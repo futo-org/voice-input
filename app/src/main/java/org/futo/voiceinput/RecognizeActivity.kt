@@ -6,23 +6,141 @@ import android.content.pm.PackageManager
 import android.media.AudioFormat
 import android.media.AudioRecord
 import android.media.MediaRecorder
+import android.net.Uri
+import android.os.AsyncTask
 import android.os.Bundle
+import android.provider.Settings
 import android.speech.RecognizerIntent
-import androidx.appcompat.app.AppCompatActivity
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
-import androidx.core.view.WindowCompat
-import org.futo.voiceinput.AudioFeatureExtraction
-import org.futo.voiceinput.WhisperTokenizer
-import org.futo.voiceinput.databinding.ActivityRecognizeBinding
 import org.futo.voiceinput.ml.Whisper
+import org.futo.voiceinput.ui.theme.WhisperVoiceInputTheme
 import org.tensorflow.lite.DataType
 import org.tensorflow.lite.support.tensorbuffer.TensorBuffer
 import java.util.Timer
 
 
-class RecognizeActivity : AppCompatActivity() {
-    private lateinit var binding: ActivityRecognizeBinding
+@Composable
+fun InnerRecognize(onFinish: () -> Unit) {
+    IconButton(
+        onClick = onFinish, modifier = Modifier
+            .fillMaxWidth()
+            .height(80.dp)
+            .padding(16.dp)
+    ) {
+        Icon(
+            painter = painterResource(R.drawable.mic_2_),
+            contentDescription = "Stop Recording",
+            modifier = Modifier.size(48.dp)
+        )
+    }
 
+    Text(
+        "Listening...",
+        modifier = Modifier.fillMaxWidth(),
+        textAlign = TextAlign.Center
+    )
+}
+
+@Composable
+fun RecognizeWindow(onClose: () -> Unit, content: @Composable ColumnScope.() -> Unit) {
+    WhisperVoiceInputTheme {
+        Surface(
+            modifier = Modifier
+                .width(256.dp)
+                .wrapContentHeight(),
+            color = MaterialTheme.colorScheme.background
+        ) {
+            Column{
+                IconButton( onClick = onClose, modifier = Modifier.align(Alignment.End) ) {
+                    Icon(
+                        Icons.Default.Close,
+                        contentDescription = "Cancel"
+                    )
+                }
+
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(0.dp, 0.dp, 0.dp, 40.dp)
+                ) {
+                    content()
+                }
+            }
+        }
+    }
+}
+
+
+@Composable
+fun ColumnScope.RecognizeLoadingCircle() {
+    CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally) )
+}
+
+@Composable
+fun ColumnScope.RecognizeMicError(openSettings: () -> Unit) {
+    Text("Grant microphone permission to use Voice Input",
+            modifier = Modifier
+                .padding(8.dp, 2.dp)
+                .align(Alignment.CenterHorizontally),
+            textAlign = TextAlign.Center)
+    IconButton(onClick = { /*TODO*/ }, modifier = Modifier
+        .padding(4.dp)
+        .align(Alignment.CenterHorizontally)
+        .size(64.dp)) {
+        Icon(Icons.Default.Settings, contentDescription = "Open Voice Input Settings", modifier = Modifier.size(32.dp))
+    }
+}
+
+@Preview
+@Composable
+fun RecognizeLoadingPreview() {
+    RecognizeWindow(onClose = { }) {
+        RecognizeLoadingCircle()
+    }
+}
+
+@Preview
+@Composable
+fun PreviewRecognizeViewLoaded() {
+    RecognizeWindow(onClose = { }) {
+        InnerRecognize(onFinish = { })
+    }
+}
+@Preview
+@Composable
+fun PreviewRecognizeViewNoMic() {
+    RecognizeWindow(onClose = { }) {
+        RecognizeMicError(openSettings = { })
+    }
+}
+
+class RecognizeActivity : ComponentActivity() {
     private val PERMISSION_CODE = 904151;
 
     private var isRecording = false
@@ -32,13 +150,36 @@ class RecognizeActivity : AppCompatActivity() {
     // somehow cache this so we don't load every time activity is started?
     private lateinit var model: Whisper
 
+    private fun onFinish() {
+        onFinishRecording()
+    }
+
+    private fun onCancel() {
+        setResult(RESULT_CANCELED, null)
+        finish()
+    }
+
+    private fun openPermissionSettings() {
+        val myAppSettings = Intent(
+            Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse(
+                "package:$packageName"
+            )
+        )
+        myAppSettings.addCategory(Intent.CATEGORY_DEFAULT)
+        myAppSettings.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+        startActivity(myAppSettings)
+
+        onCancel()
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        WindowCompat.setDecorFitsSystemWindows(window, false)
 
-        binding = ActivityRecognizeBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+        setContent {
+            RecognizeWindow(onClose = { onCancel() }) {
+                RecognizeLoadingCircle()
+            }
+        }
 
         WhisperTokenizer.init(this);
 
@@ -57,11 +198,21 @@ class RecognizeActivity : AppCompatActivity() {
             startRecording()
         }
 
-        binding.FinishRecording.setOnClickListener {
-            onFinishRecording()
-        }
+        //binding.FinishRecording.setOnClickListener {
+        //    onFinishRecording()
+        //}
 
         model = Whisper.newInstance(this)
+
+
+        /*
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+
+        binding = ActivityRecognizeBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+
+
+         */
     }
 
     override fun onRequestPermissionsResult(
@@ -80,8 +231,11 @@ class RecognizeActivity : AppCompatActivity() {
                         startRecording()
                     } else {
                         // show dialog saying cannot do speech to text without mic permission?
-                        setResult(RESULT_CANCELED, null)
-                        finish()
+                        setContent {
+                            RecognizeWindow(onClose = { onCancel() }) {
+                                RecognizeMicError(openSettings = { openPermissionSettings() })
+                            }
+                        }
                     }
                 }
             }
@@ -105,6 +259,13 @@ class RecognizeActivity : AppCompatActivity() {
     }*/
 
     fun startRecording(){
+        setContent {
+            RecognizeWindow(onClose = { onCancel() }) {
+                InnerRecognize(onFinish = { onFinish() })
+            }
+        }
+        // play a boop sound
+
         try {
             recorder = AudioRecord(
                 MediaRecorder.AudioSource.VOICE_RECOGNITION,
@@ -135,8 +296,6 @@ class RecognizeActivity : AppCompatActivity() {
     }
 
     fun runModel(shorts: ShortArray){
-        // todo: this still only do 5 seconds we need 30 seconds or whatever
-        // lenght we recorded
         val audioSamples = FloatArray(16000 * 30)
         for (i in 0 until 16000 * 30) {
             audioSamples[i] = (shorts[i].toDouble() / 32768.0).toFloat()
@@ -189,13 +348,23 @@ class RecognizeActivity : AppCompatActivity() {
             return
         }
 
+        setContent {
+            RecognizeWindow(onClose = { onCancel() }) {
+                RecognizeLoadingCircle()
+            }
+        }
+
         isRecording = false
         recorder.stop()
 
         val shorts = ShortArray(16000 * 30)
         recorder.read(shorts, 0, 16000 * 30)
 
-        runModel(shorts)
+        // TODO: Need to use Dispatchers.Default
+        // https://developer.android.com/kotlin/coroutines
+        AsyncTask.execute {
+            runModel(shorts)
+        }
     }
 
     override fun onDestroy() {
