@@ -6,15 +6,24 @@ import android.content.pm.PackageManager
 import android.media.AudioFormat
 import android.media.AudioRecord
 import android.media.MediaRecorder
+import android.media.MicrophoneDirection
 import android.net.Uri
 import android.os.AsyncTask
+import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.speech.RecognizerIntent
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.animation.core.Easing
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -31,37 +40,57 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.futo.voiceinput.ml.Whisper
 import org.futo.voiceinput.ui.theme.WhisperVoiceInputTheme
 import org.tensorflow.lite.DataType
 import org.tensorflow.lite.support.tensorbuffer.TensorBuffer
+import java.nio.ByteBuffer
+import java.nio.FloatBuffer
 import java.util.Timer
+import java.util.TimerTask
+import kotlin.math.ln
+import kotlin.math.log
+import kotlin.math.log10
+import kotlin.math.sqrt
 
 
 @Composable
-fun InnerRecognize(onFinish: () -> Unit) {
+fun InnerRecognize(onFinish: () -> Unit, magnitude: Float = 100.5f, hasTalked: Boolean = false) {
     IconButton(
         onClick = onFinish, modifier = Modifier
             .fillMaxWidth()
             .height(80.dp)
             .padding(16.dp)
     ) {
+        val size by animateFloatAsState(targetValue = magnitude, animationSpec = tween(durationMillis = 100, easing = LinearEasing))
+        Canvas( modifier = Modifier.fillMaxSize() ) {
+            drawCircle(color = Color.White, radius = size, alpha = 0.1f)
+        }
         Icon(
             painter = painterResource(R.drawable.mic_2_),
             contentDescription = "Stop Recording",
             modifier = Modifier.size(48.dp)
         )
+
     }
 
+    val text = if(hasTalked) { "Listening..." } else { "Try saying something" }
     Text(
-        "Listening...",
+        text,
         modifier = Modifier.fillMaxWidth(),
         textAlign = TextAlign.Center
     )
@@ -109,7 +138,7 @@ fun ColumnScope.RecognizeMicError(openSettings: () -> Unit) {
                 .padding(8.dp, 2.dp)
                 .align(Alignment.CenterHorizontally),
             textAlign = TextAlign.Center)
-    IconButton(onClick = { /*TODO*/ }, modifier = Modifier
+    IconButton(onClick = { openSettings() }, modifier = Modifier
         .padding(4.dp)
         .align(Alignment.CenterHorizontally)
         .size(64.dp)) {
@@ -155,6 +184,7 @@ class RecognizeActivity : ComponentActivity() {
     }
 
     private fun onCancel() {
+        resetTimer()
         setResult(RESULT_CANCELED, null)
         finish()
     }
@@ -198,21 +228,8 @@ class RecognizeActivity : ComponentActivity() {
             startRecording()
         }
 
-        //binding.FinishRecording.setOnClickListener {
-        //    onFinishRecording()
-        //}
-
+        // TODO: Use service or something to avoid recreating model each time
         model = Whisper.newInstance(this)
-
-
-        /*
-        WindowCompat.setDecorFitsSystemWindows(window, false)
-
-        binding = ActivityRecognizeBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-
-
-         */
     }
 
     override fun onRequestPermissionsResult(
@@ -251,19 +268,25 @@ class RecognizeActivity : ComponentActivity() {
         finish()
     }
 
-    
-    /*var timeoutTask = TimerTask() {
-        override fun run() {
+    private var timer = Timer()
+    fun resetTimer() {
+        timer.cancel()
+        timer = Timer()
+    }
 
-        }
-    }*/
-
+    val floatSamples = FloatBuffer.allocate(16000 * 30)
+    var magnitudeJob: Job? = null
     fun startRecording(){
         setContent {
             RecognizeWindow(onClose = { onCancel() }) {
-                InnerRecognize(onFinish = { onFinish() })
+                InnerRecognize(onFinish = { onFinish() }, magnitude = 0.0f)
             }
         }
+
+        timer.schedule(object : TimerTask() {
+            override fun run() = onFinish()
+        }, 30_000L)
+
         // play a boop sound
 
         try {
@@ -271,23 +294,53 @@ class RecognizeActivity : ComponentActivity() {
                 MediaRecorder.AudioSource.VOICE_RECOGNITION,
                 16000,
                 AudioFormat.CHANNEL_IN_MONO,
-                AudioFormat.ENCODING_PCM_16BIT, // could use ENCODING_PCM_FLOAT
-                16000 * 2 * 30
+                AudioFormat.ENCODING_PCM_FLOAT, // could use ENCODING_PCM_FLOAT
+                16000 * 2 * 5
             )
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                recorder.setPreferredMicrophoneDirection(MicrophoneDirection.MIC_DIRECTION_TOWARDS_USER)
+            }
 
             recorder.startRecording()
 
             isRecording = true
 
-            // ????
+            // TODO: When silence for a while, stop recording
 
-            // set 30 second timeout
-            //timeoutTimer.schedule(, 30_000L)
+            magnitudeJob = lifecycleScope.launch {
+                withContext(Dispatchers.Default) {
+                    var magSmooth = 0.0f;
+                    var hasTalked = false;
+                    while(isRecording && recorder.recordingState == AudioRecord.RECORDSTATE_RECORDING){
+                        val samples = FloatArray(1600)
 
-            // Have a UI feedback for audio magnitude!!
-            // When button pressed, or silence for a while, stop recording and process result
-            // 30 second limit as well
-            // Then call sendResult(value)
+                        // TODO: This can get left behind, try skipping forward to latest audio rather than 1600 by 1600
+                        val nRead = recorder.read(samples, 0, 1600, AudioRecord.READ_BLOCKING)
+
+                        if(nRead <= 0) break;
+                        if(!isRecording || recorder.recordingState != AudioRecord.RECORDSTATE_RECORDING) break;
+
+                        floatSamples.put(samples)
+
+                        val rms = sqrt(samples.sumOf { (it * it).toDouble() } / samples.size).toFloat()
+                        if(rms > 0.02) hasTalked = true
+
+                        val magnitude = log10(256.0f * rms + 1.0f) * 180.0f + 72.0f;
+
+                        magSmooth = magnitude
+
+                        // TODO: This seems like it might not be the most efficient way
+                        withContext(Dispatchers.Main) {
+                            setContent {
+                                RecognizeWindow(onClose = { onCancel() }) {
+                                    InnerRecognize(onFinish = { onFinish() }, magnitude = magSmooth, hasTalked = hasTalked)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         } catch(e: SecurityException){
             // this should not be reached, as this function should never be called without
             // permission.
@@ -295,12 +348,7 @@ class RecognizeActivity : ComponentActivity() {
         }
     }
 
-    fun runModel(shorts: ShortArray){
-        val audioSamples = FloatArray(16000 * 30)
-        for (i in 0 until 16000 * 30) {
-            audioSamples[i] = (shorts[i].toDouble() / 32768.0).toFloat()
-        }
-
+    fun runModel(){
         val extractor =
             AudioFeatureExtraction()
         extractor.hop_length = 160
@@ -310,7 +358,7 @@ class RecognizeActivity : ComponentActivity() {
 
 
         val mel = FloatArray(80 * 3000)
-        val data = extractor.melSpectrogram(audioSamples)
+        val data = extractor.melSpectrogram(floatSamples.array())
         for (i in 0..79) {
             for (j in data[i].indices) {
                 if((i * 3000 + j) >= (80 * 3000)) {
@@ -329,24 +377,25 @@ class RecognizeActivity : ComponentActivity() {
         val inputFeature0 = TensorBuffer.createFixedSize(intArrayOf(1, 80, 3000), DataType.FLOAT32)
         inputFeature0.loadArray(mel)
 
-
-        println("Call model...")
         // Runs model inference and gets result.
         val outputs: Whisper.Outputs = model.process(inputFeature0)
         val outputFeature0 = outputs.outputFeature0AsTensorBuffer
 
-        println("Output...")
         val text = WhisperTokenizer.convertTokensToString(outputFeature0)
 
         sendResult(text)
     }
 
-    fun onFinishRecording() {
-        // stop recorder
+    private fun onFinishRecording() {
+        resetTimer()
+        magnitudeJob?.cancel()
+
         if(!isRecording) {
-            println("Finish Recording should not be called when not recording")
-            return
+            throw IllegalStateException("Should not call onFinishRecording when not recording")
         }
+
+        isRecording = false
+        recorder.stop()
 
         setContent {
             RecognizeWindow(onClose = { onCancel() }) {
@@ -354,16 +403,10 @@ class RecognizeActivity : ComponentActivity() {
             }
         }
 
-        isRecording = false
-        recorder.stop()
-
-        val shorts = ShortArray(16000 * 30)
-        recorder.read(shorts, 0, 16000 * 30)
-
-        // TODO: Need to use Dispatchers.Default
-        // https://developer.android.com/kotlin/coroutines
-        AsyncTask.execute {
-            runModel(shorts)
+        lifecycleScope.launch {
+            withContext(Dispatchers.Default) {
+                runModel()
+            }
         }
     }
 
