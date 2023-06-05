@@ -66,6 +66,18 @@
                 android:name="android.speech"
                 android:resource="@xml/recognition_service" /> <!-- is this necessary? -->
         </service>
+
+        <service
+            android:name=".VoiceInputMethodService"
+            android:exported="true"
+            android:foregroundServiceType="microphone"
+            android:label="Voice Input Method"
+            android:permission="android.permission.BIND_INPUT_METHOD">
+            <intent-filter>
+                <action android:name="android.view.InputMethod" />
+            </intent-filter>
+            <meta-data android:name="android.view.im" android:resource="@xml/input_method" />
+        </service>
     </application>
 
 </manifest>
