@@ -8,19 +8,13 @@ import android.media.AudioRecord
 import android.media.MediaRecorder
 import android.media.MicrophoneDirection
 import android.net.Uri
-import android.os.AsyncTask
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.speech.RecognizerIntent
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.animation.core.Easing
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxSize
@@ -40,7 +34,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameMillis
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -50,6 +49,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.lifecycleScope
+import com.google.android.material.math.MathUtils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -58,28 +58,48 @@ import org.futo.voiceinput.ml.Whisper
 import org.futo.voiceinput.ui.theme.WhisperVoiceInputTheme
 import org.tensorflow.lite.DataType
 import org.tensorflow.lite.support.tensorbuffer.TensorBuffer
-import java.nio.ByteBuffer
 import java.nio.FloatBuffer
 import java.util.Timer
 import java.util.TimerTask
-import kotlin.math.ln
-import kotlin.math.log
 import kotlin.math.log10
+import kotlin.math.pow
 import kotlin.math.sqrt
 
 
 @Composable
-fun InnerRecognize(onFinish: () -> Unit, magnitude: Float = 100.5f, hasTalked: Boolean = false) {
+fun AnimatedRecognizeCircle(magnitude: Float = 100.0f) {
+    var radius by remember { mutableStateOf(0.0f) }
+
+    LaunchedEffect(magnitude) {
+        launch {
+            var prevTime = withFrameMillis { it }
+
+            while (true) {
+                prevTime = withFrameMillis { frameTime ->
+                    val deltaTime = (frameTime - prevTime).toFloat() / 1000.0f
+
+                    radius = MathUtils.lerp(radius, magnitude, 1.0f - 0.001f.pow(deltaTime))
+
+                    frameTime
+                }
+            }
+        }
+    }
+
+    Canvas( modifier = Modifier.fillMaxSize() ) {
+        drawCircle(color = Color.White, radius = radius, alpha = 0.1f)
+    }
+}
+
+@Composable
+fun InnerRecognize(onFinish: () -> Unit, magnitude: Float = 100.0f, hasTalked: Boolean = false) {
     IconButton(
         onClick = onFinish, modifier = Modifier
             .fillMaxWidth()
             .height(80.dp)
             .padding(16.dp)
     ) {
-        val size by animateFloatAsState(targetValue = magnitude, animationSpec = tween(durationMillis = 100, easing = LinearEasing))
-        Canvas( modifier = Modifier.fillMaxSize() ) {
-            drawCircle(color = Color.White, radius = size, alpha = 0.1f)
-        }
+        AnimatedRecognizeCircle(magnitude = magnitude)
         Icon(
             painter = painterResource(R.drawable.mic_2_),
             contentDescription = "Stop Recording",
@@ -310,7 +330,6 @@ class RecognizeActivity : ComponentActivity() {
 
             magnitudeJob = lifecycleScope.launch {
                 withContext(Dispatchers.Default) {
-                    var magSmooth = 0.0f;
                     var hasTalked = false;
                     while(isRecording && recorder.recordingState == AudioRecord.RECORDSTATE_RECORDING){
                         val samples = FloatArray(1600)
@@ -328,13 +347,12 @@ class RecognizeActivity : ComponentActivity() {
 
                         val magnitude = log10(256.0f * rms + 1.0f) * 180.0f + 72.0f;
 
-                        magSmooth = magnitude
 
                         // TODO: This seems like it might not be the most efficient way
                         withContext(Dispatchers.Main) {
                             setContent {
                                 RecognizeWindow(onClose = { onCancel() }) {
-                                    InnerRecognize(onFinish = { onFinish() }, magnitude = magSmooth, hasTalked = hasTalked)
+                                    InnerRecognize(onFinish = { onFinish() }, magnitude = magnitude, hasTalked = hasTalked)
                                 }
                             }
                         }
