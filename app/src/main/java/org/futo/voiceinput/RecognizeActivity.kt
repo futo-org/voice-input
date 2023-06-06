@@ -79,7 +79,7 @@ fun AnimatedRecognizeCircle(magnitude: Float = 0.5f) {
             val startTime = withFrameMillis { it }
 
             while (true) {
-                withFrameMillis { frameTime ->
+                val time = withFrameMillis { frameTime ->
                     val t = (frameTime - startTime).toFloat() / 100.0f
 
                     val t1 = clamp(t * t * (3f - 2f * t), 0.0f, 1.0f)
@@ -88,6 +88,7 @@ fun AnimatedRecognizeCircle(magnitude: Float = 0.5f) {
 
                     frameTime
                 }
+                if(time > (startTime + 100)) break
             }
         }
     }

@@ -1,21 +1,29 @@
 package org.futo.voiceinput
 
-import android.content.Context
 import android.inputmethodservice.InputMethodService
 import android.os.Build
 import android.text.InputType
 import android.view.View
-import android.view.WindowManager
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodSubtype
-import androidx.activity.ComponentActivity
-import androidx.compose.material3.Button
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
@@ -30,19 +38,47 @@ import androidx.savedstate.SavedStateRegistryController
 import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.findViewTreeSavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
+import org.futo.voiceinput.ui.theme.WhisperVoiceInputTheme
 
 
 @Composable
-fun InputView(switchBack: (() -> Unit)?) {
-    MaterialTheme {
-        Text("Hello world!")
+fun InputView(switchBack: (() -> Unit)? = null) {
+    WhisperVoiceInputTheme {
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth()
+                .wrapContentHeight(),
+            color = MaterialTheme.colorScheme.background
+        ) {
+            Column(
+                modifier = Modifier.padding(0.dp, 0.dp, 0.dp, 64.dp)
+            ) {
 
-        if(switchBack != null) {
-            Button(onClick = switchBack) {
-                Text("Go back")
+                if (switchBack != null) {
+                    IconButton(onClick = switchBack, modifier = Modifier.align(Alignment.End)) {
+                        Icon(
+                            Icons.Default.Close,
+                            contentDescription = "Cancel"
+                        )
+                    }
+                }
+
+                Box(modifier = Modifier.padding(12.dp)) {
+                    
+                }
+
+                InnerRecognize(
+                    onFinish = { }
+                )
             }
         }
     }
+}
+
+@Preview
+@Composable
+fun InputViewPreview() {
+    InputView(switchBack = { })
 }
 
 class VoiceInputMethodService : InputMethodService(), LifecycleOwner, ViewModelStoreOwner,
