@@ -15,9 +15,11 @@ build-job:
     - echo keyAlias=$KEYSTORE_ALIAS >> keystore.properties
     - echo storeFile=key.jks >> keystore.properties
     - gradle assembleRelease -s
+    - mv app/build/outputs/apk/release/app-release.apk ./app-release-$CI_COMMIT_SHORT_SHA.apk
   artifacts:
+    name: "app-release-$CI_COMMIT_SHORT_SHA"
     paths: 
-      - ./app/build/outputs/apk/release/app-release.apk
+      - ./*.apk
 
 
 unit-test-job:
