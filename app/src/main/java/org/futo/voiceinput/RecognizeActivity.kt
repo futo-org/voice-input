@@ -48,6 +48,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
+import androidx.core.math.MathUtils.clamp
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.math.MathUtils
 import kotlinx.coroutines.Dispatchers
@@ -59,26 +60,31 @@ import org.futo.voiceinput.ui.theme.WhisperVoiceInputTheme
 import org.tensorflow.lite.DataType
 import org.tensorflow.lite.support.tensorbuffer.TensorBuffer
 import java.nio.FloatBuffer
-import java.util.Timer
-import java.util.TimerTask
-import kotlin.math.log10
 import kotlin.math.pow
 import kotlin.math.sqrt
 
 
 @Composable
-fun AnimatedRecognizeCircle(magnitude: Float = 100.0f) {
+fun AnimatedRecognizeCircle(magnitude: Float = 0.5f) {
     var radius by remember { mutableStateOf(0.0f) }
+    var lastMagnitude by remember { mutableStateOf(0.0f) }
 
     LaunchedEffect(magnitude) {
+        val lastMagnitudeValue = lastMagnitude
+        if (lastMagnitude != magnitude) {
+            lastMagnitude = magnitude
+        }
+
         launch {
-            var prevTime = withFrameMillis { it }
+            val startTime = withFrameMillis { it }
 
             while (true) {
-                prevTime = withFrameMillis { frameTime ->
-                    val deltaTime = (frameTime - prevTime).toFloat() / 1000.0f
+                withFrameMillis { frameTime ->
+                    val t = (frameTime - startTime).toFloat() / 100.0f
 
-                    radius = MathUtils.lerp(radius, magnitude, 1.0f - 0.001f.pow(deltaTime))
+                    val t1 = clamp(t * t * (3f - 2f * t), 0.0f, 1.0f)
+
+                    radius = MathUtils.lerp(lastMagnitudeValue, magnitude, t1)
 
                     frameTime
                 }
@@ -87,12 +93,12 @@ fun AnimatedRecognizeCircle(magnitude: Float = 100.0f) {
     }
 
     Canvas( modifier = Modifier.fillMaxSize() ) {
-        drawCircle(color = Color.White, radius = radius, alpha = 0.1f)
+        drawCircle(color = Color.White, radius = radius * 256.0f + 128.0f, alpha = 0.1f)
     }
 }
 
 @Composable
-fun InnerRecognize(onFinish: () -> Unit, magnitude: Float = 100.0f, hasTalked: Boolean = false) {
+fun InnerRecognize(onFinish: () -> Unit, magnitude: Float = 0.5f, hasTalked: Boolean = false) {
     IconButton(
         onClick = onFinish, modifier = Modifier
             .fillMaxWidth()
@@ -190,21 +196,27 @@ fun PreviewRecognizeViewNoMic() {
 }
 
 class RecognizeActivity : ComponentActivity() {
-    private val PERMISSION_CODE = 904151;
+    private val PERMISSION_CODE = 904151
 
     private var isRecording = false
     private lateinit var recorder: AudioRecord
-    private var timeoutTimer = Timer()
 
-    // somehow cache this so we don't load every time activity is started?
     private lateinit var model: Whisper
+
+    private val floatSamples: FloatBuffer = FloatBuffer.allocate(16000 * 30)
+    private var recorderJob: Job? = null
+    private var modelJob: Job? = null
 
     private fun onFinish() {
         onFinishRecording()
     }
 
     private fun onCancel() {
-        resetTimer()
+        recorderJob?.cancel()
+        modelJob?.cancel()
+        isRecording = false
+        recorder.stop()
+        
         setResult(RESULT_CANCELED, null)
         finish()
     }
@@ -231,7 +243,7 @@ class RecognizeActivity : ComponentActivity() {
             }
         }
 
-        WhisperTokenizer.init(this);
+        WhisperTokenizer.init(this)
 
         recorder = AudioRecord(
             MediaRecorder.AudioSource.VOICE_RECOGNITION,
@@ -279,33 +291,21 @@ class RecognizeActivity : ComponentActivity() {
         }
     }
 
-    fun sendResult(result: String) {
+    private fun sendResult(result: String) {
         val returnIntent = Intent()
 
-        val results = listOf(result);
+        val results = listOf(result)
         returnIntent.putStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS, ArrayList(results))
         setResult(RESULT_OK, returnIntent)
         finish()
     }
 
-    private var timer = Timer()
-    fun resetTimer() {
-        timer.cancel()
-        timer = Timer()
-    }
-
-    val floatSamples = FloatBuffer.allocate(16000 * 30)
-    var magnitudeJob: Job? = null
-    fun startRecording(){
+    private fun startRecording(){
         setContent {
             RecognizeWindow(onClose = { onCancel() }) {
                 InnerRecognize(onFinish = { onFinish() }, magnitude = 0.0f)
             }
         }
-
-        timer.schedule(object : TimerTask() {
-            override fun run() = onFinish()
-        }, 30_000L)
 
         // play a boop sound
 
@@ -326,27 +326,27 @@ class RecognizeActivity : ComponentActivity() {
 
             isRecording = true
 
-            // TODO: When silence for a while, stop recording
-
-            magnitudeJob = lifecycleScope.launch {
+            recorderJob = lifecycleScope.launch {
                 withContext(Dispatchers.Default) {
-                    var hasTalked = false;
+                    var hasTalked = false
                     while(isRecording && recorder.recordingState == AudioRecord.RECORDSTATE_RECORDING){
                         val samples = FloatArray(1600)
 
-                        // TODO: This can get left behind, try skipping forward to latest audio rather than 1600 by 1600
                         val nRead = recorder.read(samples, 0, 1600, AudioRecord.READ_BLOCKING)
 
-                        if(nRead <= 0) break;
-                        if(!isRecording || recorder.recordingState != AudioRecord.RECORDSTATE_RECORDING) break;
+                        if(nRead <= 0) break
+                        if(!isRecording || recorder.recordingState != AudioRecord.RECORDSTATE_RECORDING) break
 
+                        if(floatSamples.remaining() < 1600) {
+                            withContext(Dispatchers.Main){ onFinish() }
+                            break
+                        }
                         floatSamples.put(samples)
 
                         val rms = sqrt(samples.sumOf { (it * it).toDouble() } / samples.size).toFloat()
-                        if(rms > 0.02) hasTalked = true
+                        if(rms > 0.01) hasTalked = true
 
-                        val magnitude = log10(256.0f * rms + 1.0f) * 180.0f + 72.0f;
-
+                        val magnitude = (1.0f - 0.1f.pow(24.0f * rms))
 
                         // TODO: This seems like it might not be the most efficient way
                         withContext(Dispatchers.Main) {
@@ -354,6 +354,21 @@ class RecognizeActivity : ComponentActivity() {
                                 RecognizeWindow(onClose = { onCancel() }) {
                                     InnerRecognize(onFinish = { onFinish() }, magnitude = magnitude, hasTalked = hasTalked)
                                 }
+                            }
+                        }
+
+                        // Skip ahead as much as possible, in case we are behind (taking more than
+                        // 100ms to process 100ms)
+                        while(true){
+                            val nRead2 = recorder.read(samples, 0, 1600, AudioRecord.READ_NON_BLOCKING)
+                            if(nRead2 > 0) {
+                                if(floatSamples.remaining() < nRead2){
+                                    withContext(Dispatchers.Main){ onFinish() }
+                                    break
+                                }
+                                floatSamples.put(samples.sliceArray(0 until nRead2))
+                            } else {
+                                break
                             }
                         }
                     }
@@ -366,7 +381,7 @@ class RecognizeActivity : ComponentActivity() {
         }
     }
 
-    fun runModel(){
+    private fun runModel(){
         val extractor =
             AudioFeatureExtraction()
         extractor.hop_length = 160
@@ -405,8 +420,7 @@ class RecognizeActivity : ComponentActivity() {
     }
 
     private fun onFinishRecording() {
-        resetTimer()
-        magnitudeJob?.cancel()
+        recorderJob?.cancel()
 
         if(!isRecording) {
             throw IllegalStateException("Should not call onFinishRecording when not recording")
@@ -421,7 +435,7 @@ class RecognizeActivity : ComponentActivity() {
             }
         }
 
-        lifecycleScope.launch {
+        modelJob = lifecycleScope.launch {
             withContext(Dispatchers.Default) {
                 runModel()
             }
@@ -430,7 +444,5 @@ class RecognizeActivity : ComponentActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-
-        // popupWindow
     }
 }
