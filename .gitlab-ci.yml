@@ -14,7 +14,7 @@ build-job:
     - echo keyPassword=$KEY_PASSWORD >> keystore.properties
     - echo keyAlias=$KEYSTORE_ALIAS >> keystore.properties
     - echo storeFile=key.jks >> keystore.properties
-    - gradle assembleRelease -s -i
+    - gradle assembleRelease -s
   artifacts:
     paths: 
       - ./app/build/outputs/apk/release/app-release.apk
@@ -23,7 +23,7 @@ build-job:
 unit-test-job:
   stage: test
   script:
-    - gradle testDebugUnitTest -s -i
+    - gradle testDebugUnitTest -s
   artifacts:
     reports:
       junit:
@@ -32,7 +32,7 @@ unit-test-job:
 lint-job:
   stage: lint
   script:
-    - gradle lint -s -i
+    - gradle lint -s
   artifacts:
     reports:
       codequality:
