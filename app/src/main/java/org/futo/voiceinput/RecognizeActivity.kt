@@ -3,6 +3,7 @@ package org.futo.voiceinput
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.hardware.SensorPrivacyManager
 import android.media.AudioFormat
 import android.media.AudioRecord
 import android.media.MediaRecorder
@@ -94,12 +95,13 @@ fun AnimatedRecognizeCircle(magnitude: Float = 0.5f) {
     }
 
     Canvas( modifier = Modifier.fillMaxSize() ) {
+        // TODO: This seems to scale differently on 2 different devices
         drawCircle(color = Color.White, radius = radius * 256.0f + 128.0f, alpha = 0.1f)
     }
 }
 
 @Composable
-fun InnerRecognize(onFinish: () -> Unit, magnitude: Float = 0.5f, hasTalked: Boolean = false) {
+fun InnerRecognize(onFinish: () -> Unit, magnitude: Float = 0.5f, hasTalked: Boolean = false, isMicBlocked: Boolean = false) {
     IconButton(
         onClick = onFinish, modifier = Modifier
             .fillMaxWidth()
@@ -115,7 +117,15 @@ fun InnerRecognize(onFinish: () -> Unit, magnitude: Float = 0.5f, hasTalked: Boo
 
     }
 
-    val text = if(hasTalked) { "Listening..." } else { "Try saying something" }
+    val text = if(isMicBlocked) {
+        "No audio detected, is your microphone blocked?"
+    } else {
+        if(hasTalked) {
+            "Listening..."
+        } else {
+            "Try saying something"
+        }
+    }
     Text(
         text,
         modifier = Modifier.fillMaxWidth(),
@@ -185,7 +195,7 @@ fun RecognizeLoadingPreview() {
 @Composable
 fun PreviewRecognizeViewLoaded() {
     RecognizeWindow(onClose = { }) {
-        InnerRecognize(onFinish = { })
+        InnerRecognize(onFinish = { }, isMicBlocked = true)
     }
 }
 @Preview
@@ -327,9 +337,21 @@ class RecognizeActivity : ComponentActivity() {
 
             isRecording = true
 
+            val canMicBeBlocked = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                (applicationContext.getSystemService(SensorPrivacyManager::class.java) as SensorPrivacyManager).supportsSensorToggle(
+                    SensorPrivacyManager.Sensors.MICROPHONE
+                )
+            } else {
+                false
+            }
+
             recorderJob = lifecycleScope.launch {
                 withContext(Dispatchers.Default) {
                     var hasTalked = false
+                    var anyNoiseAtAll = false
+                    var isMicBlocked = false
+
+
                     while(isRecording && recorder.recordingState == AudioRecord.RECORDSTATE_RECORDING){
                         val samples = FloatArray(1600)
 
@@ -347,13 +369,23 @@ class RecognizeActivity : ComponentActivity() {
                         val rms = sqrt(samples.sumOf { (it * it).toDouble() } / samples.size).toFloat()
                         if(rms > 0.01) hasTalked = true
 
+                        if(rms > 0.0001){
+                            anyNoiseAtAll = true
+                            isMicBlocked = false
+                        }
+
+                        // Check if mic is blocked
+                        if(!anyNoiseAtAll && canMicBeBlocked && (floatSamples.position() > 2*16000)){
+                            isMicBlocked = true
+                        }
+
                         val magnitude = (1.0f - 0.1f.pow(24.0f * rms))
 
                         // TODO: This seems like it might not be the most efficient way
                         withContext(Dispatchers.Main) {
                             setContent {
                                 RecognizeWindow(onClose = { onCancel() }) {
-                                    InnerRecognize(onFinish = { onFinish() }, magnitude = magnitude, hasTalked = hasTalked)
+                                    InnerRecognize(onFinish = { onFinish() }, magnitude = magnitude, hasTalked = hasTalked, isMicBlocked = isMicBlocked)
                                 }
                             }
                         }

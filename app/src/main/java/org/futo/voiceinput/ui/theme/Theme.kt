@@ -54,7 +54,7 @@ fun WhisperVoiceInputTheme(
         else -> LightColorScheme
     }
     val view = LocalView.current
-    if (!view.isInEditMode) {
+    /*if (!view.isInEditMode) {
         SideEffect {
             if(view.context is Activity) {
                 val window = (view.context as Activity).window
@@ -63,7 +63,7 @@ fun WhisperVoiceInputTheme(
                     darkTheme
             }
         }
-    }
+    }*/
 
     MaterialTheme(
             colorScheme = colorScheme,
