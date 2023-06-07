@@ -1,5 +1,6 @@
 package org.futo.voiceinput
 
+import android.Manifest
 import android.content.Context
 import android.inputmethodservice.InputMethodService
 import android.os.Build
@@ -7,6 +8,7 @@ import android.text.InputType
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodSubtype
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -201,7 +203,10 @@ class VoiceInputMethodService : InputMethodService(), LifecycleOwner, ViewModelS
             }
 
             override fun requestPermission() {
-                TODO("Not yet implemented")
+                // We can't ask for permission from a service
+                // TODO: We could launch an activity and request it that way
+
+                permissionResultRejected()
             }
 
             @Composable

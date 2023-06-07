@@ -8,6 +8,7 @@ import android.os.Bundle
 import android.speech.RecognizerIntent
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -125,30 +126,15 @@ class RecognizeActivity : ComponentActivity() {
         recognizer.init()
     }
 
-    private fun requestPermission() {
-        ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.RECORD_AUDIO), PERMISSION_CODE)
-    }
-
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-
-        if(requestCode == PERMISSION_CODE){
-            for (i in permissions.indices) {
-                val permission = permissions[i]
-                val grantResult = grantResults[i]
-                if (permission == Manifest.permission.RECORD_AUDIO) {
-                    if (grantResult == PackageManager.PERMISSION_GRANTED) {
-                        recognizer.permissionResultGranted()
-                    } else {
-                        recognizer.permissionResultRejected()
-                    }
-                }
-            }
+    private val permission = registerForActivityResult(ActivityResultContracts.RequestPermission()) {
+        if(it){
+            recognizer.permissionResultGranted()
+        } else {
+            recognizer.permissionResultRejected()
         }
+    }
+    private fun requestPermission() {
+        permission.launch(Manifest.permission.RECORD_AUDIO)
     }
 
     private fun sendResult(result: String) {

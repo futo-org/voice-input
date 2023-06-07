@@ -34,7 +34,7 @@ enum class MagnitudeState {
 
 abstract class AudioRecognizer {
     private var isRecording = false
-    private lateinit var recorder: AudioRecord
+    private var recorder: AudioRecord? = null
 
     private var model: Whisper? = null
 
@@ -66,7 +66,7 @@ abstract class AudioRecognizer {
         recorderJob?.cancel()
         modelJob?.cancel()
         isRecording = false
-        recorder.stop()
+        recorder?.stop()
 
         cancelled()
     }
@@ -88,15 +88,6 @@ abstract class AudioRecognizer {
 
     fun create() {
         loading()
-
-
-        recorder = AudioRecord(
-            MediaRecorder.AudioSource.VOICE_RECOGNITION,
-            16000,
-            AudioFormat.CHANNEL_IN_MONO,
-            AudioFormat.ENCODING_PCM_16BIT, // could use ENCODING_PCM_FLOAT
-            16000 * 2 * 30
-        )
 
         if (context.checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
             // request permission and call startRecording once granted, or exit activity if denied
@@ -133,10 +124,10 @@ abstract class AudioRecognizer {
             )
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                recorder.setPreferredMicrophoneDirection(MicrophoneDirection.MIC_DIRECTION_TOWARDS_USER)
+                recorder!!.setPreferredMicrophoneDirection(MicrophoneDirection.MIC_DIRECTION_TOWARDS_USER)
             }
 
-            recorder.startRecording()
+            recorder!!.startRecording()
 
             isRecording = true
 
@@ -155,13 +146,13 @@ abstract class AudioRecognizer {
                     var isMicBlocked = false
 
 
-                    while(isRecording && recorder.recordingState == AudioRecord.RECORDSTATE_RECORDING){
+                    while(isRecording && recorder!!.recordingState == AudioRecord.RECORDSTATE_RECORDING){
                         val samples = FloatArray(1600)
 
-                        val nRead = recorder.read(samples, 0, 1600, AudioRecord.READ_BLOCKING)
+                        val nRead = recorder!!.read(samples, 0, 1600, AudioRecord.READ_BLOCKING)
 
                         if(nRead <= 0) break
-                        if(!isRecording || recorder.recordingState != AudioRecord.RECORDSTATE_RECORDING) break
+                        if(!isRecording || recorder!!.recordingState != AudioRecord.RECORDSTATE_RECORDING) break
 
                         if(floatSamples.remaining() < 1600) {
                             withContext(Dispatchers.Main){ finishRecognizer() }
@@ -199,7 +190,7 @@ abstract class AudioRecognizer {
                         // Skip ahead as much as possible, in case we are behind (taking more than
                         // 100ms to process 100ms)
                         while(true){
-                            val nRead2 = recorder.read(samples, 0, 1600, AudioRecord.READ_NON_BLOCKING)
+                            val nRead2 = recorder!!.read(samples, 0, 1600, AudioRecord.READ_NON_BLOCKING)
                             if(nRead2 > 0) {
                                 if(floatSamples.remaining() < nRead2){
                                     withContext(Dispatchers.Main){ finishRecognizer() }
@@ -275,7 +266,7 @@ abstract class AudioRecognizer {
         }
 
         isRecording = false
-        recorder.stop()
+        recorder?.stop()
 
         processing()
 
