@@ -128,6 +128,58 @@ class VoiceInputMethodService : InputMethodService(), LifecycleOwner, ViewModelS
         handleLifecycleEvent(Lifecycle.Event.ON_RESUME)
     }
 
+    private val recognizer = object : RecognizerView() {
+        override val context: Context
+            get() = this@VoiceInputMethodService
+        override val lifecycleScope: LifecycleCoroutineScope
+            get() = this@VoiceInputMethodService.lifecycle.coroutineScope
+
+        override fun setContent(content: @Composable () -> Unit) {
+            composeView?.setContent { content() }
+        }
+
+        override fun onCancel() {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                switchToNextInputMethod(false)
+            }
+        }
+
+        override fun sendResult(result: String) {
+            this@VoiceInputMethodService.currentInputConnection.also {
+                var modifiedResult = result
+
+                // Insert space automatically if ended at punctuation
+                // TODO: Could send text before cursor as whisper prompt
+                val prevText = it.getTextBeforeCursor(1, 0)
+                if(!prevText.isNullOrBlank()){
+                    val lastChar = prevText[0]
+                    val punctuationChars = setOf('!', '?', '.', ',')
+                    if(punctuationChars.contains(lastChar)) {
+                        modifiedResult = " " + result
+                    }
+                }
+
+                println("Committing result $modifiedResult")
+                it.commitText(modifiedResult, 1)
+            }
+            onCancel()
+        }
+
+        override fun requestPermission() {
+            // We can't ask for permission from a service
+            // TODO: We could launch an activity and request it that way
+
+            permissionResultRejected()
+        }
+
+        @Composable
+        override fun window(onClose: () -> Unit, content: @Composable ColumnScope.() -> Unit) {
+            RecognizerInputMethodWindow(switchBack = onClose) {
+                content()
+            }
+        }
+    }
+
     private fun setOwners() {
         val decorView = window.window?.decorView
         if (decorView?.findViewTreeLifecycleOwner() == null) {
@@ -142,7 +194,7 @@ class VoiceInputMethodService : InputMethodService(), LifecycleOwner, ViewModelS
     }
 
     private var composeView: ComposeView? = null
-    private var recognizer: RecognizerView? = null
+
     override fun onCreateInputView(): View {
         // The input view is the main view where the user inputs text via keyclicks, handwriting,
         // gestures, or in this case there is a voice input menu.
@@ -151,71 +203,6 @@ class VoiceInputMethodService : InputMethodService(), LifecycleOwner, ViewModelS
             setParentCompositionContext(null)
 
             this@VoiceInputMethodService.setOwners()
-        }
-
-        val switchBack = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            if(shouldOfferSwitchingToNextInputMethod()) {
-                fun() {
-                    switchToNextInputMethod(false)
-                }
-            } else {
-                null
-            }
-        } else {
-            null
-        }
-
-        recognizer = object : RecognizerView() {
-            override val context: Context
-                get() = this@VoiceInputMethodService
-            override val lifecycleScope: LifecycleCoroutineScope
-                get() = this@VoiceInputMethodService.lifecycle.coroutineScope
-
-            override fun setContent(content: @Composable () -> Unit) {
-                composeView!!.setContent { content() }
-            }
-
-            override fun onCancel() {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                    switchToNextInputMethod(false)
-                }
-            }
-
-            override fun sendResult(result: String) {
-                this@VoiceInputMethodService.currentInputConnection.also {
-                    var modifiedResult = result
-
-                    // Insert space automatically if ended at punctuation
-                    // TODO: Could send text before cursor as whisper prompt
-                    val prevText = it.getTextBeforeCursor(1, 0)
-                    if(!prevText.isNullOrBlank()){
-                        val lastChar = prevText[0]
-                        val punctuationChars = setOf('!', '?', '.', ',')
-                        if(punctuationChars.contains(lastChar)) {
-                            modifiedResult = " " + result
-                        }
-                    }
-
-                    println("Committing result $modifiedResult")
-                    it.commitText(modifiedResult, 1)
-                }
-                onCancel()
-            }
-
-            override fun requestPermission() {
-                // We can't ask for permission from a service
-                // TODO: We could launch an activity and request it that way
-
-                permissionResultRejected()
-            }
-
-            @Composable
-            override fun window(onClose: () -> Unit, content: @Composable ColumnScope.() -> Unit) {
-                RecognizerInputMethodWindow(switchBack = onClose) {
-                    content()
-                }
-            }
-
         }
 
         return composeView!!
@@ -249,6 +236,7 @@ class VoiceInputMethodService : InputMethodService(), LifecycleOwner, ViewModelS
             }
         }
 
+        recognizer?.reset()
         recognizer?.init()
         // TODO: After we finish, we need to enter a sort of idle state rather than instantly
         // switching?
@@ -265,6 +253,7 @@ class VoiceInputMethodService : InputMethodService(), LifecycleOwner, ViewModelS
     override fun onDestroy() {
         super.onDestroy()
 
+        println("Destroy")
         handleLifecycleEvent(Lifecycle.Event.ON_DESTROY)
     }
 }

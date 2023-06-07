@@ -59,18 +59,23 @@ abstract class AudioRecognizer {
 
 
     protected fun finishRecognizer() {
+        println("Finish called")
         onFinishRecording()
     }
 
     protected fun cancelRecognizer() {
-        recorderJob?.cancel()
-        modelJob?.cancel()
-        isRecording = false
-        recorder?.stop()
+        println("Cancelling recognition")
+        reset()
 
         cancelled()
     }
 
+    fun reset() {
+        recorder?.stop()
+        recorderJob?.cancel()
+        modelJob?.cancel()
+        isRecording = false
+    }
 
     protected fun openPermissionSettings() {
         val packageName = context.packageName
@@ -113,7 +118,12 @@ abstract class AudioRecognizer {
         permissionRejected()
     }
 
-    protected fun startRecording(){
+    private fun startRecording(){
+        println("start record called")
+        if(isRecording) {
+            throw IllegalStateException("Start recording when already recording")
+        }
+
         try {
             recorder = AudioRecord(
                 MediaRecorder.AudioSource.VOICE_RECOGNITION,
@@ -139,16 +149,15 @@ abstract class AudioRecognizer {
                 false
             }
 
+            println("Start record job")
             recorderJob = lifecycleScope.launch {
                 withContext(Dispatchers.Default) {
                     var hasTalked = false
                     var anyNoiseAtAll = false
                     var isMicBlocked = false
 
-
+                    val samples = FloatArray(1600)
                     while(isRecording && recorder!!.recordingState == AudioRecord.RECORDSTATE_RECORDING){
-                        val samples = FloatArray(1600)
-
                         val nRead = recorder!!.read(samples, 0, 1600, AudioRecord.READ_BLOCKING)
 
                         if(nRead <= 0) break
@@ -259,6 +268,7 @@ abstract class AudioRecognizer {
     }
 
     private fun onFinishRecording() {
+        println("Finish recording")
         recorderJob?.cancel()
 
         if(!isRecording) {

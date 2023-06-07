@@ -123,6 +123,7 @@ class RecognizeActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        recognizer.reset()
         recognizer.init()
     }
 

@@ -199,6 +199,10 @@ abstract class RecognizerView {
         }
     }
 
+    fun reset() {
+        recognizer.reset()
+    }
+
     fun init() {
         recognizer.create()
     }
