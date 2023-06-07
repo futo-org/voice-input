@@ -36,7 +36,7 @@ abstract class AudioRecognizer {
     private var isRecording = false
     private lateinit var recorder: AudioRecord
 
-    private lateinit var model: Whisper
+    private var model: Whisper? = null
 
     private val floatSamples: FloatBuffer = FloatBuffer.allocate(16000 * 30)
     private var recorderJob: Job? = null
@@ -107,7 +107,10 @@ abstract class AudioRecognizer {
         }
 
         // TODO: Use service or something to avoid recreating model each time
-        model = Whisper.newInstance(context)
+        if(model == null) {
+            println("Creating model instance")
+            model = Whisper.newInstance(context)
+        }
     }
 
     fun permissionResultGranted() {
@@ -251,7 +254,7 @@ abstract class AudioRecognizer {
 
         // Runs model inference and gets result.
         // TODO: Iterative decoding?
-        val outputs: Whisper.Outputs = model.process(inputFeature0)
+        val outputs: Whisper.Outputs = model!!.process(inputFeature0)
         val outputFeature0 = outputs.outputFeature0AsTensorBuffer
 
         val text = WhisperTokenizer.convertTokensToString(outputFeature0)

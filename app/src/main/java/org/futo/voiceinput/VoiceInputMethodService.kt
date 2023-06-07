@@ -1,5 +1,6 @@
 package org.futo.voiceinput
 
+import android.content.Context
 import android.inputmethodservice.InputMethodService
 import android.os.Build
 import android.text.InputType
@@ -8,6 +9,7 @@ import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodSubtype
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
@@ -25,10 +27,12 @@ import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleCoroutineScope
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
 import androidx.lifecycle.ViewModelStore
 import androidx.lifecycle.ViewModelStoreOwner
+import androidx.lifecycle.coroutineScope
 import androidx.lifecycle.findViewTreeLifecycleOwner
 import androidx.lifecycle.findViewTreeViewModelStoreOwner
 import androidx.lifecycle.setViewTreeLifecycleOwner
@@ -42,7 +46,7 @@ import org.futo.voiceinput.ui.theme.WhisperVoiceInputTheme
 
 
 @Composable
-fun InputView(switchBack: (() -> Unit)? = null) {
+fun RecognizerInputMethodWindow(switchBack: (() -> Unit)? = null, content: @Composable ColumnScope.() -> Unit) {
     WhisperVoiceInputTheme {
         Surface(
             modifier = Modifier
@@ -67,19 +71,36 @@ fun InputView(switchBack: (() -> Unit)? = null) {
                     
                 }
 
-                InnerRecognize(
-                    onFinish = { }
-                )
+                content()
             }
         }
     }
 }
 
+
 @Preview
 @Composable
-fun InputViewPreview() {
-    InputView(switchBack = { })
+fun RecognizeIMELoadingPreview() {
+    RecognizerInputMethodWindow(switchBack = { }) {
+        RecognizeLoadingCircle()
+    }
 }
+
+@Preview
+@Composable
+fun PreviewRecognizeViewLoadedIME() {
+    RecognizerInputMethodWindow(switchBack = { }) {
+        InnerRecognize(onFinish = { })
+    }
+}
+@Preview
+@Composable
+fun PreviewRecognizeViewNoMicIME() {
+    RecognizerInputMethodWindow(switchBack = { }) {
+        RecognizeMicError(openSettings = { })
+    }
+}
+
 
 class VoiceInputMethodService : InputMethodService(), LifecycleOwner, ViewModelStoreOwner,
     SavedStateRegistryOwner {
@@ -118,34 +139,81 @@ class VoiceInputMethodService : InputMethodService(), LifecycleOwner, ViewModelS
         }
     }
 
-    private lateinit var composeView: ComposeView
+    private var composeView: ComposeView? = null
+    private var recognizer: RecognizerView? = null
     override fun onCreateInputView(): View {
         // The input view is the main view where the user inputs text via keyclicks, handwriting,
         // gestures, or in this case there is a voice input menu.
         composeView = ComposeView(this).apply {
-            val switchBack = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                if(shouldOfferSwitchingToNextInputMethod()) {
-                    fun() {
-                        switchToNextInputMethod(false)
-                    }
-                } else {
-                    null
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+            setParentCompositionContext(null)
+
+            this@VoiceInputMethodService.setOwners()
+        }
+
+        val switchBack = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            if(shouldOfferSwitchingToNextInputMethod()) {
+                fun() {
+                    switchToNextInputMethod(false)
                 }
             } else {
                 null
             }
-
-
-            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-            setParentCompositionContext(null)
-
-            setContent {
-                InputView(switchBack = switchBack)
-            }
-            this@VoiceInputMethodService.setOwners()
+        } else {
+            null
         }
 
-        return composeView
+        recognizer = object : RecognizerView() {
+            override val context: Context
+                get() = this@VoiceInputMethodService
+            override val lifecycleScope: LifecycleCoroutineScope
+                get() = this@VoiceInputMethodService.lifecycle.coroutineScope
+
+            override fun setContent(content: @Composable () -> Unit) {
+                composeView!!.setContent { content() }
+            }
+
+            override fun onCancel() {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                    switchToNextInputMethod(false)
+                }
+            }
+
+            override fun sendResult(result: String) {
+                this@VoiceInputMethodService.currentInputConnection.also {
+                    var modifiedResult = result
+
+                    // Insert space automatically if ended at punctuation
+                    // TODO: Could send text before cursor as whisper prompt
+                    val prevText = it.getTextBeforeCursor(1, 0)
+                    if(!prevText.isNullOrBlank()){
+                        val lastChar = prevText[0]
+                        val punctuationChars = setOf('!', '?', '.', ',')
+                        if(punctuationChars.contains(lastChar)) {
+                            modifiedResult = " " + result
+                        }
+                    }
+
+                    println("Committing result $modifiedResult")
+                    it.commitText(modifiedResult, 1)
+                }
+                onCancel()
+            }
+
+            override fun requestPermission() {
+                TODO("Not yet implemented")
+            }
+
+            @Composable
+            override fun window(onClose: () -> Unit, content: @Composable ColumnScope.() -> Unit) {
+                RecognizerInputMethodWindow(switchBack = onClose) {
+                    content()
+                }
+            }
+
+        }
+
+        return composeView!!
     }
 
     override fun onCreateCandidatesView(): View? {
@@ -175,6 +243,10 @@ class VoiceInputMethodService : InputMethodService(), LifecycleOwner, ViewModelS
                 }
             }
         }
+
+        recognizer?.init()
+        // TODO: After we finish, we need to enter a sort of idle state rather than instantly
+        // switching?
     }
 
     override fun onCurrentInputMethodSubtypeChanged(newSubtype: InputMethodSubtype) {
