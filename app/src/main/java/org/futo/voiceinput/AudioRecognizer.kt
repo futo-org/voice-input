@@ -89,7 +89,6 @@ abstract class AudioRecognizer {
     fun create() {
         loading()
 
-        WhisperTokenizer.init(context)
 
         recorder = AudioRecord(
             MediaRecorder.AudioSource.VOICE_RECOGNITION,
@@ -107,8 +106,10 @@ abstract class AudioRecognizer {
         }
 
         // TODO: Use service or something to avoid recreating model each time
+        // TODO: Move this to a coroutine, it should finish by the time the recording is done
         if(model == null) {
             println("Creating model instance")
+            WhisperTokenizer.init(context)
             model = Whisper.newInstance(context)
         }
     }
