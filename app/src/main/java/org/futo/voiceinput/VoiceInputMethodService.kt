@@ -7,6 +7,7 @@ import android.text.InputType
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodSubtype
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -22,8 +23,12 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.graphics.drawscope.scale
+import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
@@ -54,8 +59,20 @@ fun RecognizerInputMethodWindow(switchBack: (() -> Unit)? = null, content: @Comp
                 .wrapContentHeight(),
             color = MaterialTheme.colorScheme.surface
         ) {
+            val icon = painterResource(id = R.drawable.futo_o)
             Column(
-                modifier = Modifier.padding(0.dp, 0.dp, 0.dp, 64.dp)
+                modifier = Modifier.padding(0.dp, 0.dp, 0.dp, 64.dp).drawBehind {
+                    with(icon) {
+                        translate(left = -icon.intrinsicSize.width/2, top = -icon.intrinsicSize.height/2) {
+                            translate(left = size.width / 3, top = size.height / 2) {
+                                scale(scaleX = 1.3f, scaleY = 1.3f) {
+                                    draw(icon.intrinsicSize)
+                                }
+
+                            }
+                        }
+                    }
+                }
             ) {
 
                 if (switchBack != null) {

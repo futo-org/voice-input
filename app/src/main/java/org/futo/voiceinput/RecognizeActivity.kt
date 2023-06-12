@@ -3,7 +3,6 @@ package org.futo.voiceinput
 import android.Manifest
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.os.Bundle
 import android.speech.RecognizerIntent
 import androidx.activity.ComponentActivity
@@ -25,9 +24,11 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.graphics.drawscope.translate
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.core.app.ActivityCompat
 import androidx.lifecycle.LifecycleCoroutineScope
 import androidx.lifecycle.lifecycleScope
 import org.futo.voiceinput.ui.theme.WhisperVoiceInputTheme
@@ -38,12 +39,23 @@ fun RecognizeWindow(onClose: () -> Unit, content: @Composable ColumnScope.() -> 
     WhisperVoiceInputTheme {
         Surface(
             modifier = Modifier
-                .width(256.dp)
+                .width(280.dp)
                 .wrapContentHeight(),
             color = MaterialTheme.colorScheme.surface,
             shape = RoundedCornerShape(8.dp)
         ) {
-            Column{
+            val icon = painterResource(id = R.drawable.futo_o)
+
+            Column(modifier = Modifier.drawBehind {
+                with(icon) {
+                    translate(left = -icon.intrinsicSize.width/2, top = -icon.intrinsicSize.height/2) {
+                        translate(left = size.width / 4, top = size.height / 3) {
+                            draw(icon.intrinsicSize)
+
+                        }
+                    }
+                }
+            }){
                 IconButton( onClick = onClose, modifier = Modifier.align(Alignment.End) ) {
                     Icon(
                         Icons.Default.Close,
