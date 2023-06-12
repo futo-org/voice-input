@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Icon
@@ -39,7 +40,8 @@ fun RecognizeWindow(onClose: () -> Unit, content: @Composable ColumnScope.() -> 
             modifier = Modifier
                 .width(256.dp)
                 .wrapContentHeight(),
-            color = MaterialTheme.colorScheme.background
+            color = MaterialTheme.colorScheme.surface,
+            shape = RoundedCornerShape(8.dp)
         ) {
             Column{
                 IconButton( onClick = onClose, modifier = Modifier.align(Alignment.End) ) {

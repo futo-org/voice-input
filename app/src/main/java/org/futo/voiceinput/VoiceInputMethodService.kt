@@ -1,6 +1,5 @@
 package org.futo.voiceinput
 
-import android.Manifest
 import android.content.Context
 import android.inputmethodservice.InputMethodService
 import android.os.Build
@@ -8,7 +7,6 @@ import android.text.InputType
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodSubtype
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -54,7 +52,7 @@ fun RecognizerInputMethodWindow(switchBack: (() -> Unit)? = null, content: @Comp
             modifier = Modifier
                 .fillMaxWidth()
                 .wrapContentHeight(),
-            color = MaterialTheme.colorScheme.background
+            color = MaterialTheme.colorScheme.surface
         ) {
             Column(
                 modifier = Modifier.padding(0.dp, 0.dp, 0.dp, 64.dp)
@@ -236,8 +234,8 @@ class VoiceInputMethodService : InputMethodService(), LifecycleOwner, ViewModelS
             }
         }
 
-        recognizer?.reset()
-        recognizer?.init()
+        recognizer.reset()
+        recognizer.init()
         // TODO: After we finish, we need to enter a sort of idle state rather than instantly
         // switching?
     }

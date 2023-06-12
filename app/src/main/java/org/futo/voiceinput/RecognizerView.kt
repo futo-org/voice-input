@@ -2,23 +2,18 @@ package org.futo.voiceinput
 
 import android.content.Context
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -29,16 +24,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameMillis
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.math.MathUtils.clamp
 import androidx.lifecycle.LifecycleCoroutineScope
 import com.google.android.material.math.MathUtils
 import kotlinx.coroutines.launch
-import org.futo.voiceinput.ui.theme.WhisperVoiceInputTheme
 
 @Composable
 fun AnimatedRecognizeCircle(magnitude: Float = 0.5f) {
@@ -69,9 +61,11 @@ fun AnimatedRecognizeCircle(magnitude: Float = 0.5f) {
         }
     }
 
+    val color = MaterialTheme.colorScheme.primary;
+
     Canvas( modifier = Modifier.fillMaxSize() ) {
         // TODO: This seems to scale differently on 2 different devices
-        drawCircle(color = Color.White, radius = radius * 256.0f + 128.0f, alpha = 0.1f)
+        drawCircle(color = color, radius = radius * 256.0f + 128.0f)
     }
 }
 
@@ -108,7 +102,7 @@ fun InnerRecognize(onFinish: () -> Unit, magnitude: Float = 0.5f, state: Magnitu
 
 @Composable
 fun ColumnScope.RecognizeLoadingCircle() {
-    CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally) )
+    CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally), color=MaterialTheme.colorScheme.onPrimary)
 }
 
 @Composable

@@ -2,8 +2,11 @@
 <resources>
 
     <style name="Theme.RecognizerInput" parent="Theme.AppCompat.DayNight.Dialog">
-        <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
+        <item name="android:windowBackground">@null</item>
+        <item name="android:windowCloseOnTouchOutside">false</item>
+        <item name="android:windowIsFloating">true</item>
+        <item name="android:backgroundDimEnabled">true</item>
     </style>
 
     <style name="Theme.WhisperVoiceInput" parent="android:Theme.Material.Light.NoActionBar" />
