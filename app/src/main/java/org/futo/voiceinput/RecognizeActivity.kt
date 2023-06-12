@@ -47,7 +47,8 @@ fun RecognizeWindow(onClose: () -> Unit, content: @Composable ColumnScope.() -> 
                 IconButton( onClick = onClose, modifier = Modifier.align(Alignment.End) ) {
                     Icon(
                         Icons.Default.Close,
-                        contentDescription = "Cancel"
+                        contentDescription = "Cancel",
+                        tint = MaterialTheme.colorScheme.onSurface
                     )
                 }
 

@@ -61,18 +61,19 @@ fun AnimatedRecognizeCircle(magnitude: Float = 0.5f) {
         }
     }
 
-    val color = MaterialTheme.colorScheme.primary;
+    val color = MaterialTheme.colorScheme.secondary;
 
     Canvas( modifier = Modifier.fillMaxSize() ) {
-        // TODO: This seems to scale differently on 2 different devices
-        drawCircle(color = color, radius = radius * 256.0f + 128.0f)
+        val drawRadius = size.height * (0.8f + radius * 2.0f)
+        drawCircle(color = color, radius = drawRadius)
     }
 }
 
 @Composable
 fun InnerRecognize(onFinish: () -> Unit, magnitude: Float = 0.5f, state: MagnitudeState = MagnitudeState.MIC_MAY_BE_BLOCKED) {
     IconButton(
-        onClick = onFinish, modifier = Modifier
+        onClick = onFinish,
+        modifier = Modifier
             .fillMaxWidth()
             .height(80.dp)
             .padding(16.dp)
@@ -81,7 +82,8 @@ fun InnerRecognize(onFinish: () -> Unit, magnitude: Float = 0.5f, state: Magnitu
         Icon(
             painter = painterResource(R.drawable.mic_2_),
             contentDescription = "Stop Recording",
-            modifier = Modifier.size(48.dp)
+            modifier = Modifier.size(48.dp),
+            tint = MaterialTheme.colorScheme.onSecondary
         )
 
     }
@@ -95,7 +97,8 @@ fun InnerRecognize(onFinish: () -> Unit, magnitude: Float = 0.5f, state: Magnitu
     Text(
         text,
         modifier = Modifier.fillMaxWidth(),
-        textAlign = TextAlign.Center
+        textAlign = TextAlign.Center,
+        color = MaterialTheme.colorScheme.onSurface
     )
 }
 
@@ -111,12 +114,20 @@ fun ColumnScope.RecognizeMicError(openSettings: () -> Unit) {
         modifier = Modifier
             .padding(8.dp, 2.dp)
             .align(Alignment.CenterHorizontally),
-        textAlign = TextAlign.Center)
-    IconButton(onClick = { openSettings() }, modifier = Modifier
-        .padding(4.dp)
-        .align(Alignment.CenterHorizontally)
-        .size(64.dp)) {
-        Icon(Icons.Default.Settings, contentDescription = "Open Voice Input Settings", modifier = Modifier.size(32.dp))
+        textAlign = TextAlign.Center,
+        color = MaterialTheme.colorScheme.onSurface
+    )
+    IconButton(onClick = { openSettings() },
+        modifier = Modifier
+            .padding(4.dp)
+            .align(Alignment.CenterHorizontally)
+            .size(64.dp)
+    ) {
+        Icon(Icons.Default.Settings,
+            contentDescription = "Open Voice Input Settings",
+            modifier = Modifier.size(32.dp),
+            tint = MaterialTheme.colorScheme.onSurface
+        )
     }
 }
 

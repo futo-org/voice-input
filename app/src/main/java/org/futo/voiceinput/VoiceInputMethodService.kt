@@ -62,7 +62,8 @@ fun RecognizerInputMethodWindow(switchBack: (() -> Unit)? = null, content: @Comp
                     IconButton(onClick = switchBack, modifier = Modifier.align(Alignment.End)) {
                         Icon(
                             Icons.Default.Close,
-                            contentDescription = "Cancel"
+                            contentDescription = "Cancel",
+                            tint = MaterialTheme.colorScheme.onSurface
                         )
                     }
                 }

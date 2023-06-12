@@ -1,22 +1,27 @@
 package org.futo.voiceinput.ui.theme
 
+import android.app.Activity
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalView
+import androidx.core.view.WindowCompat
 
 private val DarkColorScheme = darkColorScheme(
-    primary = Slate700,
+    primary = Slate600,
     onPrimary = Slate50,
 
-    primaryContainer = Slate600,
+    primaryContainer = Slate700,
     onPrimaryContainer = Slate50,
 
-    secondary = Zinc700,
-    onSecondary = Zinc50,
+    secondary = Slate700,
+    onSecondary = Slate50,
 
-    secondaryContainer = Zinc600,
-    onSecondaryContainer = Zinc50,
+    secondaryContainer = Slate600,
+    onSecondaryContainer = Slate50,
 
     tertiary = Stone700,
     onTertiary = Stone50,
@@ -72,7 +77,7 @@ fun WhisperVoiceInputTheme(
     */
     val colorScheme = DarkColorScheme // TODO: Figure out light/dynamic if it's worth it
 
-    /*
+
     val view = LocalView.current
     if (!view.isInEditMode) {
         SideEffect {
@@ -80,11 +85,11 @@ fun WhisperVoiceInputTheme(
                 val window = (view.context as Activity).window
                 window.statusBarColor = colorScheme.primary.toArgb()
                 WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars =
-                    darkTheme
+                    false
             }
         }
     }
-    */
+
 
     MaterialTheme(
             colorScheme = colorScheme,
