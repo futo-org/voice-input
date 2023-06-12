@@ -1,6 +1,10 @@
 package org.futo.voiceinput
 
 import android.content.Context
+import android.media.AudioAttributes
+import android.media.AudioAttributes.CONTENT_TYPE_SONIFICATION
+import android.media.AudioAttributes.USAGE_ASSISTANCE_SONIFICATION
+import android.media.SoundPool
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxSize
@@ -132,6 +136,16 @@ fun ColumnScope.RecognizeMicError(openSettings: () -> Unit) {
 }
 
 abstract class RecognizerView {
+    private val soundPool = SoundPool.Builder().setMaxStreams(2).setAudioAttributes(
+        AudioAttributes.Builder()
+            .setUsage(USAGE_ASSISTANCE_SONIFICATION)
+            .setContentType(CONTENT_TYPE_SONIFICATION)
+            .build()
+    ).build()
+
+    private var startSoundId: Int = -1
+    private var cancelSoundId: Int = -1
+
     protected abstract val context: Context get
     protected abstract val lifecycleScope: LifecycleCoroutineScope get
 
@@ -150,7 +164,19 @@ abstract class RecognizerView {
         override val lifecycleScope: LifecycleCoroutineScope
             get() = this@RecognizerView.lifecycleScope
 
+        // Tries to play a sound. If it's not yet ready, plays it when it's ready
+        private fun playSound(id: Int) {
+            if(soundPool.play(id, 1.0f, 1.0f, 0, 0, 1.0f) == 0){
+                soundPool.setOnLoadCompleteListener { soundPool, sampleId, status ->
+                    if((sampleId == id) && (status == 0)) {
+                        soundPool.play(id, 1.0f, 1.0f, 0, 0, 1.0f)
+                    }
+                }
+            }
+        }
+
         override fun cancelled() {
+            playSound(cancelSoundId)
             onCancel()
         }
 
@@ -179,12 +205,9 @@ abstract class RecognizerView {
         }
 
         override fun recordingStarted() {
-            // wait until updateMagnitude is called
-            setContent {
-                this@RecognizerView.window(onClose = { cancelRecognizer() }) {
-                    RecognizeLoadingCircle()
-                }
-            }
+            updateMagnitude(0.0f, MagnitudeState.NOT_TALKED_YET)
+
+            playSound(startSoundId)
         }
 
         override fun updateMagnitude(magnitude: Float, state: MagnitudeState) {
@@ -209,6 +232,9 @@ abstract class RecognizerView {
     }
 
     fun init() {
+        startSoundId = soundPool.load(this.context, R.raw.start, 0);
+        cancelSoundId = soundPool.load(this.context, R.raw.cancel, 0);
+
         recognizer.create()
     }
 

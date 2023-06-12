@@ -214,8 +214,6 @@ abstract class AudioRecognizer {
                 }
             }
 
-            // TODO: play a boop sound
-
             recordingStarted()
         } catch(e: SecurityException){
             // this should not be reached, as this function should never be called without
