@@ -3,6 +3,7 @@ package org.futo.voiceinput
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
 import android.speech.RecognizerIntent
@@ -18,8 +19,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -32,6 +35,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
@@ -41,11 +45,24 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import org.futo.voiceinput.ui.theme.Slate300
+import org.futo.voiceinput.ui.theme.Typography
 import org.futo.voiceinput.ui.theme.WhisperVoiceInputTheme
 
+enum class Status {
+    Unknown,
+    False,
+    True;
+
+    companion object {
+        fun from(found: Boolean): Status {
+            return if (found) { Status.True } else { Status.False };
+        }
+    }
+}
+
 @Composable
-fun useIsInputMethodEnabled(i: Int): MutableState<Boolean> {
-    val enabled = remember { mutableStateOf(false) }
+fun useIsInputMethodEnabled(i: Int): MutableState<Status> {
+    val enabled = remember { mutableStateOf(Status.Unknown) }
 
     val context = LocalContext.current
     LaunchedEffect(i) {
@@ -59,22 +76,21 @@ fun useIsInputMethodEnabled(i: Int): MutableState<Boolean> {
             }
         }
 
-        enabled.value = found
+        enabled.value = Status.from(found)
     }
 
     return enabled
 }
 
 @Composable
-fun useIsMicrophonePermitted(i: Int): MutableState<Boolean> {
-    val permitted = rememberSaveable { mutableStateOf(false) }
+fun useIsMicrophonePermitted(i: Int): MutableState<Status> {
+    val permitted = rememberSaveable { mutableStateOf(Status.Unknown) }
 
     val context = LocalContext.current
     LaunchedEffect(i) {
-        if(!permitted.value) {
-            permitted.value =
-                context.checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED
-        }
+        permitted.value = Status.from(
+            context.checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED
+        )
     }
 
     return permitted
@@ -82,37 +98,35 @@ fun useIsMicrophonePermitted(i: Int): MutableState<Boolean> {
 
 @Composable
 fun SetupContainer(inner: @Composable () -> Unit) {
-    WhisperVoiceInputTheme {
-        Box(modifier = Modifier.fillMaxSize()) {
-            Column(
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth(fraction = 1.0f)
+                .fillMaxHeight(fraction = 0.4f)
+        ) {
+            Icon(
+                painter = painterResource(id = R.drawable.futo_logo),
+                contentDescription = "FUTO Logo",
                 modifier = Modifier
-                    .fillMaxWidth(fraction = 1.0f)
-                    .fillMaxHeight(fraction = 0.4f)
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.futo_logo),
-                    contentDescription = "FUTO Logo",
-                    modifier = Modifier
-                        .fillMaxHeight()
-                        .fillMaxWidth(0.75f)
-                        .align(CenterHorizontally),
-                    tint = Slate300
-                )
-            }
+                    .fillMaxHeight()
+                    .fillMaxWidth(0.75f)
+                    .align(CenterHorizontally),
+                tint = Slate300
+            )
+        }
 
+        Row(
+            modifier = Modifier.fillMaxSize()
+        ) {
             Row(
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight(fraction = 0.5f)
+                    .align(CenterVertically)
+                    .padding(32.dp)
             ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .fillMaxHeight(fraction = 0.5f)
-                        .align(CenterVertically)
-                        .padding(32.dp)
-                ) {
-                    Box(modifier = Modifier.align(CenterVertically)) {
-                        inner()
-                    }
+                Box(modifier = Modifier.align(CenterVertically)) {
+                    inner()
                 }
             }
         }
@@ -120,6 +134,13 @@ fun SetupContainer(inner: @Composable () -> Unit) {
 }
 
 
+@Composable
+fun Step(fraction: Float, text: String) {
+    Column(modifier = Modifier.padding(16.dp)) {
+        Text(text, style = Typography.labelSmall)
+        LinearProgressIndicator(progress = fraction, modifier = Modifier.fillMaxWidth())
+    }
+}
 
 // TODO: May wish to have a skip option
 @Composable
@@ -137,6 +158,8 @@ fun SetupEnableIME(onClick: () -> Unit = { }) {
 
     SetupContainer {
         Column {
+            Step(fraction = 0.33f, text = "Step 1 of 2")
+
             Text(
                 "To integrate with existing keyboards, you need to enable the Voice Input Method.",
                 textAlign = TextAlign.Center,
@@ -158,13 +181,28 @@ fun SetupEnableIME(onClick: () -> Unit = { }) {
 @Preview
 fun SetupEnableMic(onClick: () -> Unit = { }) {
     val context = LocalContext.current
+    
+    var askedCount by remember { mutableStateOf(0) }
     val askMicAccess = {
-        (context as MainActivity).requestPermission()
+        if (askedCount++ >= 2) {
+            val packageName = context.packageName
+            val myAppSettings = Intent(
+                Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse(
+                    "package:$packageName"
+                )
+            )
+            myAppSettings.addCategory(Intent.CATEGORY_DEFAULT)
+            myAppSettings.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+            context.startActivity(myAppSettings)
+        } else {
+            (context as MainActivity).requestPermission()
+        }
         onClick()
     }
 
     SetupContainer {
         Column {
+            Step(fraction = 0.66f, text = "Step 2 of 2")
             // TODO: Include some privacy statement
             Text(
                 "In order to use Voice Input, you need to grant microphone permission.",
@@ -196,10 +234,19 @@ fun SetupSwitch(voiceIntentCallback: () -> Unit = { }, voiceIntentResult: String
 
     LaunchedEffect(micI) { refresh() }
 
-    if (!inputMethodEnabled.value) {
+    if (inputMethodEnabled.value == Status.False) {
         SetupEnableIME(onClick = refresh)
-    } else if (!microphonePermitted.value) {
+    } else if (microphonePermitted.value == Status.False) {
         SetupEnableMic(onClick = refresh)
+    } else if ((inputMethodEnabled.value == Status.Unknown) || (microphonePermitted.value == Status.Unknown)) {
+        Row(modifier = Modifier.fillMaxSize()) {
+            Column(modifier = Modifier.fillMaxWidth().align(CenterVertically)) {
+                CircularProgressIndicator(
+                    modifier = Modifier.align(Alignment.CenterHorizontally),
+                    color = MaterialTheme.colorScheme.onPrimary
+                )
+            }
+        }
     } else {
         InputTest(voiceIntentCallback, voiceIntentResult)
     }
