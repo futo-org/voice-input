@@ -7,6 +7,7 @@ import android.speech.RecognizerIntent
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -15,34 +16,62 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import org.futo.voiceinput.Status
 import org.futo.voiceinput.ui.theme.WhisperVoiceInputTheme
 
-@Composable
-fun SetupOrMain(stateIdx: Int = 0) {
-    var i by remember { mutableStateOf(0) }
+data class SettingsUiState(
+     val intentResultText: String = "Result goes here",
+     val numberOfResumes: Int = 0
+)
 
-    val inputMethodEnabled = useIsInputMethodEnabled(i)
-    val microphonePermitted = useIsMicrophonePermitted(i)
+class SettingsViewModel : ViewModel() {
+    private val _uiState = MutableStateFlow(SettingsUiState())
+    val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
 
-    val refresh = {
-        i += 1
+    fun onResume() {
+        _uiState.update { currentState ->
+            currentState.copy(
+                numberOfResumes = currentState.numberOfResumes + 1
+            )
+        }
     }
 
-    LaunchedEffect(stateIdx) { refresh() }
+    fun onIntentResult(result: String) {
+        _uiState.update { currentState ->
+            currentState.copy(
+                intentResultText = result
+            )
+        }
+    }
+}
+
+
+@Composable
+fun SetupOrMain(settingsViewModel: SettingsViewModel = viewModel()) {
+    val settingsUiState by settingsViewModel.uiState.collectAsState()
+
+    val inputMethodEnabled = useIsInputMethodEnabled(settingsUiState.numberOfResumes)
+    val microphonePermitted = useIsMicrophonePermitted(settingsUiState.numberOfResumes)
 
     if (inputMethodEnabled.value == Status.False) {
-        SetupEnableIME(onClick = refresh)
+        SetupEnableIME()
     } else if (microphonePermitted.value == Status.False) {
-        SetupEnableMic(onClick = refresh)
+        SetupEnableMic()
     } else if ((inputMethodEnabled.value == Status.Unknown) || (microphonePermitted.value == Status.Unknown)) {
         Row(modifier = Modifier.fillMaxSize()) {
             Column(modifier = Modifier
@@ -56,34 +85,30 @@ fun SetupOrMain(stateIdx: Int = 0) {
         }
     } else {
         // TODO: A settings menu instead of straight to InputTest
-        InputTest(stateIdx)
+        InputTest(settingsUiState.intentResultText)
     }
 }
 
 class SettingsActivity : ComponentActivity() {
-    internal var resultText = "Result goes here"
-
-    private var stateIdx = 0
     private fun updateContent() {
-        stateIdx += 1
         setContent {
             WhisperVoiceInputTheme {
                 // A surface container using the 'background' color from the theme
                 Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-                    SetupOrMain(stateIdx)
+                    SetupOrMain()
                 }
             }
         }
     }
 
     private val permission = registerForActivityResult(ActivityResultContracts.RequestPermission()) {
-        updateContent()
+        viewModel.onResume()
     }
 
 
     private val voiceIntent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
     private val runVoiceIntent = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-        resultText = when(it.resultCode){
+        viewModel.onIntentResult(when(it.resultCode){
             RESULT_OK -> {
                 val result = it.data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
                 if(result.isNullOrEmpty()) {
@@ -94,9 +119,7 @@ class SettingsActivity : ComponentActivity() {
             }
             RESULT_CANCELED -> "Intent was cancelled"
             else -> "Unknown intent result"
-        }
-
-        updateContent()
+        })
     }
 
     internal fun requestPermission() {
@@ -106,18 +129,31 @@ class SettingsActivity : ComponentActivity() {
         runVoiceIntent.launch(voiceIntent)
     }
 
+    private lateinit var viewModel: SettingsViewModel
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        updateContent()
+
+        val _viewModel: SettingsViewModel by viewModels()
+        viewModel = _viewModel
+
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.uiState.collect {
+                    updateContent()
+                }
+            }
+        }
     }
 
     override fun onResume() {
         super.onResume()
-        updateContent()
+
+        viewModel.onResume()
     }
 
     override fun onRestart() {
         super.onRestart()
-        updateContent()
+
+        viewModel.onResume()
     }
 }

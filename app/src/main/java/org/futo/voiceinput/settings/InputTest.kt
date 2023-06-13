@@ -23,16 +23,8 @@ import androidx.compose.ui.unit.dp
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 @Preview
-fun InputTest(stateIdx: Int = 0) {
+fun InputTest(voiceIntentResult: String = "Voice Intent Result") {
     var text by remember { mutableStateOf("") }
-
-    val context = LocalContext.current
-
-    // TODO: Research better state management than this
-    var voiceIntentResult by remember { mutableStateOf("Voice Intent Result") }
-    LaunchedEffect(stateIdx) {
-        voiceIntentResult = (context as SettingsActivity).resultText
-    }
 
 
     LaunchedEffect(voiceIntentResult) {
@@ -41,7 +33,8 @@ fun InputTest(stateIdx: Int = 0) {
         }
     }
 
-    Column() {
+    val context = LocalContext.current
+    Column {
         TextField(
             value = text,
             onValueChange = { text = it },
