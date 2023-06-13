@@ -147,11 +147,19 @@ fun Step(fraction: Float, text: String) {
 @Preview
 fun SetupEnableIME(onClick: () -> Unit = { }) {
     val context = LocalContext.current
+
     val launchImeOptions = {
-        val intent = Intent()
-        intent.action = Settings.ACTION_INPUT_METHOD_SETTINGS
-        intent.addCategory(Intent.CATEGORY_DEFAULT)
+        // TODO: look into direct boot to get rid of direct boot warning?
+        val intent = Intent(Settings.ACTION_INPUT_METHOD_SETTINGS)
+
+        intent.flags = (Intent.FLAG_ACTIVITY_NEW_TASK
+                or Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED
+                or Intent.FLAG_ACTIVITY_NO_HISTORY
+                or Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS)
+
         context.startActivity(intent)
+        // TODO: I believe some keyboards seem to poll repeatedly to see if it got enabled yet,
+        // to exit settings and go back to the app, not requiring the user to press back
 
         onClick()
     }
@@ -240,7 +248,9 @@ fun SetupSwitch(voiceIntentCallback: () -> Unit = { }, voiceIntentResult: String
         SetupEnableMic(onClick = refresh)
     } else if ((inputMethodEnabled.value == Status.Unknown) || (microphonePermitted.value == Status.Unknown)) {
         Row(modifier = Modifier.fillMaxSize()) {
-            Column(modifier = Modifier.fillMaxWidth().align(CenterVertically)) {
+            Column(modifier = Modifier
+                .fillMaxWidth()
+                .align(CenterVertically)) {
                 CircularProgressIndicator(
                     modifier = Modifier.align(Alignment.CenterHorizontally),
                     color = MaterialTheme.colorScheme.onPrimary
