@@ -108,8 +108,9 @@ fun InnerRecognize(onFinish: () -> Unit, magnitude: Float = 0.5f, state: Magnitu
 
 
 @Composable
-fun ColumnScope.RecognizeLoadingCircle() {
+fun ColumnScope.RecognizeLoadingCircle(text: String = "Initializing...") {
     CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally), color=MaterialTheme.colorScheme.onPrimary)
+    Text(text, modifier = Modifier.align(Alignment.CenterHorizontally))
 }
 
 @Composable
@@ -187,7 +188,7 @@ abstract class RecognizerView {
         override fun loading() {
             setContent {
                 this@RecognizerView.window(onClose = { cancelRecognizer() }) {
-                    RecognizeLoadingCircle()
+                    RecognizeLoadingCircle(text = "Initializing...")
                 }
             }
         }
@@ -221,7 +222,7 @@ abstract class RecognizerView {
         override fun processing() {
             setContent {
                 this@RecognizerView.window(onClose = { cancelRecognizer() }) {
-                    RecognizeLoadingCircle()
+                    RecognizeLoadingCircle(text = "Processing...")
                 }
             }
         }
