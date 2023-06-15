@@ -35,8 +35,8 @@ import org.futo.voiceinput.Status
 import org.futo.voiceinput.ui.theme.WhisperVoiceInputTheme
 
 data class SettingsUiState(
-     val intentResultText: String = "Result goes here",
-     val numberOfResumes: Int = 0
+    val intentResultText: String = "Result goes here",
+    val numberOfResumes: Int = 0
 )
 
 class SettingsViewModel : ViewModel() {
