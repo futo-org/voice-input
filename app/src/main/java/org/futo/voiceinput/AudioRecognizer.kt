@@ -13,8 +13,6 @@ import android.net.Uri
 import android.os.Build
 import android.provider.Settings
 import androidx.lifecycle.LifecycleCoroutineScope
-import androidx.lifecycle.lifecycleScope
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -94,10 +92,12 @@ abstract class AudioRecognizer {
     }
 
     private fun loadModel() {
-        loadModelJob = lifecycleScope.launch {
-            withContext(Dispatchers.Default) {
-                WhisperTokenizer.init(context)
-                model = Whisper.newInstance(context)
+        if(model == null) {
+            loadModelJob = lifecycleScope.launch {
+                withContext(Dispatchers.Default) {
+                    WhisperTokenizer.init(context)
+                    model = Whisper.newInstance(context)
+                }
             }
         }
     }
@@ -219,9 +219,8 @@ abstract class AudioRecognizer {
 
             recordingStarted()
         } catch(e: SecurityException){
-            // this should not be reached, as this function should never be called without
-            // permission.
-            e.printStackTrace()
+            // It's possible we may have lost permission, so let's just ask for permission again
+            needPermission()
         }
     }
 
