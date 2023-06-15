@@ -11,7 +11,7 @@ val Typography = Typography(
     bodyLarge = TextStyle(
         fontFamily = FontFamily.SansSerif,
         fontWeight = FontWeight.Light,
-        fontSize = 18.sp,
+        fontSize = 20.sp,
         lineHeight = 26.sp,
         letterSpacing = 0.5.sp
     ),

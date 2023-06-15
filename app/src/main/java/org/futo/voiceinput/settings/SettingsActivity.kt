@@ -34,6 +34,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.datastore.preferences.core.Preferences
@@ -51,6 +52,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import org.futo.voiceinput.ENABLE_ENGLISH
+import org.futo.voiceinput.ENABLE_MULTILINGUAL
 import org.futo.voiceinput.ENABLE_SOUND
 import org.futo.voiceinput.Status
 import org.futo.voiceinput.ui.theme.Typography
@@ -84,13 +87,15 @@ class SettingsViewModel : ViewModel() {
 
 
 @Composable
-fun SettingItem(title: String, subtitle: String? = null, onClick: () -> Unit, icon: (@Composable () -> Unit)? = null, content: @Composable () -> Unit) {
+fun SettingItem(title: String, subtitle: String? = null, onClick: () -> Unit, icon: (@Composable () -> Unit)? = null, disabled: Boolean = false, content: @Composable () -> Unit) {
     Row(modifier = Modifier
         .fillMaxWidth()
-        .height(54.dp)
-        .clickable {
-            onClick()
-        }
+        .height(64.dp)
+        .clickable(enabled = !disabled, onClick = {
+            if(!disabled) {
+                onClick()
+            }
+        })
         .padding(0.dp, 4.dp, 8.dp, 4.dp)
     ) {
         Column(modifier = Modifier.width(42.dp).align(CenterVertically)) {
@@ -104,6 +109,7 @@ fun SettingItem(title: String, subtitle: String? = null, onClick: () -> Unit, ic
             modifier = Modifier
                 .weight(1f)
                 .align(CenterVertically)
+                .alpha(if(disabled) { 0.5f } else { 1.0f })
         ) {
             Column {
                 Text(title, style = Typography.bodyLarge)
@@ -121,16 +127,16 @@ fun SettingItem(title: String, subtitle: String? = null, onClick: () -> Unit, ic
 
 
 @Composable
-fun SettingToggle(title: String, key: Preferences.Key<Boolean>, default: Boolean, subtitle: String? = null, icon: (@Composable () -> Unit)? = null) {
+fun SettingToggle(title: String, key: Preferences.Key<Boolean>, default: Boolean, subtitle: String? = null, disabled: Boolean = false, icon: (@Composable () -> Unit)? = null) {
     val (enabled, setValue) = useDataStore(key, default)
 
     SettingItem(
         title = title,
         subtitle = subtitle,
-        onClick = { setValue(!enabled) },
+        onClick = { if(!disabled) { setValue(!enabled) } },
         icon = icon
     ) {
-        Switch(checked = enabled, onCheckedChange = { setValue(!enabled) })
+        Switch(checked = enabled, onCheckedChange = { if(!disabled) { setValue(!enabled) } }, enabled = !disabled)
     }
 }
 
@@ -158,9 +164,37 @@ fun SettingsHome(settingsViewModel: SettingsViewModel = viewModel(), navControll
                 default = true,
                 subtitle = "Play sound when recognition starts/cancels"
             )
+            SettingItem(title = "Languages", onClick = { navController.navigate("languages") }) {
+                Icon(Icons.Default.ArrowForward, contentDescription = "Go")
+            }
             SettingItem(title = "Testing Menu", onClick = { navController.navigate("testing") }) {
                 Icon(Icons.Default.ArrowForward, contentDescription = "Go")
             }
+        }
+    }
+}
+
+@Composable
+@Preview
+fun SettingsLanguages(settingsViewModel: SettingsViewModel = viewModel(), navController: NavHostController = rememberNavController()) {
+    Column(modifier = Modifier.padding(16.dp).fillMaxHeight()) {
+        Text("Languages", style = Typography.titleLarge)
+
+        SettingList {
+            SettingToggle(
+                "English",
+                ENABLE_ENGLISH,
+                default = true,
+                disabled = true,
+                subtitle = "Always on"
+            )
+            SettingToggle(
+                "Other languages",
+                ENABLE_MULTILINGUAL,
+                default = false,
+
+                subtitle = "Not Yet Implemented"
+            )
         }
     }
 }
@@ -176,6 +210,9 @@ fun SettingsMain(settingsViewModel: SettingsViewModel = viewModel(), navControll
     ) {
         composable("settingsHome") {
             SettingsHome(settingsViewModel, navController)
+        }
+        composable("languages") {
+            SettingsLanguages(settingsViewModel, navController)
         }
         composable("testing") {
             InputTest(settingsUiState.intentResultText)
