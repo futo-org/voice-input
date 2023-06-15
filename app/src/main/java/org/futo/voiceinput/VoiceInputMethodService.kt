@@ -155,6 +155,7 @@ class VoiceInputMethodService : InputMethodService(), LifecycleOwner, ViewModelS
         }
 
         override fun onCancel() {
+            reset()
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                 switchToNextInputMethod(false)
             }
@@ -175,7 +176,6 @@ class VoiceInputMethodService : InputMethodService(), LifecycleOwner, ViewModelS
                     }
                 }
 
-                println("Committing result $modifiedResult")
                 it.commitText(modifiedResult, 1)
             }
             onCancel()

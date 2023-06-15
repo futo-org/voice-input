@@ -41,6 +41,8 @@ abstract class AudioRecognizer {
     private val floatSamples: FloatBuffer = FloatBuffer.allocate(16000 * 30)
     private var recorderJob: Job? = null
     private var modelJob: Job? = null
+    private var loadModelJob: Job? = null
+
 
     protected abstract val context: Context get
     protected abstract val lifecycleScope: LifecycleCoroutineScope get
@@ -91,22 +93,24 @@ abstract class AudioRecognizer {
         cancelRecognizer()
     }
 
+    private fun loadModel() {
+        loadModelJob = lifecycleScope.launch {
+            withContext(Dispatchers.Default) {
+                WhisperTokenizer.init(context)
+                model = Whisper.newInstance(context)
+            }
+        }
+    }
+
     fun create() {
         loading()
 
+        loadModel()
+
         if (context.checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
-            // request permission and call startRecording once granted, or exit activity if denied
             needPermission()
         }else{
             startRecording()
-        }
-
-        // TODO: Use service or something to avoid recreating model each time
-        // TODO: Move this to a coroutine, it should finish by the time the recording is done
-        if(model == null) {
-            println("Creating model instance")
-            WhisperTokenizer.init(context)
-            model = Whisper.newInstance(context)
         }
     }
 
@@ -119,7 +123,6 @@ abstract class AudioRecognizer {
     }
 
     private fun startRecording(){
-        println("start record called")
         if(isRecording) {
             throw IllegalStateException("Start recording when already recording")
         }
@@ -222,7 +225,15 @@ abstract class AudioRecognizer {
         }
     }
 
-    private fun runModel(){
+    private suspend fun runModel(){
+        if(loadModelJob != null && loadModelJob!!.isActive) {
+            loadModelJob!!.join()
+        }else if(model == null) {
+            println("Model was null by the time runModel was called...")
+            loadModel()
+            loadModelJob!!.join()
+        }
+
         val extractor =
             AudioFeatureExtraction()
         extractor.hop_length = 160
@@ -266,7 +277,6 @@ abstract class AudioRecognizer {
     }
 
     private fun onFinishRecording() {
-        println("Finish recording")
         recorderJob?.cancel()
 
         if(!isRecording) {
