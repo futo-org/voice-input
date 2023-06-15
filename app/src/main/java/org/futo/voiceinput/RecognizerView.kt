@@ -34,6 +34,9 @@ import androidx.compose.ui.unit.dp
 import androidx.core.math.MathUtils.clamp
 import androidx.lifecycle.LifecycleCoroutineScope
 import com.google.android.material.math.MathUtils
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.last
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
 @Composable
@@ -167,10 +170,18 @@ abstract class RecognizerView {
 
         // Tries to play a sound. If it's not yet ready, plays it when it's ready
         private fun playSound(id: Int) {
-            if(soundPool.play(id, 1.0f, 1.0f, 0, 0, 1.0f) == 0){
-                soundPool.setOnLoadCompleteListener { soundPool, sampleId, status ->
-                    if((sampleId == id) && (status == 0)) {
-                        soundPool.play(id, 1.0f, 1.0f, 0, 0, 1.0f)
+            lifecycleScope.launch {
+                val shouldPlaySounds: Flow<Boolean> = context.dataStore.data.map { preferences -> preferences[ENABLE_SOUND] ?: true }
+
+                shouldPlaySounds.collect {
+                    if(it){
+                        if (soundPool.play(id, 1.0f, 1.0f, 0, 0, 1.0f) == 0) {
+                            soundPool.setOnLoadCompleteListener { soundPool, sampleId, status ->
+                                if ((sampleId == id) && (status == 0)) {
+                                    soundPool.play(id, 1.0f, 1.0f, 0, 0, 1.0f)
+                                }
+                            }
+                        }
                     }
                 }
             }
