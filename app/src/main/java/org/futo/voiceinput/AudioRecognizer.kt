@@ -172,7 +172,16 @@ abstract class AudioRecognizer {
                         }
                         floatSamples.put(samples)
 
-                        val rms = sqrt(samples.sumOf { (it * it).toDouble() } / samples.size).toFloat()
+                        // Set rms 0.0 if the start sound may still be playing, otherwise on some
+                        // devices the rms just explodes and `hasTalked` is always true
+                        val startSoundPassed = (floatSamples.position() > 16000*0.6)
+
+                        val rms = if(startSoundPassed) {
+                            sqrt(samples.sumOf { (it * it).toDouble() } / samples.size).toFloat()
+                        } else {
+                            0.0f
+                        }
+
                         if(rms > 0.01) hasTalked = true
 
                         if(rms > 0.0001){
