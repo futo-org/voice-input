@@ -28,6 +28,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -35,8 +36,10 @@ import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat.startActivity
 import androidx.datastore.preferences.core.Preferences
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModel
@@ -56,6 +59,7 @@ import org.futo.voiceinput.ENABLE_ENGLISH
 import org.futo.voiceinput.ENABLE_MULTILINGUAL
 import org.futo.voiceinput.ENABLE_SOUND
 import org.futo.voiceinput.Status
+import org.futo.voiceinput.downloader.DownloadActivity
 import org.futo.voiceinput.ui.theme.Typography
 import org.futo.voiceinput.ui.theme.WhisperVoiceInputTheme
 
@@ -92,13 +96,15 @@ fun SettingItem(title: String, subtitle: String? = null, onClick: () -> Unit, ic
         .fillMaxWidth()
         .height(64.dp)
         .clickable(enabled = !disabled, onClick = {
-            if(!disabled) {
+            if (!disabled) {
                 onClick()
             }
         })
         .padding(0.dp, 4.dp, 8.dp, 4.dp)
     ) {
-        Column(modifier = Modifier.width(42.dp).align(CenterVertically)) {
+        Column(modifier = Modifier
+            .width(42.dp)
+            .align(CenterVertically)) {
             Box(modifier = Modifier.align(CenterHorizontally)) {
                 if (icon != null) {
                     icon()
@@ -109,13 +115,19 @@ fun SettingItem(title: String, subtitle: String? = null, onClick: () -> Unit, ic
             modifier = Modifier
                 .weight(1f)
                 .align(CenterVertically)
-                .alpha(if(disabled) { 0.5f } else { 1.0f })
+                .alpha(
+                    if (disabled) {
+                        0.5f
+                    } else {
+                        1.0f
+                    }
+                )
         ) {
             Column {
                 Text(title, style = Typography.bodyLarge)
 
                 if (subtitle != null) {
-                    Text(subtitle, style = Typography.labelSmall, color = MaterialTheme.colorScheme.outline)
+                    Text(subtitle, style = Typography.bodySmall, color = MaterialTheme.colorScheme.outline)
                 }
             }
         }
@@ -154,7 +166,9 @@ fun SettingList(content: @Composable () -> Unit) {
 @Composable
 @Preview
 fun SettingsHome(settingsViewModel: SettingsViewModel = viewModel(), navController: NavHostController = rememberNavController()) {
-    Column(modifier = Modifier.padding(16.dp).fillMaxHeight()) {
+    Column(modifier = Modifier
+        .padding(16.dp)
+        .fillMaxHeight()) {
         Text("Settings", style = Typography.titleLarge)
 
         SettingList {
@@ -177,7 +191,20 @@ fun SettingsHome(settingsViewModel: SettingsViewModel = viewModel(), navControll
 @Composable
 @Preview
 fun SettingsLanguages(settingsViewModel: SettingsViewModel = viewModel(), navController: NavHostController = rememberNavController()) {
-    Column(modifier = Modifier.padding(16.dp).fillMaxHeight()) {
+    val (multilingual, _) = useDataStore(key = ENABLE_MULTILINGUAL, default = false)
+    val context = LocalContext.current
+    LaunchedEffect(multilingual) {
+        if(multilingual) {
+            val intent = Intent(context, DownloadActivity::class.java)
+            intent.putStringArrayListExtra("models", arrayListOf("tiny-multilingual"))
+
+            context.startActivity(intent)
+        }
+    }
+
+    Column(modifier = Modifier
+        .padding(16.dp)
+        .fillMaxHeight()) {
         Text("Languages", style = Typography.titleLarge)
 
         SettingList {
