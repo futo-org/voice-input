@@ -58,8 +58,10 @@ import kotlinx.coroutines.launch
 import org.futo.voiceinput.ENABLE_ENGLISH
 import org.futo.voiceinput.ENABLE_MULTILINGUAL
 import org.futo.voiceinput.ENABLE_SOUND
+import org.futo.voiceinput.MULTILINGUAL_MODEL_NAME
 import org.futo.voiceinput.Status
 import org.futo.voiceinput.downloader.DownloadActivity
+import org.futo.voiceinput.modelNeedsDownloading
 import org.futo.voiceinput.ui.theme.Typography
 import org.futo.voiceinput.ui.theme.WhisperVoiceInputTheme
 
@@ -193,10 +195,11 @@ fun SettingsHome(settingsViewModel: SettingsViewModel = viewModel(), navControll
 fun SettingsLanguages(settingsViewModel: SettingsViewModel = viewModel(), navController: NavHostController = rememberNavController()) {
     val (multilingual, _) = useDataStore(key = ENABLE_MULTILINGUAL, default = false)
     val context = LocalContext.current
+
     LaunchedEffect(multilingual) {
-        if(multilingual) {
+        if(multilingual && context.modelNeedsDownloading(MULTILINGUAL_MODEL_NAME)) {
             val intent = Intent(context, DownloadActivity::class.java)
-            intent.putStringArrayListExtra("models", arrayListOf("tiny-multilingual"))
+            intent.putStringArrayListExtra("models", arrayListOf(MULTILINGUAL_MODEL_NAME))
 
             context.startActivity(intent)
         }

@@ -1,13 +1,10 @@
 package org.futo.voiceinput.downloader
 
-import android.Manifest
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import android.speech.RecognizerIntent
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.activity.viewModels
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -23,9 +20,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -34,13 +29,10 @@ import okhttp3.Callback
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
-import org.futo.voiceinput.settings.SettingsViewModel
-import org.futo.voiceinput.settings.SetupOrMain
+import org.futo.voiceinput.modelNeedsDownloading
 import org.futo.voiceinput.ui.theme.WhisperVoiceInputTheme
+import java.io.File
 import java.io.IOException
-import java.lang.Exception
-import java.net.URL
-import java.util.concurrent.TimeUnit
 
 
 data class ModelInfo(
@@ -118,7 +110,6 @@ fun DownloadScreen(models: List<ModelInfo> = EXAMPLE_MODELS) {
     }
 }
 
-
 class DownloadActivity : ComponentActivity() {
     private lateinit var modelsToDownload: List<ModelInfo>
     val httpClient = OkHttpClient()
@@ -146,7 +137,6 @@ class DownloadActivity : ComponentActivity() {
     private fun startDownload() {
         isDownloading = true
         updateContent()
-        // start download
 
         modelsToDownload.forEach {
             val request = Request.Builder().method("GET", null).url(it.url).build()
@@ -159,11 +149,17 @@ class DownloadActivity : ComponentActivity() {
 
                 override fun onResponse(call: Call, response: Response) {
                     response.body?.source()?.let { source ->
+                        val fileName = it.name + ".download"
+                        val file = File.createTempFile(fileName, null, this@DownloadActivity.cacheDir)
+                        val os = file.outputStream()
+
                         val buffer = ByteArray(128 * 1024)
                         var downloaded = 0
                         while (true) {
                             val read = source.read(buffer)
                             if (read == -1) { break }
+
+                            os.write(buffer.sliceArray(0 until read))
 
                             downloaded += read
 
@@ -177,6 +173,10 @@ class DownloadActivity : ComponentActivity() {
                         }
 
                         it.finished = true
+                        os.flush()
+                        os.close()
+
+                        assert(file.renameTo(File(this@DownloadActivity.filesDir, it.name + ".tflite")))
 
                         if(modelsToDownload.all { a -> a.finished}) {
                             finish_()
@@ -227,11 +227,7 @@ class DownloadActivity : ComponentActivity() {
         val models = intent.getStringArrayListExtra("models")
             ?: throw IllegalStateException("intent extra `models` must be specified for DownloadActivity")
 
-        if(models.isEmpty()) {
-            return cancel()
-        }
-
-        modelsToDownload = models.map {
+        modelsToDownload = models.filter { this.modelNeedsDownloading(it) }.map {
             ModelInfo(
                 name = it,
                 url = "https://april.sapples.net/futo/${it}.tflite",
@@ -239,6 +235,8 @@ class DownloadActivity : ComponentActivity() {
                 progress = 0.0f
             )
         }
+
+        if(modelsToDownload.isEmpty()) { cancel() }
 
         isDownloading = false
         updateContent()

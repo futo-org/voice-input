@@ -15,12 +15,22 @@ import android.provider.Settings
 import androidx.lifecycle.LifecycleCoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.futo.voiceinput.ml.Whisper
 import org.tensorflow.lite.DataType
+import org.tensorflow.lite.InterpreterApi.Options.TfLiteRuntime
+import org.tensorflow.lite.TensorFlowLite
+import org.tensorflow.lite.support.model.Model
 import org.tensorflow.lite.support.tensorbuffer.TensorBuffer
+import java.io.File
 import java.nio.FloatBuffer
+import java.nio.channels.FileChannel
+import java.security.MessageDigest
+import kotlin.io.path.absolutePathString
 import kotlin.math.pow
 import kotlin.math.sqrt
 
@@ -34,7 +44,7 @@ abstract class AudioRecognizer {
     private var isRecording = false
     private var recorder: AudioRecord? = null
 
-    private var model: Whisper? = null
+    private var model: WhisperModel? = null
 
     private val floatSamples: FloatBuffer = FloatBuffer.allocate(16000 * 30)
     private var recorderJob: Job? = null
@@ -96,7 +106,41 @@ abstract class AudioRecognizer {
             loadModelJob = lifecycleScope.launch {
                 withContext(Dispatchers.Default) {
                     WhisperTokenizer.init(context)
-                    model = Whisper.newInstance(context)
+
+                    // TODO: Make this more abstract and less of a mess
+                    val isMultilingual: Flow<Boolean> = context.dataStore.data.map { preferences -> preferences[ENABLE_MULTILINGUAL] ?: false }.take(1)
+
+                    isMultilingual.collect { multilingual ->
+                        if(multilingual){
+                            if(context.modelNeedsDownloading(MULTILINGUAL_MODEL_NAME)) {
+                                context.startModelDownloadActivity(MULTILINGUAL_MODEL_NAME)
+                                cancelRecognizer()
+                            } else {
+                                assert(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                                    val path = File(
+                                        context.filesDir,
+                                        "$MULTILINGUAL_MODEL_NAME.tflite"
+                                    ).toPath()
+
+                                    val channel = FileChannel.open(path)
+
+                                    val mappedByteBuffer = channel.map(
+                                        FileChannel.MapMode.READ_ONLY,
+                                        0,
+                                        channel.size()
+                                    ).load()
+
+                                    // TODO: currently model.run crashes with error Failed to run on the given Interpreter: gather index out of bounds
+                                    //  Node number 32 (GATHER) failed to invoke.
+                                    //  Node number 832 (WHILE) failed to invoke.
+                                    model = WhisperModel(mappedByteBuffer, modelPath = path.absolutePathString())
+                                }
+                            }
+                        } else {
+                            model = WhisperModel(context)
+                        }
+                    }
                 }
             }
         }
@@ -231,6 +275,7 @@ abstract class AudioRecognizer {
 
     private suspend fun runModel(){
         if(loadModelJob != null && loadModelJob!!.isActive) {
+            println("Model was not finished loading...")
             loadModelJob!!.join()
         }else if(model == null) {
             println("Model was null by the time runModel was called...")
@@ -268,7 +313,7 @@ abstract class AudioRecognizer {
 
         // Runs model inference and gets result.
         // TODO: Iterative decoding?
-        val outputs: Whisper.Outputs = model!!.process(inputFeature0)
+        val outputs: WhisperModel.Outputs = model!!.process(inputFeature0)
         val outputFeature0 = outputs.outputFeature0AsTensorBuffer
 
         val text = WhisperTokenizer.convertTokensToString(outputFeature0)

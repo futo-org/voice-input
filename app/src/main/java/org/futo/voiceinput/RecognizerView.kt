@@ -37,6 +37,7 @@ import com.google.android.material.math.MathUtils
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.launch
 
 @Composable
@@ -171,7 +172,7 @@ abstract class RecognizerView {
         // Tries to play a sound. If it's not yet ready, plays it when it's ready
         private fun playSound(id: Int) {
             lifecycleScope.launch {
-                val shouldPlaySounds: Flow<Boolean> = context.dataStore.data.map { preferences -> preferences[ENABLE_SOUND] ?: true }
+                val shouldPlaySounds: Flow<Boolean> = context.dataStore.data.map { preferences -> preferences[ENABLE_SOUND] ?: true }.take(1)
 
                 shouldPlaySounds.collect {
                     if(it){
