@@ -90,6 +90,8 @@ class WhisperModel(context: Context, model: ModelData) {
         mel: FloatArray,
         onPartialDecode: (String) -> Unit
     ): String {
+        // TODO: Fall back to English model if English is detected
+
         val audioFeatures = TensorBuffer.createFixedSize(intArrayOf(1, 80, 3000), DataType.FLOAT32)
         audioFeatures.loadArray(mel)
 

@@ -1,5 +1,6 @@
 package org.futo.voiceinput
 
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import androidx.datastore.core.DataStore
@@ -53,6 +54,10 @@ fun Context.startModelDownloadActivity(model: ModelData) {
         model.decoder_file,
         model.vocab_file
     ))
+
+    if(!(this is Activity)) {
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    }
 
     startActivity(intent)
 }

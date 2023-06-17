@@ -217,7 +217,7 @@ fun SettingsLanguages(settingsViewModel: SettingsViewModel = viewModel(), navCon
                 ENABLE_MULTILINGUAL,
                 default = false,
 
-                subtitle = "The accuracy is currently very bad"
+                subtitle = "The accuracy is currently very bad. Enabling this will also reduce English accuracy"
             )
         }
     }

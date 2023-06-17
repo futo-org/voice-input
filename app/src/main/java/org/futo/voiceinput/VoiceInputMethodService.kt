@@ -181,6 +181,15 @@ class VoiceInputMethodService : InputMethodService(), LifecycleOwner, ViewModelS
             onCancel()
         }
 
+        override fun sendPartialResult(result: String): Boolean {
+            if(this@VoiceInputMethodService.currentInputConnection != null) {
+                this@VoiceInputMethodService.currentInputConnection.setComposingText(result, 1)
+                return true
+            } else {
+                return false
+            }
+        }
+
         override fun requestPermission() {
             // We can't ask for permission from a service
             // TODO: We could launch an activity and request it that way

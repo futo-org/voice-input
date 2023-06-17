@@ -158,6 +158,7 @@ abstract class RecognizerView {
 
     abstract fun onCancel()
     abstract fun sendResult(result: String)
+    abstract fun sendPartialResult(result: String): Boolean
     abstract fun requestPermission()
 
     @Composable
@@ -195,6 +196,20 @@ abstract class RecognizerView {
 
         override fun finished(result: String) {
             sendResult(result)
+        }
+
+        override fun languageDetected(result: String) {
+
+        }
+
+        override fun partialResult(result: String) {
+            if(!sendPartialResult(result)) {
+                setContent {
+                    this@RecognizerView.window(onClose = { cancelRecognizer() }) {
+                        RecognizeLoadingCircle(text = "$result [...]")
+                    }
+                }
+            }
         }
 
         override fun loading() {

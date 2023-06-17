@@ -50,6 +50,8 @@ abstract class AudioRecognizer {
 
     protected abstract fun cancelled()
     protected abstract fun finished(result: String)
+    protected abstract fun languageDetected(result: String)
+    protected abstract fun partialResult(result: String)
 
     protected abstract fun loading()
     protected abstract fun needPermission()
@@ -290,6 +292,12 @@ abstract class AudioRecognizer {
         val decodingTime = measureTimeMillis {
             text = model.run(mel) {
                 println("Partial result: $it")
+
+                lifecycleScope.launch {
+                    withContext(Dispatchers.Main) {
+                        partialResult(it)
+                    }
+                }
             }
         }
 

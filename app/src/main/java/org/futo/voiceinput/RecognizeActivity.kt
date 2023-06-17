@@ -120,6 +120,10 @@ class RecognizeActivity : ComponentActivity() {
             this@RecognizeActivity.sendResult(result)
         }
 
+        override fun sendPartialResult(result: String): Boolean {
+            return false
+        }
+
         override fun requestPermission() {
             this@RecognizeActivity.requestPermission()
         }
