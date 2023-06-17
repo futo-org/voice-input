@@ -20,19 +20,12 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.futo.voiceinput.ml.Whisper
-import org.tensorflow.lite.DataType
-import org.tensorflow.lite.InterpreterApi.Options.TfLiteRuntime
-import org.tensorflow.lite.TensorFlowLite
-import org.tensorflow.lite.support.model.Model
-import org.tensorflow.lite.support.tensorbuffer.TensorBuffer
-import java.io.File
+import org.futo.voiceinput.ml.WhisperModel
+import java.io.IOException
 import java.nio.FloatBuffer
-import java.nio.channels.FileChannel
-import java.security.MessageDigest
-import kotlin.io.path.absolutePathString
 import kotlin.math.pow
 import kotlin.math.sqrt
+import kotlin.system.measureTimeMillis
 
 enum class MagnitudeState {
     NOT_TALKED_YET,
@@ -105,40 +98,19 @@ abstract class AudioRecognizer {
         if(model == null) {
             loadModelJob = lifecycleScope.launch {
                 withContext(Dispatchers.Default) {
-                    WhisperTokenizer.init(context)
-
                     // TODO: Make this more abstract and less of a mess
                     val isMultilingual: Flow<Boolean> = context.dataStore.data.map { preferences -> preferences[ENABLE_MULTILINGUAL] ?: false }.take(1)
 
                     isMultilingual.collect { multilingual ->
                         if(multilingual){
-                            if(context.modelNeedsDownloading(MULTILINGUAL_MODEL_NAME)) {
-                                context.startModelDownloadActivity(MULTILINGUAL_MODEL_NAME)
+                            try {
+                                model = WhisperModel(context, TINY_MULTILINGUAL_MODEL_DATA)
+                            } catch (e: IOException) {
+                                context.startModelDownloadActivity(TINY_MULTILINGUAL_MODEL_DATA)
                                 cancelRecognizer()
-                            } else {
-                                assert(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
-                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                                    val path = File(
-                                        context.filesDir,
-                                        "$MULTILINGUAL_MODEL_NAME.tflite"
-                                    ).toPath()
-
-                                    val channel = FileChannel.open(path)
-
-                                    val mappedByteBuffer = channel.map(
-                                        FileChannel.MapMode.READ_ONLY,
-                                        0,
-                                        channel.size()
-                                    ).load()
-
-                                    // TODO: currently model.run crashes with error Failed to run on the given Interpreter: gather index out of bounds
-                                    //  Node number 32 (GATHER) failed to invoke.
-                                    //  Node number 832 (WHILE) failed to invoke.
-                                    model = WhisperModel(mappedByteBuffer, modelPath = path.absolutePathString())
-                                }
                             }
                         } else {
-                            model = WhisperModel(context)
+                            model = WhisperModel(context, TINY_ENGLISH_MODEL_DATA)
                         }
                     }
                 }
@@ -283,40 +255,45 @@ abstract class AudioRecognizer {
             loadModelJob!!.join()
         }
 
-        val extractor =
-            AudioFeatureExtraction()
-        extractor.hop_length = 160
-        extractor.n_fft = 512
-        extractor.sampleRate = 16000.0
-        extractor.n_mels = 80
-
+        val model = model!!
 
         val mel = FloatArray(80 * 3000)
-        val data = extractor.melSpectrogram(floatSamples.array())
-        for (i in 0..79) {
-            for (j in data[i].indices) {
-                if((i * 3000 + j) >= (80 * 3000)) {
-                    continue
+
+        val melTime = measureTimeMillis {
+            val extractor =
+                AudioFeatureExtraction()
+            extractor.hop_length = 160
+            extractor.n_fft = 512
+            extractor.sampleRate = 16000.0
+            extractor.n_mels = 80
+
+
+            val data = extractor.melSpectrogram(floatSamples.array())
+            for (i in 0..79) {
+                for (j in data[i].indices) {
+                    if ((i * 3000 + j) >= (80 * 3000)) {
+                        continue
+                    }
+                    mel[i * 3000 + j] = ((extractor.log10(
+                        Math.max(
+                            0.000000001,
+                            data[i][j]
+                        )
+                    ) + 4.0) / 4.0).toFloat()
                 }
-                mel[i * 3000 + j] = ((extractor.log10(
-                    Math.max(
-                        0.000000001,
-                        data[i][j]
-                    )
-                ) + 4.0) / 4.0).toFloat()
+            }
+        }
+        println("Time taken to mel: $melTime")
+
+        var text = ""
+
+        val decodingTime = measureTimeMillis {
+            text = model.run(mel) {
+                println("Partial result: $it")
             }
         }
 
-        // Creates inputs for reference.
-        val inputFeature0 = TensorBuffer.createFixedSize(intArrayOf(1, 80, 3000), DataType.FLOAT32)
-        inputFeature0.loadArray(mel)
-
-        // Runs model inference and gets result.
-        // TODO: Iterative decoding?
-        val outputs: WhisperModel.Outputs = model!!.process(inputFeature0)
-        val outputFeature0 = outputs.outputFeature0AsTensorBuffer
-
-        val text = WhisperTokenizer.convertTokensToString(outputFeature0)
+        println("Time taken to run model: $decodingTime")
 
         lifecycleScope.launch {
             withContext(Dispatchers.Main) {

@@ -5,6 +5,7 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -29,6 +30,8 @@ import okhttp3.Callback
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
+import okhttp3.internal.headersContentLength
+import org.futo.voiceinput.fileNeedsDownloading
 import org.futo.voiceinput.modelNeedsDownloading
 import org.futo.voiceinput.ui.theme.WhisperVoiceInputTheme
 import java.io.File
@@ -48,21 +51,32 @@ val EXAMPLE_MODELS = listOf(ModelInfo(
     name = "tiny-multilingual",
     url = "example.com",
     size = 56L*1024L*1024L,
-    progress = 0.5f
+    progress = 0.5f,
+    error = true
 ))
 
 @Composable
 fun ModelItem(model: ModelInfo = EXAMPLE_MODELS[0], showProgress: Boolean = false) {
     Column(modifier = Modifier.padding(4.dp)) {
-        Text(
-            "${model.name}: ${
-                if (model.size != null) {
-                    model.size!! / 1000000L
-                } else {
-                    "..."
-                }
-            }MB"
-        )
+        val rowModifier = if(model.error) {
+            Modifier.background(MaterialTheme.colorScheme.errorContainer)
+        } else {
+            Modifier
+        }
+
+        Row(modifier = rowModifier.padding(4.dp)) {
+            val size = if(model.size != null) {
+                "%.1f".format(model.size!!.toFloat() / 1000000.0f)
+            } else {
+                "?"
+            }
+            Text(
+                "${model.name}: $size MB",
+            )
+            if(model.error) {
+                Text(" [Error]")
+            }
+        }
 
         if (showProgress) {
             LinearProgressIndicator(progress = model.progress, modifier = Modifier.fillMaxWidth())
@@ -74,7 +88,7 @@ fun ModelItem(model: ModelInfo = EXAMPLE_MODELS[0], showProgress: Boolean = fals
 @Preview
 fun DownloadPrompt(onContinue: () -> Unit = {}, onCancel: () -> Unit = {}, models: List<ModelInfo> = EXAMPLE_MODELS) {
     Column(modifier = Modifier.padding(8.dp)) {
-        Text("To continue, one or more speech recognition models need to be downloaded. This may incur data fees if you're using mobile data instead of Wi-Fi")
+        Text("To continue, one or more speech recognition model resources need to be downloaded. This may incur data fees if you're using mobile data instead of Wi-Fi")
 
         Column(modifier = Modifier.padding(8.dp)) {
             models.forEach {
@@ -176,7 +190,7 @@ class DownloadActivity : ComponentActivity() {
                         os.flush()
                         os.close()
 
-                        assert(file.renameTo(File(this@DownloadActivity.filesDir, it.name + ".tflite")))
+                        assert(file.renameTo(File(this@DownloadActivity.filesDir, it.name)))
 
                         if(modelsToDownload.all { a -> a.finished}) {
                             finish_()
@@ -201,7 +215,7 @@ class DownloadActivity : ComponentActivity() {
 
     private fun obtainModelSizes() {
         modelsToDownload.forEach {
-            val request = Request.Builder().method("HEAD", null).url(it.url).build()
+            val request = Request.Builder().method("HEAD", null).header("accept-encoding", "identity").url(it.url).build()
 
             httpClient.newCall(request).enqueue(object : Callback {
                 override fun onFailure(call: Call, e: IOException) {
@@ -211,8 +225,16 @@ class DownloadActivity : ComponentActivity() {
 
                 override fun onResponse(call: Call, response: Response) {
                     try {
-                        it.size = response.headers.get("content-length")!!.toLong()
+                        it.size = response.headers["content-length"]!!.toLong()
                     } catch(e: Exception) {
+                        println("url failed ${it.url}")
+                        println(response.headers)
+                        e.printStackTrace()
+                        it.error = true
+                    }
+
+                    if(response.code != 200) {
+                        println("Bad response code ${response.code}")
                         it.error = true
                     }
                     updateContent()
@@ -227,10 +249,10 @@ class DownloadActivity : ComponentActivity() {
         val models = intent.getStringArrayListExtra("models")
             ?: throw IllegalStateException("intent extra `models` must be specified for DownloadActivity")
 
-        modelsToDownload = models.filter { this.modelNeedsDownloading(it) }.map {
+        modelsToDownload = models.filter { this.fileNeedsDownloading(it) }.map {
             ModelInfo(
                 name = it,
-                url = "https://april.sapples.net/futo/${it}.tflite",
+                url = "https://april.sapples.net/futo/${it}",
                 size = null,
                 progress = 0.0f
             )

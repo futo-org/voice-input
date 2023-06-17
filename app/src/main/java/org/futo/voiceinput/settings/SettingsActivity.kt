@@ -20,7 +20,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowForward
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -31,7 +30,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
@@ -39,7 +37,6 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat.startActivity
 import androidx.datastore.preferences.core.Preferences
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModel
@@ -58,10 +55,10 @@ import kotlinx.coroutines.launch
 import org.futo.voiceinput.ENABLE_ENGLISH
 import org.futo.voiceinput.ENABLE_MULTILINGUAL
 import org.futo.voiceinput.ENABLE_SOUND
-import org.futo.voiceinput.MULTILINGUAL_MODEL_NAME
 import org.futo.voiceinput.Status
-import org.futo.voiceinput.downloader.DownloadActivity
+import org.futo.voiceinput.TINY_MULTILINGUAL_MODEL_DATA
 import org.futo.voiceinput.modelNeedsDownloading
+import org.futo.voiceinput.startModelDownloadActivity
 import org.futo.voiceinput.ui.theme.Typography
 import org.futo.voiceinput.ui.theme.WhisperVoiceInputTheme
 
@@ -197,11 +194,8 @@ fun SettingsLanguages(settingsViewModel: SettingsViewModel = viewModel(), navCon
     val context = LocalContext.current
 
     LaunchedEffect(multilingual) {
-        if(multilingual && context.modelNeedsDownloading(MULTILINGUAL_MODEL_NAME)) {
-            val intent = Intent(context, DownloadActivity::class.java)
-            intent.putStringArrayListExtra("models", arrayListOf(MULTILINGUAL_MODEL_NAME))
-
-            context.startActivity(intent)
+        if(multilingual && context.modelNeedsDownloading(TINY_MULTILINGUAL_MODEL_DATA)) {
+            context.startModelDownloadActivity(TINY_MULTILINGUAL_MODEL_DATA)
         }
     }
 
@@ -223,7 +217,7 @@ fun SettingsLanguages(settingsViewModel: SettingsViewModel = viewModel(), navCon
                 ENABLE_MULTILINGUAL,
                 default = false,
 
-                subtitle = "Not Yet Implemented"
+                subtitle = "The accuracy is currently very bad"
             )
         }
     }
