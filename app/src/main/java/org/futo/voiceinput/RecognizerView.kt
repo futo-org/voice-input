@@ -7,17 +7,21 @@ import android.media.AudioAttributes.USAGE_ASSISTANCE_SONIFICATION
 import android.media.SoundPool
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -34,11 +38,9 @@ import androidx.compose.ui.unit.dp
 import androidx.core.math.MathUtils.clamp
 import androidx.lifecycle.LifecycleCoroutineScope
 import com.google.android.material.math.MathUtils
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.last
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.launch
+import org.futo.voiceinput.ml.RunState
+import org.futo.voiceinput.ui.theme.Typography
 
 @Composable
 fun AnimatedRecognizeCircle(magnitude: Float = 0.5f) {
@@ -69,7 +71,7 @@ fun AnimatedRecognizeCircle(magnitude: Float = 0.5f) {
         }
     }
 
-    val color = MaterialTheme.colorScheme.secondary;
+    val color = MaterialTheme.colorScheme.secondary
 
     Canvas( modifier = Modifier.fillMaxSize() ) {
         val drawRadius = size.height * (0.8f + radius * 2.0f)
@@ -114,7 +116,31 @@ fun InnerRecognize(onFinish: () -> Unit, magnitude: Float = 0.5f, state: Magnitu
 @Composable
 fun ColumnScope.RecognizeLoadingCircle(text: String = "Initializing...") {
     CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally), color=MaterialTheme.colorScheme.onPrimary)
+    Spacer(modifier = Modifier.height(8.dp))
     Text(text, modifier = Modifier.align(Alignment.CenterHorizontally))
+}
+
+@Composable
+fun ColumnScope.PartialDecodingResult(text: String = "I am speaking [...]") {
+    CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally), color=MaterialTheme.colorScheme.onPrimary)
+    Spacer(modifier = Modifier.height(6.dp))
+    Surface(
+        modifier = Modifier
+            .padding(4.dp)
+            .fillMaxWidth(),
+        color = MaterialTheme.colorScheme.primaryContainer,
+        shape = RoundedCornerShape(4.dp)
+    ) {
+        Text(
+            text,
+            modifier = Modifier
+                .align(Alignment.Start)
+                .padding(8.dp)
+                .defaultMinSize(0.dp, 64.dp),
+            textAlign = TextAlign.Start,
+            style = Typography.bodyMedium
+        )
+    }
 }
 
 @Composable
@@ -141,6 +167,9 @@ fun ColumnScope.RecognizeMicError(openSettings: () -> Unit) {
 }
 
 abstract class RecognizerView {
+    private val shouldPlaySounds: ValueFromSettings<Boolean> = ValueFromSettings(ENABLE_SOUND, true)
+    private val shouldBeVerbose: ValueFromSettings<Boolean> = ValueFromSettings(VERBOSE_PROGRESS, false)
+
     private val soundPool = SoundPool.Builder().setMaxStreams(2).setAudioAttributes(
         AudioAttributes.Builder()
             .setUsage(USAGE_ASSISTANCE_SONIFICATION)
@@ -151,8 +180,8 @@ abstract class RecognizerView {
     private var startSoundId: Int = -1
     private var cancelSoundId: Int = -1
 
-    protected abstract val context: Context get
-    protected abstract val lifecycleScope: LifecycleCoroutineScope get
+    protected abstract val context: Context
+    protected abstract val lifecycleScope: LifecycleCoroutineScope
 
     abstract fun setContent(content: @Composable () -> Unit)
 
@@ -162,9 +191,9 @@ abstract class RecognizerView {
     abstract fun requestPermission()
 
     @Composable
-    abstract fun window(onClose: () -> Unit, content: @Composable ColumnScope.() -> Unit)
+    abstract fun Window(onClose: () -> Unit, content: @Composable ColumnScope.() -> Unit)
 
-    protected val recognizer = object : AudioRecognizer() {
+    private val recognizer = object : AudioRecognizer() {
         override val context: Context
             get() = this@RecognizerView.context
         override val lifecycleScope: LifecycleCoroutineScope
@@ -173,9 +202,7 @@ abstract class RecognizerView {
         // Tries to play a sound. If it's not yet ready, plays it when it's ready
         private fun playSound(id: Int) {
             lifecycleScope.launch {
-                val shouldPlaySounds: Flow<Boolean> = context.dataStore.data.map { preferences -> preferences[ENABLE_SOUND] ?: true }.take(1)
-
-                shouldPlaySounds.collect {
+                shouldPlaySounds.load(context) {
                     if(it){
                         if (soundPool.play(id, 1.0f, 1.0f, 0, 0, 1.0f) == 0) {
                             soundPool.setOnLoadCompleteListener { soundPool, sampleId, status ->
@@ -204,17 +231,38 @@ abstract class RecognizerView {
 
         override fun partialResult(result: String) {
             if(!sendPartialResult(result)) {
-                setContent {
-                    this@RecognizerView.window(onClose = { cancelRecognizer() }) {
-                        RecognizeLoadingCircle(text = "$result [...]")
+                if(result.isNotBlank()) {
+                    setContent {
+                        this@RecognizerView.Window(onClose = { cancelRecognizer() }) {
+                            PartialDecodingResult(text = result)
+                        }
                     }
+                }
+            }
+        }
+
+        override fun decodingStatus(status: RunState) {
+            val text = if(shouldBeVerbose.value) {
+                when(status) {
+                    RunState.ExtractingFeatures -> "Extracting features"
+                    RunState.ProcessingEncoder -> "Running encoder"
+                    RunState.StartedDecoding -> "Decoding started"
+                    RunState.SwitchingModel -> "Switching model"
+                }
+            } else {
+                "Processing"
+            }
+
+            setContent {
+                this@RecognizerView.Window(onClose = { cancelRecognizer() }) {
+                    RecognizeLoadingCircle(text = "$text...")
                 }
             }
         }
 
         override fun loading() {
             setContent {
-                this@RecognizerView.window(onClose = { cancelRecognizer() }) {
+                this@RecognizerView.Window(onClose = { cancelRecognizer() }) {
                     RecognizeLoadingCircle(text = "Initializing...")
                 }
             }
@@ -226,7 +274,7 @@ abstract class RecognizerView {
 
         override fun permissionRejected() {
             setContent {
-                this@RecognizerView.window(onClose = { cancelRecognizer() }) {
+                this@RecognizerView.Window(onClose = { cancelRecognizer() }) {
                     RecognizeMicError(openSettings = { openPermissionSettings() })
                 }
             }
@@ -240,7 +288,7 @@ abstract class RecognizerView {
 
         override fun updateMagnitude(magnitude: Float, state: MagnitudeState) {
             setContent {
-                this@RecognizerView.window(onClose = { cancelRecognizer() }) {
+                this@RecognizerView.Window(onClose = { cancelRecognizer() }) {
                     InnerRecognize(onFinish = { finishRecognizer() }, magnitude = magnitude, state = state)
                 }
             }
@@ -248,7 +296,7 @@ abstract class RecognizerView {
 
         override fun processing() {
             setContent {
-                this@RecognizerView.window(onClose = { cancelRecognizer() }) {
+                this@RecognizerView.Window(onClose = { cancelRecognizer() }) {
                     RecognizeLoadingCircle(text = "Processing...")
                 }
             }
@@ -260,8 +308,12 @@ abstract class RecognizerView {
     }
 
     fun init() {
-        startSoundId = soundPool.load(this.context, R.raw.start, 0);
-        cancelSoundId = soundPool.load(this.context, R.raw.cancel, 0);
+        lifecycleScope.launch {
+            shouldBeVerbose.load(context)
+        }
+
+        startSoundId = soundPool.load(this.context, R.raw.start, 0)
+        cancelSoundId = soundPool.load(this.context, R.raw.cancel, 0)
 
         recognizer.create()
     }

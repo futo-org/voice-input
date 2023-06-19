@@ -4,7 +4,6 @@ import android.content.Context
 import org.tensorflow.lite.DataType
 import org.tensorflow.lite.support.model.Model
 import org.tensorflow.lite.support.tensorbuffer.TensorBuffer
-import java.io.IOException
 import java.nio.MappedByteBuffer
 
 /**
@@ -21,13 +20,13 @@ class WhisperEncoderXatn {
     }
 
 
-    public fun process(audioFeatures: TensorBuffer): Outputs {
-        val outputs: Outputs = Outputs(model)
+    fun process(audioFeatures: TensorBuffer): Outputs {
+        val outputs = Outputs(model)
         model.run(arrayOf<Any>(audioFeatures.buffer), outputs.buffer)
         return outputs
     }
 
-    public fun close() {
+    fun close() {
         model.close()
     }
 

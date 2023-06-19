@@ -7,8 +7,30 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.take
 import org.futo.voiceinput.downloader.DownloadActivity
 import java.io.File
+
+class ValueFromSettings<T>(val key: Preferences.Key<T>, val default: T) {
+    private var _value = default
+
+    val value: T
+        get() { return _value }
+
+    suspend fun load(context: Context, onResult: ((T) -> Unit)? = null) {
+        val valueFlow: Flow<T> = context.dataStore.data.map { preferences -> preferences[key] ?: default }.take(1)
+
+        valueFlow.collect {
+            _value = it
+
+            if(onResult != null) {
+                onResult(it)
+            }
+        }
+    }
+}
 
 enum class Status {
     Unknown,
@@ -55,7 +77,7 @@ fun Context.startModelDownloadActivity(model: ModelData) {
         model.vocab_file
     ))
 
-    if(!(this is Activity)) {
+    if(this !is Activity) {
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
     }
 
@@ -85,5 +107,6 @@ val TINY_MULTILINGUAL_MODEL_DATA = ModelData(
 
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
 val ENABLE_SOUND = booleanPreferencesKey("enable_sounds")
+val VERBOSE_PROGRESS = booleanPreferencesKey("verbose_progress")
 val ENABLE_ENGLISH = booleanPreferencesKey("enable_english")
 val ENABLE_MULTILINGUAL = booleanPreferencesKey("enable_multilingual")

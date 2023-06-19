@@ -12,9 +12,8 @@ private fun loadTextFromResource(context: Context, resourceId: Int): String {
     val resources = context.resources
     try {
         val input = resources.openRawResource(resourceId)
-        val inputString = input.bufferedReader().readText()
 
-        return inputString
+        return input.bufferedReader().readText()
     } catch (e: IOException) {
         throw RuntimeException(e)
     }
@@ -37,18 +36,18 @@ class WhisperTokenizer(tokenJson: String) {
         }
     }
 
-    private var IdToToken: Array<String?> = arrayOfNulls(65536)
-    private var TokenToId: HashMap<String, Int> = hashMapOf()
+    private var idToToken: Array<String?> = arrayOfNulls(65536)
+    private var tokenToId: HashMap<String, Int> = hashMapOf()
 
     init {
         val data = Json.parseToJsonElement(tokenJson)
-        IdToToken = arrayOfNulls(65536)
+        idToToken = arrayOfNulls(65536)
         for(entry in data.jsonObject.entries) {
             val id = entry.value.jsonPrimitive.int
             val text = entry.key
 
-            IdToToken[id] = text
-            TokenToId[text] = id
+            idToToken[id] = text
+            tokenToId[text] = id
         }
     }
 
@@ -56,11 +55,11 @@ class WhisperTokenizer(tokenJson: String) {
     constructor(file: File) : this(loadTextFromFile(file))
 
     fun tokenToString(token: Int): String? {
-        return IdToToken[token]
+        return idToToken[token]
     }
 
     fun stringToToken(token: String): Int? {
-        return TokenToId.get(token)
+        return tokenToId[token]
     }
 
     fun makeStringUnicode(text: String): String {

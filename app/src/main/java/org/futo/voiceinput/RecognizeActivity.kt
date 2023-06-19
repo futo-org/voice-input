@@ -100,8 +100,6 @@ fun PreviewRecognizeViewNoMic() {
 }
 
 class RecognizeActivity : ComponentActivity() {
-    private val PERMISSION_CODE = 904151
-
     private val recognizer = object : RecognizerView() {
         override val context: Context
             get() = this@RecognizeActivity
@@ -129,7 +127,7 @@ class RecognizeActivity : ComponentActivity() {
         }
 
         @Composable
-        override fun window(onClose: () -> Unit, content: @Composable ColumnScope.() -> Unit) {
+        override fun Window(onClose: () -> Unit, content: @Composable ColumnScope.() -> Unit) {
             RecognizeWindow(onClose = onClose) {
                 content()
             }

@@ -1,6 +1,5 @@
 package org.futo.voiceinput.downloader
 
-import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -30,9 +29,7 @@ import okhttp3.Callback
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
-import okhttp3.internal.headersContentLength
 import org.futo.voiceinput.fileNeedsDownloading
-import org.futo.voiceinput.modelNeedsDownloading
 import org.futo.voiceinput.ui.theme.WhisperVoiceInputTheme
 import java.io.File
 import java.io.IOException
@@ -126,8 +123,8 @@ fun DownloadScreen(models: List<ModelInfo> = EXAMPLE_MODELS) {
 
 class DownloadActivity : ComponentActivity() {
     private lateinit var modelsToDownload: List<ModelInfo>
-    val httpClient = OkHttpClient()
-    var isDownloading = false
+    private val httpClient = OkHttpClient()
+    private var isDownloading = false
 
     private fun updateContent() {
         setContent {
@@ -193,7 +190,7 @@ class DownloadActivity : ComponentActivity() {
                         assert(file.renameTo(File(this@DownloadActivity.filesDir, it.name)))
 
                         if(modelsToDownload.all { a -> a.finished}) {
-                            finish_()
+                            downloadsFinished()
                         }
                     }
                 }
@@ -207,7 +204,7 @@ class DownloadActivity : ComponentActivity() {
         finish()
     }
 
-    private fun finish_() {
+    private fun downloadsFinished() {
         val returnIntent = Intent()
         setResult(RESULT_OK, returnIntent)
         finish()

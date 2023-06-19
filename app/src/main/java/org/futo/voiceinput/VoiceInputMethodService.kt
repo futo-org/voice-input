@@ -7,7 +7,6 @@ import android.text.InputType
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodSubtype
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -172,7 +171,7 @@ class VoiceInputMethodService : InputMethodService(), LifecycleOwner, ViewModelS
                     val lastChar = prevText[0]
                     val punctuationChars = setOf('!', '?', '.', ',')
                     if(punctuationChars.contains(lastChar)) {
-                        modifiedResult = " " + result
+                        modifiedResult = " $result"
                     }
                 }
 
@@ -198,7 +197,7 @@ class VoiceInputMethodService : InputMethodService(), LifecycleOwner, ViewModelS
         }
 
         @Composable
-        override fun window(onClose: () -> Unit, content: @Composable ColumnScope.() -> Unit) {
+        override fun Window(onClose: () -> Unit, content: @Composable ColumnScope.() -> Unit) {
             RecognizerInputMethodWindow(switchBack = onClose) {
                 content()
             }
@@ -269,10 +268,6 @@ class VoiceInputMethodService : InputMethodService(), LifecycleOwner, ViewModelS
 
     override fun onCurrentInputMethodSubtypeChanged(newSubtype: InputMethodSubtype) {
         super.onCurrentInputMethodSubtypeChanged(newSubtype)
-    }
-
-    override fun onFinishInput() {
-        super.onFinishInput()
     }
 
     override fun onDestroy() {

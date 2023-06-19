@@ -1,7 +1,7 @@
 package org.futo.voiceinput.ml
 
 import android.content.Context
-import android.os.Build
+import org.futo.voiceinput.AudioFeatureExtraction
 import org.futo.voiceinput.ModelData
 import org.tensorflow.lite.DataType
 import org.tensorflow.lite.support.tensorbuffer.TensorBuffer
@@ -9,37 +9,41 @@ import java.io.File
 import java.io.IOException
 import java.nio.MappedByteBuffer
 import java.nio.channels.FileChannel
+import kotlin.math.max
+
 
 @Throws(IOException::class)
 private fun Context.tryOpenDownloadedModel(pathStr: String): MappedByteBuffer {
-    val path = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-        File(this.filesDir, pathStr).toPath()
-    } else {
-        TODO("VERSION.SDK_INT < O")
-    }
+    val fis = File(this.filesDir, pathStr).inputStream()
+    val channel = fis.channel
 
-    val channel = FileChannel.open(path)
-
-    val mappedByteBuffer = channel.map(
+    return channel.map(
         FileChannel.MapMode.READ_ONLY,
         0, channel.size()
     ).load()
+}
 
-    return mappedByteBuffer
+enum class RunState {
+    ExtractingFeatures,
+    ProcessingEncoder,
+    StartedDecoding,
+    SwitchingModel
 }
 
 class WhisperModel(context: Context, model: ModelData) {
-    val encoderModel: WhisperEncoderXatn
-    val decoderModel: WhisperDecoder
-    val tokenizer: WhisperTokenizer
+    private val encoderModel: WhisperEncoderXatn
+    private val decoderModel: WhisperDecoder
+    private val tokenizer: WhisperTokenizer
 
-    val decodeStartToken: Int
-    val decodeEndToken: Int
-    val translateToken: Int
-    val noCaptionsToken: Int
+    private val decodeStartToken: Int
+    private val decodeEndToken: Int
+    private val translateToken: Int
+    private val noCaptionsToken: Int
 
-    val startOfLanguages: Int
-    val endOfLanguages: Int
+    private val startOfLanguages: Int
+    private val endOfLanguages: Int
+
+    private val extractor: AudioFeatureExtraction
 
     init {
         if(model.is_builtin_asset) {
@@ -59,6 +63,12 @@ class WhisperModel(context: Context, model: ModelData) {
 
         startOfLanguages = stringToToken("<|en|>")!!
         endOfLanguages = stringToToken("<|su|>")!!
+
+        extractor = AudioFeatureExtraction()
+        extractor.hop_length = 160
+        extractor.n_fft = 512
+        extractor.sampleRate = 16000.0
+        extractor.n_mels = 80
     }
 
     private fun stringToToken(string: String): Int? {
@@ -86,17 +96,43 @@ class WhisperModel(context: Context, model: ModelData) {
         return decoderModel.process(crossAttention = xAtn, seqLen = seqLen, cache = cache, inputIds = inputId)
     }
 
+    private fun extractFeatures(samples: FloatArray): FloatArray {
+        val mel = FloatArray(80 * 3000)
+
+        val data = extractor.melSpectrogram(samples)
+        for (i in 0..79) {
+            for (j in data[i].indices) {
+                if ((i * 3000 + j) >= (80 * 3000)) {
+                    continue
+                }
+                mel[i * 3000 + j] = ((extractor.log10(
+                    max(
+                        0.000000001,
+                        data[i][j]
+                    )
+                ) + 4.0) / 4.0).toFloat()
+            }
+        }
+
+        return mel
+    }
+
+    // TODO: Fall back to English model if English is detected
     fun run(
-        mel: FloatArray,
+        samples: FloatArray,
+        onStatusUpdate: (RunState) -> Unit,
         onPartialDecode: (String) -> Unit
     ): String {
-        // TODO: Fall back to English model if English is detected
+        onStatusUpdate(RunState.ExtractingFeatures)
+        val mel = extractFeatures(samples)
 
+        onStatusUpdate(RunState.ProcessingEncoder)
         val audioFeatures = TensorBuffer.createFixedSize(intArrayOf(1, 80, 3000), DataType.FLOAT32)
         audioFeatures.loadArray(mel)
 
         val xAtn = runEncoderAndGetXatn(audioFeatures)
 
+        onStatusUpdate(RunState.StartedDecoding)
         val seqLenTensor = TensorBuffer.createFixedSize(intArrayOf(1), DataType.FLOAT32)
         val cacheTensor = TensorBuffer.createFixedSize(intArrayOf(8, 6, 256, 64), DataType.FLOAT32)
         val inputIdTensor = TensorBuffer.createFixedSize(intArrayOf(1, 1), DataType.FLOAT32)
@@ -121,8 +157,8 @@ class WhisperModel(context: Context, model: ModelData) {
             val logits = decoderOutputs.logits.floatArray
 
             // Forcibly kill undesired tokens
-            logits[translateToken] -= 1024.0f;
-            logits[noCaptionsToken] -= 1024.0f;
+            logits[translateToken] -= 1024.0f
+            logits[noCaptionsToken] -= 1024.0f
 
             val selectedToken = logits.withIndex().maxByOrNull { it.value }?.index!!
             if(selectedToken == decodeEndToken) { break; }

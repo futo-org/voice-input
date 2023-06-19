@@ -20,12 +20,12 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.futo.voiceinput.ml.RunState
 import org.futo.voiceinput.ml.WhisperModel
 import java.io.IOException
 import java.nio.FloatBuffer
 import kotlin.math.pow
 import kotlin.math.sqrt
-import kotlin.system.measureTimeMillis
 
 enum class MagnitudeState {
     NOT_TALKED_YET,
@@ -45,13 +45,14 @@ abstract class AudioRecognizer {
     private var loadModelJob: Job? = null
 
 
-    protected abstract val context: Context get
-    protected abstract val lifecycleScope: LifecycleCoroutineScope get
+    protected abstract val context: Context
+    protected abstract val lifecycleScope: LifecycleCoroutineScope
 
     protected abstract fun cancelled()
     protected abstract fun finished(result: String)
     protected abstract fun languageDetected(result: String)
     protected abstract fun partialResult(result: String)
+    protected abstract fun decodingStatus(status: RunState)
 
     protected abstract fun loading()
     protected abstract fun needPermission()
@@ -259,49 +260,19 @@ abstract class AudioRecognizer {
 
         val model = model!!
 
-        val mel = FloatArray(80 * 3000)
+        val onStatusUpdate = { state: RunState ->
+            decodingStatus(state)
+        }
 
-        val melTime = measureTimeMillis {
-            val extractor =
-                AudioFeatureExtraction()
-            extractor.hop_length = 160
-            extractor.n_fft = 512
-            extractor.sampleRate = 16000.0
-            extractor.n_mels = 80
+        val text = model.run(floatSamples.array(), onStatusUpdate) {
+            println("Partial result: $it")
 
-
-            val data = extractor.melSpectrogram(floatSamples.array())
-            for (i in 0..79) {
-                for (j in data[i].indices) {
-                    if ((i * 3000 + j) >= (80 * 3000)) {
-                        continue
-                    }
-                    mel[i * 3000 + j] = ((extractor.log10(
-                        Math.max(
-                            0.000000001,
-                            data[i][j]
-                        )
-                    ) + 4.0) / 4.0).toFloat()
+            lifecycleScope.launch {
+                withContext(Dispatchers.Main) {
+                    partialResult(it)
                 }
             }
         }
-        println("Time taken to mel: $melTime")
-
-        var text = ""
-
-        val decodingTime = measureTimeMillis {
-            text = model.run(mel) {
-                println("Partial result: $it")
-
-                lifecycleScope.launch {
-                    withContext(Dispatchers.Main) {
-                        partialResult(it)
-                    }
-                }
-            }
-        }
-
-        println("Time taken to run model: $decodingTime")
 
         lifecycleScope.launch {
             withContext(Dispatchers.Main) {

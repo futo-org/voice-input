@@ -57,6 +57,7 @@ import org.futo.voiceinput.ENABLE_MULTILINGUAL
 import org.futo.voiceinput.ENABLE_SOUND
 import org.futo.voiceinput.Status
 import org.futo.voiceinput.TINY_MULTILINGUAL_MODEL_DATA
+import org.futo.voiceinput.VERBOSE_PROGRESS
 import org.futo.voiceinput.modelNeedsDownloading
 import org.futo.voiceinput.startModelDownloadActivity
 import org.futo.voiceinput.ui.theme.Typography
@@ -176,6 +177,11 @@ fun SettingsHome(settingsViewModel: SettingsViewModel = viewModel(), navControll
                 ENABLE_SOUND,
                 default = true,
                 subtitle = "Play sound when recognition starts/cancels"
+            )
+            SettingToggle(
+                "Verbose Mode",
+                VERBOSE_PROGRESS,
+                default = false
             )
             SettingItem(title = "Languages", onClick = { navController.navigate("languages") }) {
                 Icon(Icons.Default.ArrowForward, contentDescription = "Go")
@@ -317,8 +323,7 @@ class SettingsActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val _viewModel: SettingsViewModel by viewModels()
-        viewModel = _viewModel
+        viewModel = viewModels<SettingsViewModel>().value
 
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {

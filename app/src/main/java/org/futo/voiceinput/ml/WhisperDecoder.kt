@@ -4,7 +4,6 @@ import android.content.Context
 import org.tensorflow.lite.DataType
 import org.tensorflow.lite.support.model.Model
 import org.tensorflow.lite.support.tensorbuffer.TensorBuffer
-import java.io.IOException
 import java.nio.MappedByteBuffer
 
 /**
@@ -21,11 +20,11 @@ class WhisperDecoder {
     }
 
 
-    public fun process(
+    fun process(
         crossAttention: TensorBuffer, seqLen: TensorBuffer,
         cache: TensorBuffer, inputIds: TensorBuffer
     ): Outputs {
-        val outputs: Outputs = Outputs(model)
+        val outputs = Outputs(model)
         model.run(
             arrayOf<Any>(crossAttention.buffer, seqLen.buffer, cache.buffer, inputIds.buffer),
             outputs.buffer
@@ -33,7 +32,7 @@ class WhisperDecoder {
         return outputs
     }
 
-    public fun close() {
+    fun close() {
         model.close()
     }
 
