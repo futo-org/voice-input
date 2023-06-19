@@ -259,14 +259,13 @@ abstract class AudioRecognizer {
         }
 
         val model = model!!
+        val floatArray = floatSamples.array().sliceArray(0 until floatSamples.position())
 
         val onStatusUpdate = { state: RunState ->
             decodingStatus(state)
         }
 
-        val text = model.run(floatSamples.array(), onStatusUpdate) {
-            println("Partial result: $it")
-
+        val text = model.run(floatArray, onStatusUpdate) {
             lifecycleScope.launch {
                 withContext(Dispatchers.Main) {
                     partialResult(it)

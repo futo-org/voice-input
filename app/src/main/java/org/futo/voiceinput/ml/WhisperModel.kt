@@ -64,11 +64,12 @@ class WhisperModel(context: Context, model: ModelData) {
         startOfLanguages = stringToToken("<|en|>")!!
         endOfLanguages = stringToToken("<|su|>")!!
 
-        extractor = AudioFeatureExtraction()
-        extractor.hop_length = 160
-        extractor.n_fft = 512
-        extractor.sampleRate = 16000.0
-        extractor.n_mels = 80
+        extractor = AudioFeatureExtraction(
+            hopLength = 160,
+            nFFT = 512,
+            sampleRate = 16000.0,
+            nMels = 80
+        )
     }
 
     private fun stringToToken(string: String): Int? {
@@ -97,10 +98,11 @@ class WhisperModel(context: Context, model: ModelData) {
     }
 
     private fun extractFeatures(samples: FloatArray): FloatArray {
+        println("Number of samples is ${samples.size}")
         val mel = FloatArray(80 * 3000)
 
         val data = extractor.melSpectrogram(samples)
-        for (i in 0..79) {
+        for (i in 0 until 80) {
             for (j in data[i].indices) {
                 if ((i * 3000 + j) >= (80 * 3000)) {
                     continue
