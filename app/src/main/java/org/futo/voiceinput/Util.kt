@@ -55,6 +55,26 @@ data class ModelData(
     val vocab_raw_asset: Int? = null
 )
 
+fun Array<DoubleArray>.transpose(): Array<DoubleArray> {
+    return Array(this[0].size) { i ->
+        DoubleArray(this.size) { j ->
+            this[j][i]
+        }
+    }
+}
+
+fun Array<DoubleArray>.shape(): IntArray {
+    return arrayOf(size, this[0].size).toIntArray()
+}
+
+fun DoubleArray.toFloatArray(): FloatArray {
+    return this.map { it.toFloat() }.toFloatArray()
+}
+
+fun FloatArray.toDoubleArray(): DoubleArray {
+    return this.map { it.toDouble() }.toDoubleArray()
+}
+
 fun Context.fileNeedsDownloading(file: String): Boolean {
     return !File(this.filesDir, file).exists()
 }

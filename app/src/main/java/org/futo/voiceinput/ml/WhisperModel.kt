@@ -3,13 +3,13 @@ package org.futo.voiceinput.ml
 import android.content.Context
 import org.futo.voiceinput.AudioFeatureExtraction
 import org.futo.voiceinput.ModelData
+import org.futo.voiceinput.toDoubleArray
 import org.tensorflow.lite.DataType
 import org.tensorflow.lite.support.tensorbuffer.TensorBuffer
 import java.io.File
 import java.io.IOException
 import java.nio.MappedByteBuffer
 import java.nio.channels.FileChannel
-import kotlin.math.max
 
 
 @Throws(IOException::class)
@@ -43,7 +43,16 @@ class WhisperModel(context: Context, model: ModelData) {
     private val startOfLanguages: Int
     private val endOfLanguages: Int
 
-    private val extractor: AudioFeatureExtraction
+    companion object {
+        val extractor = AudioFeatureExtraction(
+            chunkLength = 30,
+            featureSize = 80,
+            hopLength = 160,
+            nFFT = 400,
+            paddingValue = 0.0,
+            samplingRate = 16000
+        )
+    }
 
     init {
         if(model.is_builtin_asset) {
@@ -63,13 +72,6 @@ class WhisperModel(context: Context, model: ModelData) {
 
         startOfLanguages = stringToToken("<|en|>")!!
         endOfLanguages = stringToToken("<|su|>")!!
-
-        extractor = AudioFeatureExtraction(
-            hopLength = 160,
-            nFFT = 512,
-            sampleRate = 16000.0,
-            nMels = 80
-        )
     }
 
     private fun stringToToken(string: String): Int? {
@@ -97,28 +99,6 @@ class WhisperModel(context: Context, model: ModelData) {
         return decoderModel.process(crossAttention = xAtn, seqLen = seqLen, cache = cache, inputIds = inputId)
     }
 
-    private fun extractFeatures(samples: FloatArray): FloatArray {
-        println("Number of samples is ${samples.size}")
-        val mel = FloatArray(80 * 3000)
-
-        val data = extractor.melSpectrogram(samples)
-        for (i in 0 until 80) {
-            for (j in data[i].indices) {
-                if ((i * 3000 + j) >= (80 * 3000)) {
-                    continue
-                }
-                mel[i * 3000 + j] = ((extractor.log10(
-                    max(
-                        0.000000001,
-                        data[i][j]
-                    )
-                ) + 4.0) / 4.0).toFloat()
-            }
-        }
-
-        return mel
-    }
-
     // TODO: Fall back to English model if English is detected
     fun run(
         samples: FloatArray,
@@ -126,7 +106,7 @@ class WhisperModel(context: Context, model: ModelData) {
         onPartialDecode: (String) -> Unit
     ): String {
         onStatusUpdate(RunState.ExtractingFeatures)
-        val mel = extractFeatures(samples)
+        val mel = extractor.melSpectrogram(samples.toDoubleArray())
 
         onStatusUpdate(RunState.ProcessingEncoder)
         val audioFeatures = TensorBuffer.createFixedSize(intArrayOf(1, 80, 3000), DataType.FLOAT32)
