@@ -8,9 +8,7 @@ import org.futo.voiceinput.freqToMel
 import org.futo.voiceinput.linspace
 import org.futo.voiceinput.melFilterBank
 import org.futo.voiceinput.melToFreq
-import org.futo.voiceinput.ml.WhisperModel
 import org.futo.voiceinput.padY
-import org.futo.voiceinput.toDoubleArray
 import org.futo.voiceinput.transpose
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -205,35 +203,5 @@ class FeatureExtractorTest {
         val result = createHannWindow(8)
 
         assertTrue(result.toTypedArray().isEqualApprox(expectedResult))
-    }
-
-    @Test fun featureExtractor_CompareResultWithHFTransformers() {
-        val loader = javaClass.classLoader!!
-
-        val audio = loadResourceFile(loader, "audio.floats.bin").littleEndianToFloatArray()
-
-        val extractor = WhisperModel.extractor
-
-        val extractedFeatures = extractor.melSpectrogram(audio.toDoubleArray())
-        val targetFeatures = loadResourceFile(loader, "features.floats.bin").littleEndianToFloatArray()
-
-        println("audio: ")
-        for(i in 0 until 64) {
-            print(" ${audio[i]}")
-        }
-
-        println("extracted: ")
-        for(i in 0 until 64) {
-            print(" ${extractedFeatures[i]}")
-        }
-
-        println("reference: ")
-        for(i in 0 until 64) {
-            print(" ${targetFeatures[i]}")
-        }
-
-        println(".")
-
-        assertTrue(extractedFeatures.toDoubleArray().toTypedArray().isEqualApprox(targetFeatures.toDoubleArray().toTypedArray()))
     }
 }

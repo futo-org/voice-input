@@ -2,7 +2,7 @@
 
 package org.futo.voiceinput
 
-import edu.mines.jtk.dsp.Fft
+import org.futo.pocketfft.PocketFFT
 import kotlin.math.cos
 import kotlin.math.exp
 import kotlin.math.ln
@@ -199,6 +199,8 @@ class AudioFeatureExtraction(
     ).transpose()
     private val window = createHannWindow(nFFT)
 
+    private val fft = PocketFFT(nFFT)
+
 
     /**
      * This function converts input audio samples to 1x80x3000 features
@@ -230,7 +232,7 @@ class AudioFeatureExtraction(
             }
         }
 
-        var logSpec = Array(melS.size) { i ->
+        val logSpec = Array(melS.size) { i ->
             DoubleArray(melS[0].size - 1) { j ->
                 melS[i][j]
             }
@@ -243,8 +245,6 @@ class AudioFeatureExtraction(
                 logSpec[i][j] = (logSpec[i][j] + 4.0) / 4.0
             }
         }
-
-        println("Shape of logSpec: ${logSpec.shape().joinToString(separator=":")}")
 
         val mel = FloatArray(1 * 80 * 3000)
         for(i in logSpec.indices) {
@@ -271,23 +271,30 @@ class AudioFeatureExtraction(
 
         val numFrequencyBins = (nFFT / 2) + 1
         val fftmagSpec = Array(numFrequencyBins) { DoubleArray(numFrames) }
-        val fftFrame = FloatArray(nFFT)
+        val fftFrame = DoubleArray(nFFT)
 
         var timestep = 0
+
+        val magSpec = DoubleArray(numFrequencyBins)
+        val complx = DoubleArray(nFFT + 1)
         for (k in 0 until numFrames) {
             for(l in 0 until nFFT) {
-                fftFrame[l] = (yPad[timestep + l] * window[l]).toFloat()
+                fftFrame[l] = yPad[timestep + l] * window[l]
             }
+            
             timestep += hopLength
 
-            val magSpec = DoubleArray(numFrequencyBins)
-            val transformer = Fft(nFFT)
             try {
-                val complx = transformer.applyForward(fftFrame)
+                fft.forward(fftFrame, complx)
 
                 for(i in 0 until numFrequencyBins) {
-                    val rr = complx[i*2].toDouble()
-                    val ri = complx[i*2 + 1].toDouble()
+                    val rr = complx[i * 2]
+
+                    val ri = if(i == (numFrequencyBins - 1)) {
+                        0.0
+                    } else {
+                        complx[i * 2 + 1]
+                    }
 
                     magSpec[i] = (rr * rr + ri * ri)
                 }
@@ -298,6 +305,7 @@ class AudioFeatureExtraction(
                 fftmagSpec[i][k] = magSpec[i]
             }
         }
+
         return fftmagSpec
     }
 }
