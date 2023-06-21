@@ -1,10 +1,12 @@
 package org.futo.voiceinput.ml
 
 import android.content.Context
+import android.os.Build
 import org.futo.voiceinput.AudioFeatureExtraction
 import org.futo.voiceinput.ModelData
 import org.futo.voiceinput.toDoubleArray
 import org.tensorflow.lite.DataType
+import org.tensorflow.lite.support.model.Model
 import org.tensorflow.lite.support.tensorbuffer.TensorBuffer
 import java.io.File
 import java.io.IOException
@@ -28,6 +30,28 @@ enum class RunState {
     ProcessingEncoder,
     StartedDecoding,
     SwitchingModel
+}
+
+data class LoadedModels(
+    val encoderModel: WhisperEncoderXatn,
+    val decoderModel: WhisperDecoder,
+    val tokenizer: WhisperTokenizer
+)
+
+fun initModelsWithOptions(context: Context, model: ModelData, encoderOptions: Model.Options, decoderOptions: Model.Options): LoadedModels {
+    return if(model.is_builtin_asset) {
+        val encoderModel = WhisperEncoderXatn(context, model.encoder_xatn_file, encoderOptions)
+        val decoderModel = WhisperDecoder(context, model.decoder_file, decoderOptions)
+        val tokenizer = WhisperTokenizer(context, model.vocab_raw_asset!!)
+
+        LoadedModels(encoderModel, decoderModel, tokenizer)
+    } else {
+        val encoderModel = WhisperEncoderXatn(context.tryOpenDownloadedModel(model.encoder_xatn_file), encoderOptions)
+        val decoderModel = WhisperDecoder(context.tryOpenDownloadedModel(model.decoder_file), decoderOptions)
+        val tokenizer = WhisperTokenizer(File(context.filesDir, model.vocab_file))
+
+        LoadedModels(encoderModel, decoderModel, tokenizer)
+    }
 }
 
 class WhisperModel(context: Context, model: ModelData) {
@@ -55,15 +79,25 @@ class WhisperModel(context: Context, model: ModelData) {
     }
 
     init {
-        if(model.is_builtin_asset) {
-            encoderModel = WhisperEncoderXatn(context, model.encoder_xatn_file)
-            decoderModel = WhisperDecoder(context, model.decoder_file)
-            tokenizer = WhisperTokenizer(context, model.vocab_raw_asset!!)
+        val cpuOption = Model.Options.Builder().setDevice(Model.Device.CPU).build()
+
+        val nnApiOption = if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            Model.Options.Builder().setDevice(Model.Device.NNAPI).build()
         } else {
-            encoderModel = WhisperEncoderXatn(context.tryOpenDownloadedModel(model.encoder_xatn_file))
-            decoderModel = WhisperDecoder(context.tryOpenDownloadedModel(model.decoder_file))
-            tokenizer = WhisperTokenizer(File(context.filesDir, model.vocab_file))
+            cpuOption
         }
+
+        val (encoderModel, decoderModel, tokenizer) = try {
+            initModelsWithOptions(context, model, nnApiOption, cpuOption)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            initModelsWithOptions(context, model, cpuOption, cpuOption)
+        }
+
+        this.encoderModel = encoderModel
+        this.decoderModel = decoderModel
+        this.tokenizer = tokenizer
+
 
         decodeStartToken = stringToToken("<|startoftranscript|>")!!
         decodeEndToken = stringToToken("<|endoftext|>")!!
