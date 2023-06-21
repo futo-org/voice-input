@@ -103,17 +103,20 @@ abstract class AudioRecognizer {
                 withContext(Dispatchers.Default) {
                     // TODO: Make this more abstract and less of a mess
                     val isMultilingual: Flow<Boolean> = context.dataStore.data.map { preferences -> preferences[ENABLE_MULTILINGUAL] ?: false }.take(1)
+                    val suppressNonSpeech: Flow<Boolean> = context.dataStore.data.map { preferences -> preferences[DISALLOW_SYMBOLS] ?: true }.take(1)
 
                     isMultilingual.collect { multilingual ->
-                        if(multilingual){
-                            try {
-                                model = WhisperModel(context, TINY_MULTILINGUAL_MODEL_DATA)
-                            } catch (e: IOException) {
-                                context.startModelDownloadActivity(TINY_MULTILINGUAL_MODEL_DATA)
-                                cancelRecognizer()
+                        suppressNonSpeech.collect { suppressNonSpeech ->
+                            if (multilingual) {
+                                try {
+                                    model = WhisperModel(context, TINY_MULTILINGUAL_MODEL_DATA, suppressNonSpeech)
+                                } catch (e: IOException) {
+                                    context.startModelDownloadActivity(TINY_MULTILINGUAL_MODEL_DATA)
+                                    cancelRecognizer()
+                                }
+                            } else {
+                                model = WhisperModel(context, TINY_ENGLISH_MODEL_DATA, suppressNonSpeech)
                             }
-                        } else {
-                            model = WhisperModel(context, TINY_ENGLISH_MODEL_DATA)
                         }
                     }
                 }
@@ -171,7 +174,6 @@ abstract class AudioRecognizer {
                 false
             }
 
-            println("Start record job")
             recorderJob = lifecycleScope.launch {
                 withContext(Dispatchers.Default) {
                     var hasTalked = false

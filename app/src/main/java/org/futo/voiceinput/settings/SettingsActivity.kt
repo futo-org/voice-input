@@ -52,6 +52,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import org.futo.voiceinput.DISALLOW_SYMBOLS
 import org.futo.voiceinput.ENABLE_ENGLISH
 import org.futo.voiceinput.ENABLE_MULTILINGUAL
 import org.futo.voiceinput.ENABLE_SOUND
@@ -94,7 +95,7 @@ class SettingsViewModel : ViewModel() {
 fun SettingItem(title: String, subtitle: String? = null, onClick: () -> Unit, icon: (@Composable () -> Unit)? = null, disabled: Boolean = false, content: @Composable () -> Unit) {
     Row(modifier = Modifier
         .fillMaxWidth()
-        .height(64.dp)
+        .height(68.dp)
         .clickable(enabled = !disabled, onClick = {
             if (!disabled) {
                 onClick()
@@ -177,6 +178,12 @@ fun SettingsHome(settingsViewModel: SettingsViewModel = viewModel(), navControll
                 ENABLE_SOUND,
                 default = true,
                 subtitle = "Play sound when recognition starts/cancels"
+            )
+            SettingToggle(
+                "Suppress non-speech annotations",
+                DISALLOW_SYMBOLS,
+                default = true,
+                subtitle = "[cough], [music], etc"
             )
             SettingToggle(
                 "Verbose Mode",

@@ -54,11 +54,12 @@ fun initModelsWithOptions(context: Context, model: ModelData, encoderOptions: Mo
     }
 }
 
-class WhisperModel(context: Context, model: ModelData) {
+class WhisperModel(context: Context, model: ModelData, val suppressNonSpeech: Boolean) {
     private val encoderModel: WhisperEncoderXatn
     private val decoderModel: WhisperDecoder
     private val tokenizer: WhisperTokenizer
 
+    private val bannedTokens: IntArray
     private val decodeStartToken: Int
     private val decodeEndToken: Int
     private val translateToken: Int
@@ -106,6 +107,11 @@ class WhisperModel(context: Context, model: ModelData) {
 
         startOfLanguages = stringToToken("<|en|>")!!
         endOfLanguages = stringToToken("<|su|>")!!
+
+        val bannedChars = "\"#()*+/:;<=>@[\\\\]^_`{|}~「」『』<<>><<<>>>------(-[((\\\"(())((()))[[]]{{}}♪♪♪♪♪♩♪♫♬♭♮♯".toSet()
+        bannedTokens = tokenizer.tokenToId.filterKeys {
+            !(it.startsWith("<|") || it.endsWith("|>") || it.toSet().intersect(bannedChars).isEmpty()) && suppressNonSpeech
+        }.values.toIntArray()
     }
 
     private fun stringToToken(string: String): Int? {
@@ -175,15 +181,18 @@ class WhisperModel(context: Context, model: ModelData) {
             // Forcibly kill undesired tokens
             logits[translateToken] -= 1024.0f
             logits[noCaptionsToken] -= 1024.0f
+            for(i in bannedTokens) logits[i] -= 1024.0f
 
             val selectedToken = logits.withIndex().maxByOrNull { it.value }?.index!!
-            if(selectedToken == decodeEndToken) { break; }
+            if(selectedToken == decodeEndToken) break
+
+            val tokenAsString = tokenToString(selectedToken) ?: break
 
             if((selectedToken >= startOfLanguages) && (selectedToken <= endOfLanguages)){
-                println("Language detected: ${tokenToString(selectedToken)!!}")
+                println("Language detected: ${tokenAsString}")
             }
 
-            fullString += tokenToString(selectedToken)!!.run {
+            fullString += tokenAsString.run {
                 if (this.startsWith("<|")) {
                     ""
                 } else {
@@ -193,7 +202,24 @@ class WhisperModel(context: Context, model: ModelData) {
 
             previousToken = selectedToken
 
-            onPartialDecode(makeStringUnicode(fullString))
+            if(fullString.isNotEmpty())
+                onPartialDecode(makeStringUnicode(fullString))
+        }
+
+
+        val fullStringNormalized = makeStringUnicode(fullString).lowercase().trim()
+
+        val emptyResults = listOf(
+            "you",
+            "(bell dings)",
+            "[bell dings]",
+            "[blank_audio]",
+            "(beep)",
+            "[beep]"
+        )
+
+        if(emptyResults.contains(fullStringNormalized)) {
+            fullString = ""
         }
 
         return makeStringUnicode(fullString)

@@ -36,8 +36,8 @@ class WhisperTokenizer(tokenJson: String) {
         }
     }
 
-    private var idToToken: Array<String?> = arrayOfNulls(65536)
-    private var tokenToId: HashMap<String, Int> = hashMapOf()
+    val idToToken: Array<String?>
+    val tokenToId: HashMap<String, Int> = hashMapOf()
 
     init {
         val data = Json.parseToJsonElement(tokenJson)
