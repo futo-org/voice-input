@@ -108,10 +108,23 @@ class WhisperModel(context: Context, model: ModelData, val suppressNonSpeech: Bo
         startOfLanguages = stringToToken("<|en|>")!!
         endOfLanguages = stringToToken("<|su|>")!!
 
-        val bannedChars = "\"#()*+/:;<=>@[\\\\]^_`{|}~「」『』<<>><<<>>>------(-[((\\\"(())((()))[[]]{{}}♪♪♪♪♪♩♪♫♬♭♮♯".toSet()
-        bannedTokens = tokenizer.tokenToId.filterKeys {
-            !(it.startsWith("<|") || it.endsWith("|>") || it.toSet().intersect(bannedChars).isEmpty()) && suppressNonSpeech
-        }.values.toIntArray()
+        // Based on https://github.com/openai/whisper/blob/248b6cb124225dd263bb9bd32d060b6517e067f8/whisper/tokenizer.py#L236
+        val symbols = "#()*+/:;<=>@[\\]^_`{|}~「」『』".chunked(1) + listOf("<<", ">>", "<<<", ">>>", "--", "---", "-(", "-[", "('", "(\"", "((", "))", "(((", ")))", "[[", "]]", "{{", "}}", "♪♪", "♪♪♪")
+
+        val symbolsWithSpace = symbols.map { " $it" } + listOf(" -", " '")
+
+        val miscellaneous = "♩♪♫♬♭♮♯".toSet()
+
+        val isBannedChar = { token: String ->
+            if(suppressNonSpeech) {
+                val normalizedToken = makeStringUnicode(token)
+                symbols.contains(normalizedToken) || symbolsWithSpace.contains(normalizedToken)
+                        || normalizedToken.toSet().intersect(miscellaneous).isNotEmpty()
+            } else {
+                false
+            }
+        }
+        bannedTokens = tokenizer.tokenToId.filterKeys { isBannedChar(it) }.values.toIntArray()
     }
 
     private fun stringToToken(string: String): Int? {
@@ -215,7 +228,9 @@ class WhisperModel(context: Context, model: ModelData, val suppressNonSpeech: Bo
             "[bell dings]",
             "[blank_audio]",
             "(beep)",
-            "[beep]"
+            "[beep]",
+            "(bell)",
+            "[bell]"
         )
 
         if(emptyResults.contains(fullStringNormalized)) {
