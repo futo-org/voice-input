@@ -206,7 +206,7 @@ class AudioFeatureExtraction(
      * This function converts input audio samples to 1x80x3000 features
      */
     fun melSpectrogram(y: DoubleArray): FloatArray {
-        val paddedWaveform = DoubleArray(numSamples) {
+        val paddedWaveform = DoubleArray(min(numSamples, y.size + hopLength)) {
             if(it < y.size) {
                 y[it]
             } else {
@@ -216,10 +216,14 @@ class AudioFeatureExtraction(
 
         val spectro = extractSTFTFeatures(paddedWaveform)
 
+        val yShape = nbMaxFrames+1
+        val yShapeMax = spectro[0].size
+
         assert(melFilters[0].size == spectro.size)
-        val melS = Array(melFilters.size) { DoubleArray(spectro[0].size) }
+        val melS = Array(melFilters.size) { DoubleArray(yShape) }
         for (i in melFilters.indices) {
-            for (j in spectro[0].indices) {
+            // j > yShapeMax would all be 0.0
+            for (j in 0 until yShapeMax) {
                 for (k in melFilters[0].indices) {
                     melS[i][j] += melFilters[i][k] * spectro[k][j]
                 }
@@ -238,7 +242,7 @@ class AudioFeatureExtraction(
             }
         }
 
-        val maxValue = logSpec.map { it.max() }.max()
+        val maxValue = logSpec.maxOf { it.max() }
         for(i in logSpec.indices) {
             for(j in logSpec[0].indices) {
                 logSpec[i][j] = max(logSpec[i][j], maxValue - 8.0)
@@ -281,7 +285,7 @@ class AudioFeatureExtraction(
             for(l in 0 until nFFT) {
                 fftFrame[l] = yPad[timestep + l] * window[l]
             }
-            
+
             timestep += hopLength
 
             try {
