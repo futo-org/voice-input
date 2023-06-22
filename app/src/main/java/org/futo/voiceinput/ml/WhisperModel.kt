@@ -57,7 +57,7 @@ fun initModelsWithOptions(context: Context, model: ModelData, encoderOptions: Mo
 class DecodingEnglishException : Throwable()
 
 
-class WhisperModel(context: Context, model: ModelData, val suppressNonSpeech: Boolean, languages: Set<String>? = null) {
+class WhisperModel(context: Context, model: ModelData, private val suppressNonSpeech: Boolean, languages: Set<String>? = null) {
     private val encoderModel: WhisperEncoderXatn
     private val decoderModel: WhisperDecoder
     private val tokenizer: WhisperTokenizer
@@ -81,6 +81,24 @@ class WhisperModel(context: Context, model: ModelData, val suppressNonSpeech: Bo
             paddingValue = 0.0,
             samplingRate = 16000
         )
+
+        private val emptyResults: Set<String>
+        init {
+            val emptyResults = mutableListOf(
+                "you",
+                "(bell dings)",
+                "(blank audio)",
+                "(beep)",
+                "(bell)",
+                "(music)",
+                "(music playing)"
+            )
+
+            emptyResults += emptyResults.map { it.replace("(", "[").replace(")", "]") }
+            emptyResults += emptyResults.map { it.replace(" ", "_") }
+
+            this.emptyResults = emptyResults.toHashSet()
+        }
     }
 
     init {
@@ -136,7 +154,7 @@ class WhisperModel(context: Context, model: ModelData, val suppressNonSpeech: Bo
         if(languages != null) {
             val permittedLanguages = languages.map {
                 stringToToken("<|$it|>")!!
-            }.toSortedSet()
+            }.toHashSet()
 
             // Ban other languages
             bannedTokens += tokenizer.tokenToId.filterValues {
@@ -220,7 +238,7 @@ class WhisperModel(context: Context, model: ModelData, val suppressNonSpeech: Bo
             val tokenAsString = tokenToString(selectedToken) ?: break
 
             if((selectedToken >= startOfLanguages) && (selectedToken <= endOfLanguages)){
-                println("Language detected: ${tokenAsString}")
+                println("Language detected: $tokenAsString")
                 if((selectedToken == englishLanguage) && bailOnEnglish) {
                     onStatusUpdate(RunState.SwitchingModel)
                     throw DecodingEnglishException()
@@ -244,19 +262,6 @@ class WhisperModel(context: Context, model: ModelData, val suppressNonSpeech: Bo
 
         val fullStringNormalized = makeStringUnicode(fullString).lowercase().trim()
 
-        val emptyResults = listOf(
-            "you",
-            "(bell dings)",
-            "[bell dings]",
-            "[blank_audio]",
-            "(beep)",
-            "[beep]",
-            "(bell)",
-            "[bell]",
-            "(music)",
-            "[music]"
-        )
-
         if(emptyResults.contains(fullStringNormalized)) {
             fullString = ""
         }
@@ -268,10 +273,10 @@ class WhisperModel(context: Context, model: ModelData, val suppressNonSpeech: Bo
 
 class WhisperModelWrapper(
     val context: Context,
-    val primaryModel: ModelData,
-    val fallbackEnglishModel: ModelData?,
-    val suppressNonSpeech: Boolean,
-    val languages: Set<String>? = null
+    primaryModel: ModelData,
+    fallbackEnglishModel: ModelData?,
+    private val suppressNonSpeech: Boolean,
+    languages: Set<String>? = null
 ) {
     private val primary: WhisperModel = WhisperModel(context, primaryModel, suppressNonSpeech, languages)
     private val fallback: WhisperModel? = fallbackEnglishModel?.let { WhisperModel(context, it, suppressNonSpeech) }
@@ -290,10 +295,10 @@ class WhisperModelWrapper(
         onStatusUpdate(RunState.ExtractingFeatures)
         val mel = WhisperModel.extractor.melSpectrogram(samples.toDoubleArray())
 
-        try {
-            return primary.run(mel, onStatusUpdate, onPartialDecode, fallback != null)
+        return try {
+            primary.run(mel, onStatusUpdate, onPartialDecode, fallback != null)
         } catch(e: DecodingEnglishException) {
-            return fallback!!.run(
+            fallback!!.run(
                 mel,
                 {
                     if(it != RunState.ProcessingEncoder) {
