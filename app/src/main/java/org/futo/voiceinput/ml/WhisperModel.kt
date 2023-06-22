@@ -54,6 +54,9 @@ fun initModelsWithOptions(context: Context, model: ModelData, encoderOptions: Mo
     }
 }
 
+class DecodingEnglishException : Throwable()
+
+
 class WhisperModel(context: Context, model: ModelData, val suppressNonSpeech: Boolean) {
     private val encoderModel: WhisperEncoderXatn
     private val decoderModel: WhisperDecoder
@@ -66,6 +69,7 @@ class WhisperModel(context: Context, model: ModelData, val suppressNonSpeech: Bo
     private val noCaptionsToken: Int
 
     private val startOfLanguages: Int
+    private val englishLanguage: Int
     private val endOfLanguages: Int
 
     companion object {
@@ -106,6 +110,7 @@ class WhisperModel(context: Context, model: ModelData, val suppressNonSpeech: Bo
         noCaptionsToken = stringToToken("<|nocaptions|>")!!
 
         startOfLanguages = stringToToken("<|en|>")!!
+        englishLanguage = stringToToken("<|en|>")!!
         endOfLanguages = stringToToken("<|su|>")!!
 
         // Based on https://github.com/openai/whisper/blob/248b6cb124225dd263bb9bd32d060b6517e067f8/whisper/tokenizer.py#L236
@@ -152,35 +157,36 @@ class WhisperModel(context: Context, model: ModelData, val suppressNonSpeech: Bo
         return decoderModel.process(crossAttention = xAtn, seqLen = seqLen, cache = cache, inputIds = inputId)
     }
 
-    // TODO: Fall back to English model if English is detected
-    fun run(
-        samples: FloatArray,
-        onStatusUpdate: (RunState) -> Unit,
-        onPartialDecode: (String) -> Unit
-    ): String {
-        onStatusUpdate(RunState.ExtractingFeatures)
-        val mel = extractor.melSpectrogram(samples.toDoubleArray())
+    private val audioFeatures = TensorBuffer.createFixedSize(intArrayOf(1, 80, 3000), DataType.FLOAT32)
+    private val seqLenTensor = TensorBuffer.createFixedSize(intArrayOf(1), DataType.FLOAT32)
+    private val cacheTensor = TensorBuffer.createFixedSize(intArrayOf(8, 6, 256, 64), DataType.FLOAT32)
+    private val inputIdTensor = TensorBuffer.createFixedSize(intArrayOf(1, 1), DataType.FLOAT32)
 
+    init {
+        cacheTensor.loadArray(FloatArray(8 * 6 * 256 * 64) { 0f } )
+    }
+
+    fun run(
+        mel: FloatArray,
+        onStatusUpdate: (RunState) -> Unit,
+        onPartialDecode: (String) -> Unit,
+        bailOnEnglish: Boolean
+    ): String {
         onStatusUpdate(RunState.ProcessingEncoder)
-        val audioFeatures = TensorBuffer.createFixedSize(intArrayOf(1, 80, 3000), DataType.FLOAT32)
+
         audioFeatures.loadArray(mel)
 
         val xAtn = runEncoderAndGetXatn(audioFeatures)
 
         onStatusUpdate(RunState.StartedDecoding)
-        val seqLenTensor = TensorBuffer.createFixedSize(intArrayOf(1), DataType.FLOAT32)
-        val cacheTensor = TensorBuffer.createFixedSize(intArrayOf(8, 6, 256, 64), DataType.FLOAT32)
-        val inputIdTensor = TensorBuffer.createFixedSize(intArrayOf(1, 1), DataType.FLOAT32)
 
-        cacheTensor.loadArray(FloatArray(8 * 6 * 256 * 64) { 0f } )
+        val seqLenArray = FloatArray(1)
+        val inputIdsArray = FloatArray(1)
 
         var fullString = ""
         var previousToken = decodeStartToken
         for (seqLen in 0 until 256) {
-            val seqLenArray = FloatArray(1)
             seqLenArray[0] = seqLen.toFloat()
-
-            val inputIdsArray = FloatArray(1)
             inputIdsArray[0] = previousToken.toFloat()
 
             seqLenTensor.loadArray(seqLenArray)
@@ -202,6 +208,10 @@ class WhisperModel(context: Context, model: ModelData, val suppressNonSpeech: Bo
             val tokenAsString = tokenToString(selectedToken) ?: break
 
             if((selectedToken >= startOfLanguages) && (selectedToken <= endOfLanguages)){
+                if((selectedToken == englishLanguage) && bailOnEnglish) {
+                    onStatusUpdate(RunState.SwitchingModel)
+                    throw DecodingEnglishException()
+                }
                 println("Language detected: ${tokenAsString}")
             }
 
@@ -230,7 +240,9 @@ class WhisperModel(context: Context, model: ModelData, val suppressNonSpeech: Bo
             "(beep)",
             "[beep]",
             "(bell)",
-            "[bell]"
+            "[bell]",
+            "(music)",
+            "[music]"
         )
 
         if(emptyResults.contains(fullStringNormalized)) {
@@ -238,5 +250,46 @@ class WhisperModel(context: Context, model: ModelData, val suppressNonSpeech: Bo
         }
 
         return makeStringUnicode(fullString)
+    }
+}
+
+
+class WhisperModelWrapper(
+    val context: Context,
+    val primaryModel: ModelData,
+    val fallbackEnglishModel: ModelData?,
+    val suppressNonSpeech: Boolean
+) {
+    private val primary: WhisperModel = WhisperModel(context, primaryModel, suppressNonSpeech)
+    private val fallback: WhisperModel? = fallbackEnglishModel?.let { WhisperModel(context, it, suppressNonSpeech) }
+
+    init {
+        if(primaryModel == fallbackEnglishModel) {
+            throw IllegalArgumentException("Fallback model must be unique from the primary model")
+        }
+    }
+
+    fun run(
+        samples: FloatArray,
+        onStatusUpdate: (RunState) -> Unit,
+        onPartialDecode: (String) -> Unit
+    ): String {
+        onStatusUpdate(RunState.ExtractingFeatures)
+        val mel = WhisperModel.extractor.melSpectrogram(samples.toDoubleArray())
+
+        try {
+            return primary.run(mel, onStatusUpdate, onPartialDecode, fallback != null)
+        } catch(e: DecodingEnglishException) {
+            return fallback!!.run(
+                mel,
+                {
+                    if(it != RunState.ProcessingEncoder) {
+                        onStatusUpdate(it)
+                    }
+                },
+                onPartialDecode,
+                false
+            )
+        }
     }
 }

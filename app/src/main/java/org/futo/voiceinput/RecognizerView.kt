@@ -247,10 +247,15 @@ abstract class RecognizerView {
                     RunState.ExtractingFeatures -> "Extracting features"
                     RunState.ProcessingEncoder -> "Running encoder"
                     RunState.StartedDecoding -> "Decoding started"
-                    RunState.SwitchingModel -> "Switching model"
+                    RunState.SwitchingModel -> "Switching to English model"
                 }
             } else {
-                "Processing"
+                when(status) {
+                    RunState.ExtractingFeatures -> "Processing"
+                    RunState.ProcessingEncoder -> "Processing"
+                    RunState.StartedDecoding -> "Processing"
+                    RunState.SwitchingModel -> "Switching to English model"
+                }
             }
 
             setContent {

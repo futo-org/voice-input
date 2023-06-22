@@ -21,7 +21,7 @@ import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.futo.voiceinput.ml.RunState
-import org.futo.voiceinput.ml.WhisperModel
+import org.futo.voiceinput.ml.WhisperModelWrapper
 import java.io.IOException
 import java.nio.FloatBuffer
 import kotlin.math.pow
@@ -37,7 +37,7 @@ abstract class AudioRecognizer {
     private var isRecording = false
     private var recorder: AudioRecord? = null
 
-    private var model: WhisperModel? = null
+    private var model: WhisperModelWrapper? = null
 
     private val floatSamples: FloatBuffer = FloatBuffer.allocate(16000 * 30)
     private var recorderJob: Job? = null
@@ -109,13 +109,13 @@ abstract class AudioRecognizer {
                         suppressNonSpeech.collect { suppressNonSpeech ->
                             if (multilingual) {
                                 try {
-                                    model = WhisperModel(context, TINY_MULTILINGUAL_MODEL_DATA, suppressNonSpeech)
+                                    model = WhisperModelWrapper(context, TINY_MULTILINGUAL_MODEL_DATA, TINY_ENGLISH_MODEL_DATA, suppressNonSpeech)
                                 } catch (e: IOException) {
                                     context.startModelDownloadActivity(TINY_MULTILINGUAL_MODEL_DATA)
                                     cancelRecognizer()
                                 }
                             } else {
-                                model = WhisperModel(context, TINY_ENGLISH_MODEL_DATA, suppressNonSpeech)
+                                model = WhisperModelWrapper(context, TINY_ENGLISH_MODEL_DATA, null, suppressNonSpeech)
                             }
                         }
                     }
