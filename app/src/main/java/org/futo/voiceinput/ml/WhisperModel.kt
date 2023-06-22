@@ -129,7 +129,7 @@ class WhisperModel(context: Context, model: ModelData, val suppressNonSpeech: Bo
                 false
             }
         }
-        bannedTokens = tokenizer.tokenToId.filterKeys { isBannedChar(it) }.values.toIntArray()
+        bannedTokens = tokenizer.tokenToId.filterKeys { isBannedChar(it) }.values.toIntArray() + listOf(translateToken, noCaptionsToken)
     }
 
     private fun stringToToken(string: String): Int? {
@@ -197,9 +197,6 @@ class WhisperModel(context: Context, model: ModelData, val suppressNonSpeech: Bo
 
             val logits = decoderOutputs.logits.floatArray
 
-            // Forcibly kill undesired tokens
-            logits[translateToken] -= 1024.0f
-            logits[noCaptionsToken] -= 1024.0f
             for(i in bannedTokens) logits[i] -= 1024.0f
 
             val selectedToken = logits.withIndex().maxByOrNull { it.value }?.index!!
