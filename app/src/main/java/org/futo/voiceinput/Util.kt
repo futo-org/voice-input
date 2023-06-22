@@ -6,6 +6,7 @@ import android.content.Intent
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -131,3 +132,5 @@ val VERBOSE_PROGRESS = booleanPreferencesKey("verbose_progress")
 val ENABLE_ENGLISH = booleanPreferencesKey("enable_english")
 val ENABLE_MULTILINGUAL = booleanPreferencesKey("enable_multilingual")
 val DISALLOW_SYMBOLS = booleanPreferencesKey("disallow_symbols")
+
+val LANGUAGE_TOGGLES = stringSetPreferencesKey("enabled_languages")

@@ -102,17 +102,28 @@ abstract class AudioRecognizer {
             loadModelJob = lifecycleScope.launch {
                 withContext(Dispatchers.Default) {
                     // TODO: Make this more abstract and less of a mess
+                    val languages: Flow<Set<String>> = context.dataStore.data.map { preferences -> preferences[LANGUAGE_TOGGLES] ?: setOf("en") }.take(1)
                     val isMultilingual: Flow<Boolean> = context.dataStore.data.map { preferences -> preferences[ENABLE_MULTILINGUAL] ?: false }.take(1)
                     val suppressNonSpeech: Flow<Boolean> = context.dataStore.data.map { preferences -> preferences[DISALLOW_SYMBOLS] ?: true }.take(1)
 
                     isMultilingual.collect { multilingual ->
                         suppressNonSpeech.collect { suppressNonSpeech ->
                             if (multilingual) {
-                                try {
-                                    model = WhisperModelWrapper(context, TINY_MULTILINGUAL_MODEL_DATA, TINY_ENGLISH_MODEL_DATA, suppressNonSpeech)
-                                } catch (e: IOException) {
-                                    context.startModelDownloadActivity(TINY_MULTILINGUAL_MODEL_DATA)
-                                    cancelRecognizer()
+                                languages.collect { languages ->
+                                    try {
+                                        model = WhisperModelWrapper(
+                                            context,
+                                            TINY_MULTILINGUAL_MODEL_DATA,
+                                            TINY_ENGLISH_MODEL_DATA,
+                                            suppressNonSpeech,
+                                            languages
+                                        )
+                                    } catch (e: IOException) {
+                                        context.startModelDownloadActivity(
+                                            TINY_MULTILINGUAL_MODEL_DATA
+                                        )
+                                        cancelRecognizer()
+                                    }
                                 }
                             } else {
                                 model = WhisperModelWrapper(context, TINY_ENGLISH_MODEL_DATA, null, suppressNonSpeech)

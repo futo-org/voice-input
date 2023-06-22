@@ -57,7 +57,7 @@ fun initModelsWithOptions(context: Context, model: ModelData, encoderOptions: Mo
 class DecodingEnglishException : Throwable()
 
 
-class WhisperModel(context: Context, model: ModelData, val suppressNonSpeech: Boolean) {
+class WhisperModel(context: Context, model: ModelData, val suppressNonSpeech: Boolean, languages: Set<String>? = null) {
     private val encoderModel: WhisperEncoderXatn
     private val decoderModel: WhisperDecoder
     private val tokenizer: WhisperTokenizer
@@ -129,7 +129,22 @@ class WhisperModel(context: Context, model: ModelData, val suppressNonSpeech: Bo
                 false
             }
         }
-        bannedTokens = tokenizer.tokenToId.filterKeys { isBannedChar(it) }.values.toIntArray() + listOf(translateToken, noCaptionsToken)
+
+        var bannedTokens = tokenizer.tokenToId.filterKeys { isBannedChar(it) }.values.toIntArray()
+        bannedTokens += listOf(translateToken, noCaptionsToken)
+
+        if(languages != null) {
+            val permittedLanguages = languages.map {
+                stringToToken("<|$it|>")!!
+            }.toSortedSet()
+
+            // Ban other languages
+            bannedTokens += tokenizer.tokenToId.filterValues {
+                (it >= startOfLanguages) && (it <= endOfLanguages) && (!permittedLanguages.contains(it))
+            }.values.toIntArray()
+        }
+
+        this.bannedTokens = bannedTokens
     }
 
     private fun stringToToken(string: String): Int? {
@@ -205,11 +220,11 @@ class WhisperModel(context: Context, model: ModelData, val suppressNonSpeech: Bo
             val tokenAsString = tokenToString(selectedToken) ?: break
 
             if((selectedToken >= startOfLanguages) && (selectedToken <= endOfLanguages)){
+                println("Language detected: ${tokenAsString}")
                 if((selectedToken == englishLanguage) && bailOnEnglish) {
                     onStatusUpdate(RunState.SwitchingModel)
                     throw DecodingEnglishException()
                 }
-                println("Language detected: ${tokenAsString}")
             }
 
             fullString += tokenAsString.run {
@@ -255,9 +270,10 @@ class WhisperModelWrapper(
     val context: Context,
     val primaryModel: ModelData,
     val fallbackEnglishModel: ModelData?,
-    val suppressNonSpeech: Boolean
+    val suppressNonSpeech: Boolean,
+    val languages: Set<String>? = null
 ) {
-    private val primary: WhisperModel = WhisperModel(context, primaryModel, suppressNonSpeech)
+    private val primary: WhisperModel = WhisperModel(context, primaryModel, suppressNonSpeech, languages)
     private val fallback: WhisperModel? = fallbackEnglishModel?.let { WhisperModel(context, it, suppressNonSpeech) }
 
     init {

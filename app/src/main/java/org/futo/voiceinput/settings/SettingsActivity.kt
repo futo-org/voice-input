@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material3.CircularProgressIndicator
@@ -47,15 +48,16 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.futo.voiceinput.DISALLOW_SYMBOLS
-import org.futo.voiceinput.ENABLE_ENGLISH
 import org.futo.voiceinput.ENABLE_MULTILINGUAL
 import org.futo.voiceinput.ENABLE_SOUND
+import org.futo.voiceinput.LANGUAGE_TOGGLES
 import org.futo.voiceinput.Status
 import org.futo.voiceinput.TINY_MULTILINGUAL_MODEL_DATA
 import org.futo.voiceinput.VERBOSE_PROGRESS
@@ -138,11 +140,8 @@ fun SettingItem(title: String, subtitle: String? = null, onClick: () -> Unit, ic
     }
 }
 
-
 @Composable
-fun SettingToggle(title: String, key: Preferences.Key<Boolean>, default: Boolean, subtitle: String? = null, disabled: Boolean = false, icon: (@Composable () -> Unit)? = null) {
-    val (enabled, setValue) = useDataStore(key, default)
-
+fun SettingToggleRaw(title: String, enabled: Boolean, setValue: (Boolean) -> Unit, subtitle: String? = null, disabled: Boolean = false, icon: (@Composable () -> Unit)? = null) {
     SettingItem(
         title = title,
         subtitle = subtitle,
@@ -151,6 +150,13 @@ fun SettingToggle(title: String, key: Preferences.Key<Boolean>, default: Boolean
     ) {
         Switch(checked = enabled, onCheckedChange = { if(!disabled) { setValue(!enabled) } }, enabled = !disabled)
     }
+}
+
+@Composable
+fun SettingToggle(title: String, key: Preferences.Key<Boolean>, default: Boolean, subtitle: String? = null, disabled: Boolean = false, icon: (@Composable () -> Unit)? = null) {
+    val (enabled, setValue) = useDataStore(key, default)
+
+    SettingToggleRaw(title, enabled, { setValue(it) }, subtitle, disabled, icon)
 }
 
 @Composable
@@ -167,6 +173,13 @@ fun SettingList(content: @Composable () -> Unit) {
 @Composable
 @Preview
 fun SettingsHome(settingsViewModel: SettingsViewModel = viewModel(), navController: NavHostController = rememberNavController()) {
+    val (multilingual, setMultilingual) = useDataStore(key = ENABLE_MULTILINGUAL, default = false)
+    val multilingualSubtitle = if(multilingual) {
+        "Multilingual enabled, English latency will be increased"
+    } else {
+        null
+    }
+
     Column(modifier = Modifier
         .padding(16.dp)
         .fillMaxHeight()) {
@@ -190,7 +203,7 @@ fun SettingsHome(settingsViewModel: SettingsViewModel = viewModel(), navControll
                 VERBOSE_PROGRESS,
                 default = false
             )
-            SettingItem(title = "Languages", onClick = { navController.navigate("languages") }) {
+            SettingItem(title = "Languages", onClick = { navController.navigate("languages") }, subtitle = multilingualSubtitle) {
                 Icon(Icons.Default.ArrowForward, contentDescription = "Go")
             }
             SettingItem(title = "Testing Menu", onClick = { navController.navigate("testing") }) {
@@ -201,9 +214,22 @@ fun SettingsHome(settingsViewModel: SettingsViewModel = viewModel(), navControll
 }
 
 @Composable
+fun LanguageToggle(id: String, name: String, languages: Set<String>, setLanguages: (Set<String>) -> Job, subtitle: String?) {
+    SettingToggleRaw(
+        name,
+        languages.contains(id),
+        { setLanguages( (languages.filter{ it != id} + if(it) { listOf(id) } else { listOf() } ).toSet() ) },
+        subtitle = subtitle
+    )
+}
+
+data class LanguageEntry(val id: String, val name: String, val trainedHourCount: Int)
+
+@Composable
 @Preview
 fun SettingsLanguages(settingsViewModel: SettingsViewModel = viewModel(), navController: NavHostController = rememberNavController()) {
-    val (multilingual, _) = useDataStore(key = ENABLE_MULTILINGUAL, default = false)
+    val (multilingual, setMultilingual) = useDataStore(key = ENABLE_MULTILINGUAL, default = false)
+    val (languages, setLanguages) = useDataStore(key = LANGUAGE_TOGGLES, default = setOf("en"))
     val context = LocalContext.current
 
     LaunchedEffect(multilingual) {
@@ -212,26 +238,124 @@ fun SettingsLanguages(settingsViewModel: SettingsViewModel = viewModel(), navCon
         }
     }
 
+    LaunchedEffect(languages) {
+        val newMultilingual = languages.count { it != "en" } > 0
+        if(multilingual != newMultilingual) setMultilingual(newMultilingual)
+    }
+
+    // Numbers from Appendix E. Figure 11. https://cdn.openai.com/papers/whisper.pdf
+    val languageList = listOf(
+        LanguageEntry("zh", "Chinese", 23446),
+        LanguageEntry("de", "German", 13344),
+        LanguageEntry("es", "Spanish", 11100),
+        LanguageEntry("ru", "Russian", 9761),
+        LanguageEntry("fr", "French", 9752),
+        LanguageEntry("pt", "Portuguese", 8573),
+        LanguageEntry("ko", "Korean", 7993),
+        LanguageEntry("ja", "Japanese", 7054),
+        LanguageEntry("tr", "Turkish", 4333),
+        LanguageEntry("pl", "Polish", 4278),
+        LanguageEntry("it", "Italian", 2585),
+        LanguageEntry("sv", "Swedish", 2119),
+        LanguageEntry("nl", "Dutch", 2077),
+        LanguageEntry("ca", "Catalan", 1883),
+        LanguageEntry("fi", "Finnish", 1066),
+        LanguageEntry("id", "Indonesian", 1014),
+        LanguageEntry("ar", "Arabic", 739),
+        LanguageEntry("uk", "Ukrainian", 697),
+        LanguageEntry("vi", "Vietnamese", 691),
+        LanguageEntry("he", "Hebrew", 688),
+        LanguageEntry("el", "Greek", 529),
+        LanguageEntry("da", "Danish", 473),
+        LanguageEntry("ms", "Malay", 382),
+        LanguageEntry("hu", "Hungarian", 379),
+        LanguageEntry("ro", "Romanian", 356),
+        LanguageEntry("no", "Norwegian", 266),
+        LanguageEntry("th", "Thai", 226),
+        LanguageEntry("cs", "Czech", 192),
+        LanguageEntry("ta", "Tamil", 134),
+        LanguageEntry("ur", "Urdu", 104),
+        LanguageEntry("hr", "Croatian", 91),
+        LanguageEntry("sk", "Slovak", 90),
+        LanguageEntry("bg", "Bulgarian", 86),
+        LanguageEntry("tl", "Tagalog", 75),
+        LanguageEntry("cy", "Welsh", 73),
+        LanguageEntry("lt", "Lithuanian", 67),
+        LanguageEntry("lv", "Latvian", 65),
+        LanguageEntry("az", "Azerbaijani", 47),
+        LanguageEntry("et", "Estonian", 41),
+        LanguageEntry("sl", "Slovenian", 41),
+        LanguageEntry("sr", "Serbian", 28),
+        LanguageEntry("fa", "Persian", 24),
+        LanguageEntry("eu", "Basque", 21),
+        LanguageEntry("is", "Icelandic", 16),
+        LanguageEntry("mk", "Macedonian", 16),
+        LanguageEntry("hy", "Armenian", 13),
+        LanguageEntry("kk", "Kazakh", 12),
+        LanguageEntry("hi", "Hindi", 12),
+        LanguageEntry("bs", "Bosnian", 11),
+        LanguageEntry("gl", "Galician", 9),
+        LanguageEntry("sq", "Albanian", 6),
+        LanguageEntry("si", "Sinhala", 5),
+        LanguageEntry("sw", "Swahili", 5),
+        LanguageEntry("te", "Telugu", 4),
+        LanguageEntry("af", "Afrikaans", 4),
+        LanguageEntry("kn", "Kannada", 4),
+        LanguageEntry("be", "Belarusian", 2),
+        LanguageEntry("km", "Khmer", 1),
+        LanguageEntry("bn", "Bengali", 1),
+        LanguageEntry("mt", "Maltese", 1),
+        LanguageEntry("ht", "Haitian Creole", 1),
+        LanguageEntry("pa", "Punjabi", 1),
+        LanguageEntry("mr", "Marathi", 1),
+        LanguageEntry("ne", "Nepali", 1),
+        LanguageEntry("ka", "Georgian", 1),
+        LanguageEntry("ml", "Malayalam", 1),
+
+        // Languages below trained on fewer than 0.5 hours of data
+        LanguageEntry("yi", "Yiddish", 0),
+        LanguageEntry("uz", "Uzbek", 0),
+        LanguageEntry("gu", "Gujarati", 0),
+        LanguageEntry("tg", "Tajik", 0),
+        LanguageEntry("mg", "Malagasy", 0),
+        LanguageEntry("my", "Burmese", 0),
+        LanguageEntry("su", "Sundanese", 0),
+        LanguageEntry("lo", "Lao", 0)
+    )
+
     Column(modifier = Modifier
         .padding(16.dp)
         .fillMaxHeight()) {
         Text("Languages", style = Typography.titleLarge)
 
         SettingList {
-            SettingToggle(
-                "English",
-                ENABLE_ENGLISH,
-                default = true,
-                disabled = true,
-                subtitle = "Always on"
-            )
-            SettingToggle(
-                "Other languages",
-                ENABLE_MULTILINGUAL,
-                default = false,
+            LazyColumn {
+                item {
+                    SettingToggleRaw(
+                        "English",
+                        true,
+                        {},
+                        disabled = true,
+                        subtitle = "Always on. Enabling others will increase English latency"
+                    )
+                }
 
-                subtitle = "The accuracy is currently very bad. This will increase latency for English"
-            )
+                items(languageList.size) {
+                    val language = languageList[it]
+
+                    val subtitle = if(language.trainedHourCount < 500) {
+                        "May be low accuracy (${language.trainedHourCount}h)"
+                    } else {
+                        "Trained on ${language.trainedHourCount} hours"
+                    }
+
+                    // Only show languages trained with over 1000 hours for now, as anything lower
+                    // can be laughably bad on the tiny model
+                    if(language.trainedHourCount > 1000) {
+                        LanguageToggle(language.id, language.name, languages, setLanguages, subtitle)
+                    }
+                }
+            }
         }
     }
 }
