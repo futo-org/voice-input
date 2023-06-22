@@ -21,3 +21,13 @@ Incompatible keyboards:
 * FlorisBoard - no voice button
 * Unexpected Keyboard - no voice button
 * TypeWise - no voice button [but suggestion filed in 2019](https://suggestions.typewise.app/suggestions/65517/voice-to-text-dictation)
+
+----------
+
+Open-source projects used:
+* MIT - Copyright (c) 2022 OpenAI [OpenAI Whisper](https://github.com/openai/whisper/)
+* Apache 2.0 - Copyright (c) 2023 TensorFlow Authors [TensorFlow Lite](https://mvnrepository.com/artifact/org.tensorflow/tensorflow-lite)
+* BSD-3-Clause - Copyright (C) 2010-2019 Max-Planck-Society [PocketFFT](https://gitlab.mpcdf.mpg.de/mtr/pocketfft/-/blob/master/LICENSE.md)
+* BSD-3-Clause - Copyright (c) 2011, The WebRTC project authors [WebRTC VAD](https://github.com/abb128/android-vad/blob/main/vad/src/main/jni/webrtc_vad/LICENSE)
+* MIT - Copyright (c) 2023 Georgiy Konovalov [android-vad](https://github.com/abb128/android-vad)
+* Other app dependencies, listed in app/build.gradle
