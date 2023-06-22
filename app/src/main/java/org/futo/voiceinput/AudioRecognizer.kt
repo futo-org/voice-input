@@ -13,6 +13,11 @@ import android.net.Uri
 import android.os.Build
 import android.provider.Settings
 import androidx.lifecycle.LifecycleCoroutineScope
+import com.konovalov.vad.Vad
+import com.konovalov.vad.config.FrameSize
+import com.konovalov.vad.config.Mode
+import com.konovalov.vad.config.Model
+import com.konovalov.vad.config.SampleRate
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
@@ -24,6 +29,8 @@ import org.futo.voiceinput.ml.RunState
 import org.futo.voiceinput.ml.WhisperModelWrapper
 import java.io.IOException
 import java.nio.FloatBuffer
+import java.nio.ShortBuffer
+import kotlin.math.min
 import kotlin.math.pow
 import kotlin.math.sqrt
 
@@ -191,7 +198,20 @@ abstract class AudioRecognizer {
                     var anyNoiseAtAll = false
                     var isMicBlocked = false
 
+                    val vad = Vad.builder()
+                        .setModel(Model.WEB_RTC_GMM)
+                        .setMode(Mode.VERY_AGGRESSIVE)
+                        .setFrameSize(FrameSize.FRAME_SIZE_480)
+                        .setSampleRate(SampleRate.SAMPLE_RATE_16K)
+                        .setSpeechDurationMs(150)
+                        .setSilenceDurationMs(300)
+                        .build()
+
+                    val vadSampleBuffer = ShortBuffer.allocate(480)
+                    var numConsecutiveNonSpeech = 0
+
                     val samples = FloatArray(1600)
+
                     while(isRecording && recorder!!.recordingState == AudioRecord.RECORDSTATE_RECORDING){
                         val nRead = recorder!!.read(samples, 0, 1600, AudioRecord.READ_BLOCKING)
 
@@ -202,7 +222,31 @@ abstract class AudioRecognizer {
                             withContext(Dispatchers.Main){ finishRecognizer() }
                             break
                         }
-                        floatSamples.put(samples)
+
+                        // Run VAD
+                        var remainingSamples = nRead
+                        var offset = 0
+                        while(remainingSamples > 0) {
+                            if(!vadSampleBuffer.hasRemaining()) {
+                                val isSpeech = vad.isSpeech(vadSampleBuffer.array())
+                                vadSampleBuffer.clear()
+                                vadSampleBuffer.rewind()
+
+                                if(!isSpeech)
+                                    numConsecutiveNonSpeech++
+                                else
+                                    numConsecutiveNonSpeech = 0
+                            }
+
+                            val samplesToRead = min(min(remainingSamples, 480), vadSampleBuffer.remaining())
+                            for(i in 0 until samplesToRead) {
+                                vadSampleBuffer.put((samples[offset] * 32768.0).toInt().toShort())
+                                offset += 1
+                                remainingSamples -= 1
+                            }
+                        }
+
+                        floatSamples.put(samples.sliceArray(0 until nRead))
 
                         // Don't set hasTalked if the start sound may still be playing, otherwise on some
                         // devices the rms just explodes and `hasTalked` is always true
@@ -220,6 +264,12 @@ abstract class AudioRecognizer {
                         // Check if mic is blocked
                         if(!anyNoiseAtAll && canMicBeBlocked && (floatSamples.position() > 2*16000)){
                             isMicBlocked = true
+                        }
+
+                        // End if VAD hasn't detected speech in a while
+                        if(hasTalked && (numConsecutiveNonSpeech > 66)) {
+                            withContext(Dispatchers.Main){ finishRecognizer() }
+                            break
                         }
 
                         val magnitude = (1.0f - 0.1f.pow(24.0f * rms))
