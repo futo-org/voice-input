@@ -58,8 +58,9 @@ import org.futo.voiceinput.DISALLOW_SYMBOLS
 import org.futo.voiceinput.ENABLE_MULTILINGUAL
 import org.futo.voiceinput.ENABLE_SOUND
 import org.futo.voiceinput.LANGUAGE_TOGGLES
+import org.futo.voiceinput.MULTILINGUAL_MODEL_DATA
 import org.futo.voiceinput.Status
-import org.futo.voiceinput.TINY_MULTILINGUAL_MODEL_DATA
+
 import org.futo.voiceinput.VERBOSE_PROGRESS
 import org.futo.voiceinput.modelNeedsDownloading
 import org.futo.voiceinput.startModelDownloadActivity
@@ -233,8 +234,8 @@ fun SettingsLanguages(settingsViewModel: SettingsViewModel = viewModel(), navCon
     val context = LocalContext.current
 
     LaunchedEffect(multilingual) {
-        if(multilingual && context.modelNeedsDownloading(TINY_MULTILINGUAL_MODEL_DATA)) {
-            context.startModelDownloadActivity(TINY_MULTILINGUAL_MODEL_DATA)
+        if(multilingual && context.modelNeedsDownloading(MULTILINGUAL_MODEL_DATA)) {
+            context.startModelDownloadActivity(MULTILINGUAL_MODEL_DATA)
         }
     }
 

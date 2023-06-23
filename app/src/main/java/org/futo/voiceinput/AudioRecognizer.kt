@@ -120,14 +120,14 @@ abstract class AudioRecognizer {
                                     try {
                                         model = WhisperModelWrapper(
                                             context,
-                                            TINY_MULTILINGUAL_MODEL_DATA,
+                                            MULTILINGUAL_MODEL_DATA,
                                             TINY_ENGLISH_MODEL_DATA,
                                             suppressNonSpeech,
                                             languages
                                         )
                                     } catch (e: IOException) {
                                         context.startModelDownloadActivity(
-                                            TINY_MULTILINGUAL_MODEL_DATA
+                                            MULTILINGUAL_MODEL_DATA
                                         )
                                         cancelRecognizer()
                                     }

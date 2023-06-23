@@ -116,14 +116,14 @@ val TINY_ENGLISH_MODEL_DATA = ModelData(
     vocab_raw_asset = R.raw.tinyenvocab
 )
 
-val TINY_MULTILINGUAL_MODEL_DATA = ModelData(
-    name = "tiny-multilingual",
+val MULTILINGUAL_MODEL_DATA = ModelData(
+    name = "base",
 
     is_builtin_asset = false,
-    encoder_xatn_file = "tiny-multi-encoder-xatn.tflite",
-    decoder_file = "tiny-multi-decoder.tflite",
+    encoder_xatn_file = "base-encoder-xatn.tflite",
+    decoder_file = "base-decoder.tflite",
 
-    vocab_file = "tiny-multi-vocab.json",
+    vocab_file = "base-vocab.json",
 )
 
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")

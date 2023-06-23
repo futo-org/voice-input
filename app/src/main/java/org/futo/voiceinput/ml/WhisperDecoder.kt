@@ -36,6 +36,10 @@ class WhisperDecoder {
         model.close()
     }
 
+    fun getCacheTensorShape(): IntArray {
+        return model.getOutputTensorShape(1)
+    }
+
     inner class Outputs internal constructor(model: Model) {
         val logits: TensorBuffer
         val nextCache: TensorBuffer

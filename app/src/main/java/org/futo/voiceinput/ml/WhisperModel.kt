@@ -192,11 +192,13 @@ class WhisperModel(context: Context, model: ModelData, private val suppressNonSp
 
     private val audioFeatures = TensorBuffer.createFixedSize(intArrayOf(1, 80, 3000), DataType.FLOAT32)
     private val seqLenTensor = TensorBuffer.createFixedSize(intArrayOf(1), DataType.FLOAT32)
-    private val cacheTensor = TensorBuffer.createFixedSize(intArrayOf(8, 6, 256, 64), DataType.FLOAT32)
+    private val cacheTensor = TensorBuffer.createFixedSize(decoderModel.getCacheTensorShape(), DataType.FLOAT32)
     private val inputIdTensor = TensorBuffer.createFixedSize(intArrayOf(1, 1), DataType.FLOAT32)
 
     init {
-        cacheTensor.loadArray(FloatArray(8 * 6 * 256 * 64) { 0f } )
+        val shape = cacheTensor.shape
+        val size = shape[0] * shape[1] * shape[2] * shape[3]
+        cacheTensor.loadArray(FloatArray(size) { 0f } )
     }
 
     fun run(
