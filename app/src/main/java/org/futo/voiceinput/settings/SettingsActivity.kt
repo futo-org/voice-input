@@ -420,7 +420,7 @@ fun CreditsMenu(openDependencies: () -> Unit = {}) {
                             .fillMaxWidth()
                             .padding(8.dp)
                     ) {
-                        Text("View All Dependencies")
+                        Text("View Other Dependencies")
                     }
                 }
 
