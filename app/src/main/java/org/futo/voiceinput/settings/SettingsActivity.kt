@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowForward
@@ -45,11 +46,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.datastore.preferences.core.Preferences
 import androidx.lifecycle.Lifecycle
@@ -244,6 +243,14 @@ fun LanguageToggle(id: String, name: String, languages: Set<String>, setLanguage
 
 @Composable
 @Preview
+fun Tip(text: String = "This is an example tip") {
+    Surface(color = MaterialTheme.colorScheme.primaryContainer, modifier = Modifier.fillMaxWidth().padding(8.dp), shape = RoundedCornerShape(4.dp)) {
+        Text("$text", modifier = Modifier.padding(8.dp), style = Typography.bodyMedium, color = MaterialTheme.colorScheme.onPrimaryContainer)
+    }
+}
+
+@Composable
+@Preview
 fun SettingsLanguages(settingsViewModel: SettingsViewModel = viewModel(), navController: NavHostController = rememberNavController()) {
     val (multilingual, setMultilingual) = useDataStore(key = ENABLE_MULTILINGUAL, default = false)
     val (languages, setLanguages) = useDataStore(key = LANGUAGE_TOGGLES, default = setOf("en"))
@@ -267,6 +274,11 @@ fun SettingsLanguages(settingsViewModel: SettingsViewModel = viewModel(), navCon
 
         SettingList {
             LazyColumn {
+                item {
+                    Tip("The model will automatically detect which language you're speaking.")
+                    Tip("Some languages may work better than others, depending on the hours of training data.")
+                    Tip("Voice Input may be slower if you enable more than English.")
+                }
                 item {
                     SettingToggleRaw(
                         "English",
@@ -300,43 +312,48 @@ fun SettingsLanguages(settingsViewModel: SettingsViewModel = viewModel(), navCon
 @Composable
 fun CreditItem(name: String, thanksFor: String, link: String, license: String, copyright: String) {
     val uriHandler = LocalUriHandler.current
-    ClickableText(text = buildAnnotatedString {
-        val fullString = "Thanks to $name for $thanksFor. $name is licensed under $license. $copyright."
 
-        addStyle(
-            style = SpanStyle(
-                color = MaterialTheme.colorScheme.onSurface,
-                fontSize = 18.sp
-            ),
-            start = 0,
-            end = fullString.length
-        )
+    Surface(color = MaterialTheme.colorScheme.primaryContainer, modifier = Modifier.padding(8.dp), shape = RoundedCornerShape(4.dp)) {
+        ClickableText(text = buildAnnotatedString {
+            val fullString =
+                "$name - Thanks for $thanksFor. $name is licensed under $license. $copyright."
+
+            addStyle(
+                style = SpanStyle(
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    fontSize = Typography.bodyMedium.fontSize,
+                    fontWeight = Typography.bodyMedium.fontWeight
+                ),
+                start = 0,
+                end = fullString.length
+            )
 
 
-        val start = fullString.indexOf(name)
-        val end = start + name.length
+            val start = fullString.indexOf(name)
+            val end = start + name.length
 
-        addStyle(
-            style = SpanStyle(
-                color = Sky200,
-                fontSize = 22.sp,
-                textDecoration = TextDecoration.Underline,
-                fontWeight = FontWeight.Normal
-            ),
-            start = start,
-            end = end
-        )
-        addStringAnnotation(
-            tag = "URL",
-            annotation = link,
-            start = start,
-            end = end
-        )
+            addStyle(
+                style = SpanStyle(
+                    color = Sky200,
+                    fontSize = Typography.titleLarge.fontSize,
+                    fontWeight = Typography.titleLarge.fontWeight,
+                    textDecoration = TextDecoration.Underline
+                ),
+                start = start,
+                end = end
+            )
+            addStringAnnotation(
+                tag = "URL",
+                annotation = link,
+                start = start,
+                end = end
+            )
 
-        append(fullString)
-    }, onClick = {
-        uriHandler.openUri(link)
-    }, modifier = Modifier.padding(8.dp), style = Typography.bodyLarge)
+            append(fullString)
+        }, onClick = {
+            uriHandler.openUri(link)
+        }, modifier = Modifier.padding(8.dp), style = Typography.bodyLarge)
+    }
 }
 
 @Composable
@@ -349,13 +366,6 @@ fun CreditsMenu(openDependencies: () -> Unit = {}) {
 
         SettingList {
             LazyColumn {
-                item {
-                    Text(
-                        "The authors, contributors or copyright holders of the following software are not affiliated with and do not endorse or promote this product. Reference to the authors, contributors or copyright holders is solely for attribution purposes. Mention of their names does not imply approval or endorsement.",
-                        style = Typography.bodyMedium
-                    )
-                }
-
                 item {
                     CreditItem(
                         name = "OpenAI Whisper",
@@ -402,7 +412,7 @@ fun CreditsMenu(openDependencies: () -> Unit = {}) {
                         thanksFor = "HTTP client, used for downloading models",
                         link = "https://square.github.io/okhttp/",
                         license = "Apache-2.0",
-                        copyright = "Copyright (c) 2023 Square, Inc."
+                        copyright = "Copyright (c) 2023 Square, Inc"
                     )
 
                     Button(
@@ -412,6 +422,10 @@ fun CreditsMenu(openDependencies: () -> Unit = {}) {
                     ) {
                         Text("View All Dependencies")
                     }
+                }
+
+                item {
+                    Text("The authors, contributors or copyright holders listed above are not affiliated with this product and do not endorse or promote this product. Reference to the authors, contributors or copyright holders is solely for attribution purposes. Mention of their names does not imply approval or endorsement.", style = Typography.bodyMedium, modifier = Modifier.padding(8.dp))
                 }
             }
         }
