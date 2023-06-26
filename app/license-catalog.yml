@@ -1,0 +1,12 @@
+  - key: apache-2.0
+    name: Apache License 2.0
+    url: https://raw.githubusercontent.com/jmatsu/license-list-plugin/master/license-files/apache-2.0.txt
+  - key: epl-1.0
+    name: Eclipse Public License 1.0
+    url: https://opensource.org/licenses/EPL-1.0
+  - key: mit
+    name: MIT License
+    url: https://raw.githubusercontent.com/jmatsu/license-list-plugin/master/license-files/mit.txt
+  - key: bsd-3-clause
+    name: BSD 3-Clause
+    url: https://opensource.org/license/BSD-3-clause/

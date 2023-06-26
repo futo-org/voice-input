@@ -4,6 +4,10 @@ import android.Manifest
 import android.content.Intent
 import android.os.Bundle
 import android.speech.RecognizerIntent
+import android.view.ViewGroup
+import android.webkit.WebResourceRequest
+import android.webkit.WebView
+import android.webkit.WebViewClient
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
@@ -19,8 +23,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -36,8 +42,15 @@ import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.datastore.preferences.core.Preferences
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModel
@@ -57,15 +70,17 @@ import kotlinx.coroutines.launch
 import org.futo.voiceinput.DISALLOW_SYMBOLS
 import org.futo.voiceinput.ENABLE_MULTILINGUAL
 import org.futo.voiceinput.ENABLE_SOUND
+import org.futo.voiceinput.LANGUAGE_LIST
 import org.futo.voiceinput.LANGUAGE_TOGGLES
 import org.futo.voiceinput.MULTILINGUAL_MODEL_DATA
 import org.futo.voiceinput.Status
-
 import org.futo.voiceinput.VERBOSE_PROGRESS
 import org.futo.voiceinput.modelNeedsDownloading
 import org.futo.voiceinput.startModelDownloadActivity
+import org.futo.voiceinput.ui.theme.Sky200
 import org.futo.voiceinput.ui.theme.Typography
 import org.futo.voiceinput.ui.theme.WhisperVoiceInputTheme
+
 
 data class SettingsUiState(
     val intentResultText: String = "Result goes here",
@@ -174,7 +189,7 @@ fun SettingList(content: @Composable () -> Unit) {
 @Composable
 @Preview
 fun SettingsHome(settingsViewModel: SettingsViewModel = viewModel(), navController: NavHostController = rememberNavController()) {
-    val (multilingual, setMultilingual) = useDataStore(key = ENABLE_MULTILINGUAL, default = false)
+    val (multilingual, _) = useDataStore(key = ENABLE_MULTILINGUAL, default = false)
     val multilingualSubtitle = if(multilingual) {
         "Multilingual enabled, English latency will be increased"
     } else {
@@ -199,15 +214,18 @@ fun SettingsHome(settingsViewModel: SettingsViewModel = viewModel(), navControll
                 default = true,
                 subtitle = "[cough], [music], etc"
             )
+            SettingItem(title = "Languages", onClick = { navController.navigate("languages") }, subtitle = multilingualSubtitle) {
+                Icon(Icons.Default.ArrowForward, contentDescription = "Go")
+            }
             SettingToggle(
                 "Verbose Mode",
                 VERBOSE_PROGRESS,
                 default = false
             )
-            SettingItem(title = "Languages", onClick = { navController.navigate("languages") }, subtitle = multilingualSubtitle) {
+            SettingItem(title = "Testing Menu", onClick = { navController.navigate("testing") }) {
                 Icon(Icons.Default.ArrowForward, contentDescription = "Go")
             }
-            SettingItem(title = "Testing Menu", onClick = { navController.navigate("testing") }) {
+            SettingItem(title = "Credits and Acknowledgments", onClick = { navController.navigate("credits") }) {
                 Icon(Icons.Default.ArrowForward, contentDescription = "Go")
             }
         }
@@ -223,8 +241,6 @@ fun LanguageToggle(id: String, name: String, languages: Set<String>, setLanguage
         subtitle = subtitle
     )
 }
-
-data class LanguageEntry(val id: String, val name: String, val trainedHourCount: Int)
 
 @Composable
 @Preview
@@ -244,86 +260,6 @@ fun SettingsLanguages(settingsViewModel: SettingsViewModel = viewModel(), navCon
         if(multilingual != newMultilingual) setMultilingual(newMultilingual)
     }
 
-    // Numbers from Appendix E. Figure 11. https://cdn.openai.com/papers/whisper.pdf
-    val languageList = listOf(
-        LanguageEntry("zh", "Chinese", 23446),
-        LanguageEntry("de", "German", 13344),
-        LanguageEntry("es", "Spanish", 11100),
-        LanguageEntry("ru", "Russian", 9761),
-        LanguageEntry("fr", "French", 9752),
-        LanguageEntry("pt", "Portuguese", 8573),
-        LanguageEntry("ko", "Korean", 7993),
-        LanguageEntry("ja", "Japanese", 7054),
-        LanguageEntry("tr", "Turkish", 4333),
-        LanguageEntry("pl", "Polish", 4278),
-        LanguageEntry("it", "Italian", 2585),
-        LanguageEntry("sv", "Swedish", 2119),
-        LanguageEntry("nl", "Dutch", 2077),
-        LanguageEntry("ca", "Catalan", 1883),
-        LanguageEntry("fi", "Finnish", 1066),
-        LanguageEntry("id", "Indonesian", 1014),
-        LanguageEntry("ar", "Arabic", 739),
-        LanguageEntry("uk", "Ukrainian", 697),
-        LanguageEntry("vi", "Vietnamese", 691),
-        LanguageEntry("he", "Hebrew", 688),
-        LanguageEntry("el", "Greek", 529),
-        LanguageEntry("da", "Danish", 473),
-        LanguageEntry("ms", "Malay", 382),
-        LanguageEntry("hu", "Hungarian", 379),
-        LanguageEntry("ro", "Romanian", 356),
-        LanguageEntry("no", "Norwegian", 266),
-        LanguageEntry("th", "Thai", 226),
-        LanguageEntry("cs", "Czech", 192),
-        LanguageEntry("ta", "Tamil", 134),
-        LanguageEntry("ur", "Urdu", 104),
-        LanguageEntry("hr", "Croatian", 91),
-        LanguageEntry("sk", "Slovak", 90),
-        LanguageEntry("bg", "Bulgarian", 86),
-        LanguageEntry("tl", "Tagalog", 75),
-        LanguageEntry("cy", "Welsh", 73),
-        LanguageEntry("lt", "Lithuanian", 67),
-        LanguageEntry("lv", "Latvian", 65),
-        LanguageEntry("az", "Azerbaijani", 47),
-        LanguageEntry("et", "Estonian", 41),
-        LanguageEntry("sl", "Slovenian", 41),
-        LanguageEntry("sr", "Serbian", 28),
-        LanguageEntry("fa", "Persian", 24),
-        LanguageEntry("eu", "Basque", 21),
-        LanguageEntry("is", "Icelandic", 16),
-        LanguageEntry("mk", "Macedonian", 16),
-        LanguageEntry("hy", "Armenian", 13),
-        LanguageEntry("kk", "Kazakh", 12),
-        LanguageEntry("hi", "Hindi", 12),
-        LanguageEntry("bs", "Bosnian", 11),
-        LanguageEntry("gl", "Galician", 9),
-        LanguageEntry("sq", "Albanian", 6),
-        LanguageEntry("si", "Sinhala", 5),
-        LanguageEntry("sw", "Swahili", 5),
-        LanguageEntry("te", "Telugu", 4),
-        LanguageEntry("af", "Afrikaans", 4),
-        LanguageEntry("kn", "Kannada", 4),
-        LanguageEntry("be", "Belarusian", 2),
-        LanguageEntry("km", "Khmer", 1),
-        LanguageEntry("bn", "Bengali", 1),
-        LanguageEntry("mt", "Maltese", 1),
-        LanguageEntry("ht", "Haitian Creole", 1),
-        LanguageEntry("pa", "Punjabi", 1),
-        LanguageEntry("mr", "Marathi", 1),
-        LanguageEntry("ne", "Nepali", 1),
-        LanguageEntry("ka", "Georgian", 1),
-        LanguageEntry("ml", "Malayalam", 1),
-
-        // Languages below trained on fewer than 0.5 hours of data
-        LanguageEntry("yi", "Yiddish", 0),
-        LanguageEntry("uz", "Uzbek", 0),
-        LanguageEntry("gu", "Gujarati", 0),
-        LanguageEntry("tg", "Tajik", 0),
-        LanguageEntry("mg", "Malagasy", 0),
-        LanguageEntry("my", "Burmese", 0),
-        LanguageEntry("su", "Sundanese", 0),
-        LanguageEntry("lo", "Lao", 0)
-    )
-
     Column(modifier = Modifier
         .padding(16.dp)
         .fillMaxHeight()) {
@@ -341,8 +277,8 @@ fun SettingsLanguages(settingsViewModel: SettingsViewModel = viewModel(), navCon
                     )
                 }
 
-                items(languageList.size) {
-                    val language = languageList[it]
+                items(LANGUAGE_LIST.size) {
+                    val language = LANGUAGE_LIST[it]
 
                     val subtitle = if(language.trainedHourCount < 500) {
                         "May be low accuracy (${language.trainedHourCount}h)"
@@ -354,6 +290,127 @@ fun SettingsLanguages(settingsViewModel: SettingsViewModel = viewModel(), navCon
                     // can be laughably bad on the tiny model
                     if(language.trainedHourCount > 1000) {
                         LanguageToggle(language.id, language.name, languages, setLanguages, subtitle)
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun CreditItem(name: String, thanksFor: String, link: String, license: String, copyright: String) {
+    val uriHandler = LocalUriHandler.current
+    ClickableText(text = buildAnnotatedString {
+        val fullString = "Thanks to $name for $thanksFor. $name is licensed under $license. $copyright."
+
+        addStyle(
+            style = SpanStyle(
+                color = MaterialTheme.colorScheme.onSurface,
+                fontSize = 18.sp
+            ),
+            start = 0,
+            end = fullString.length
+        )
+
+
+        val start = fullString.indexOf(name)
+        val end = start + name.length
+
+        addStyle(
+            style = SpanStyle(
+                color = Sky200,
+                fontSize = 22.sp,
+                textDecoration = TextDecoration.Underline,
+                fontWeight = FontWeight.Normal
+            ),
+            start = start,
+            end = end
+        )
+        addStringAnnotation(
+            tag = "URL",
+            annotation = link,
+            start = start,
+            end = end
+        )
+
+        append(fullString)
+    }, onClick = {
+        uriHandler.openUri(link)
+    }, modifier = Modifier.padding(8.dp), style = Typography.bodyLarge)
+}
+
+@Composable
+@Preview
+fun CreditsMenu(openDependencies: () -> Unit = {}) {
+    Column(modifier = Modifier
+        .padding(16.dp)
+        .fillMaxHeight()) {
+        Text("Credits", style = Typography.titleLarge)
+
+        SettingList {
+            LazyColumn {
+                item {
+                    Text(
+                        "The authors, contributors or copyright holders of the following software are not affiliated with and do not endorse or promote this product. Reference to the authors, contributors or copyright holders is solely for attribution purposes. Mention of their names does not imply approval or endorsement.",
+                        style = Typography.bodyMedium
+                    )
+                }
+
+                item {
+                    CreditItem(
+                        name = "OpenAI Whisper",
+                        thanksFor = "the voice recognition model",
+                        link = "https://github.com/openai/whisper",
+                        license = "MIT",
+                        copyright = "Copyright (c) 2022 OpenAI"
+                    )
+
+                    CreditItem(
+                        name = "TensorFlow Lite",
+                        thanksFor = "machine learning inference",
+                        link = "https://mvnrepository.com/artifact/org.tensorflow/tensorflow-lite",
+                        license = "Apache-2.0",
+                        copyright = "Copyright (c) 2023 TensorFlow Authors"
+                    )
+
+                    CreditItem(
+                        name = "PocketFFT",
+                        thanksFor = "FFT to convert audio to model input",
+                        link = "https://gitlab.mpcdf.mpg.de/mtr/pocketfft/-/blob/master/LICENSE.md",
+                        license = "BSD-3-Clause",
+                        copyright = "Copyright (c) 2010-2019 Max-Planck-Society"
+                    )
+
+                    CreditItem(
+                        name = "WebRTC",
+                        thanksFor = "voice activity detection to stop recognition on silence",
+                        link = "https://webrtc.org/",
+                        license = "BSD-3-Clause",
+                        copyright = "Copyright (c) 2011, The WebRTC project authors"
+                    )
+
+                    CreditItem(
+                        name = "android-vad",
+                        thanksFor = "Android bindings to WebRTC voice activity detection",
+                        link = "https://github.com/gkonovalov/android-vad",
+                        license = "MIT",
+                        copyright = "Copyright (c) 2023 Georgiy Konovalov"
+                    )
+
+                    CreditItem(
+                        name = "OkHttp",
+                        thanksFor = "HTTP client, used for downloading models",
+                        link = "https://square.github.io/okhttp/",
+                        license = "Apache-2.0",
+                        copyright = "Copyright (c) 2023 Square, Inc."
+                    )
+
+                    Button(
+                        onClick = openDependencies, modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(8.dp)
+                    ) {
+                        Text("View All Dependencies")
                     }
                 }
             }
@@ -378,6 +435,35 @@ fun SettingsMain(settingsViewModel: SettingsViewModel = viewModel(), navControll
         }
         composable("testing") {
             InputTest(settingsUiState.intentResultText)
+        }
+        composable("credits") {
+            CreditsMenu(openDependencies = {
+                navController.navigate("dependencies")
+            })
+        }
+        composable("dependencies") {
+            AndroidView(factory = {
+                WebView(it).apply {
+                    layoutParams = ViewGroup.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.MATCH_PARENT
+                    )
+
+                    // Open all links in external browser
+                    webViewClient = object : WebViewClient() {
+                        override fun shouldOverrideUrlLoading(
+                            view: WebView?,
+                            request: WebResourceRequest?
+                        ): Boolean {
+                            val intent = Intent(Intent.ACTION_VIEW, request!!.url)
+                            view!!.context.startActivity(intent)
+                            return true
+                        }
+                    }
+                }
+            }, update = {
+                it.loadUrl("file:///android_asset/license-list.html")
+            })
         }
     }
 

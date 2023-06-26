@@ -1,0 +1,1085 @@
+release:
+    androidx.activity:
+      - key: activity
+        displayName: Activity
+        url: https://developer.android.com/jetpack/androidx/releases/activity#1.7.2
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+      - key: activity-compose
+        displayName: Activity Compose
+        url: https://developer.android.com/jetpack/androidx/releases/activity#1.7.2
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+      - key: activity-ktx
+        displayName: Activity Kotlin Extensions
+        url: https://developer.android.com/jetpack/androidx/releases/activity#1.7.2
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+    androidx.annotation:
+      - key: annotation
+        displayName: Android Support Library Annotations
+        url: http://developer.android.com/tools/extras/support-library.html
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+      - key: annotation-experimental
+        displayName: Experimental annotation
+        url: https://developer.android.com/jetpack/androidx/releases/annotation#1.3.0
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+      - key: annotation-jvm
+        displayName: Android Support Library Annotations
+        url: https://developer.android.com/jetpack/androidx/releases/annotation#1.6.0
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+    androidx.appcompat:
+      - key: appcompat
+        displayName: Android AppCompat Library
+        url: https://developer.android.com/jetpack/androidx/releases/appcompat#1.6.1
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+      - key: appcompat-resources
+        displayName: Android Resources Library
+        url: https://developer.android.com/jetpack/androidx/releases/appcompat#1.6.1
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+    androidx.arch.core:
+      - key: core-common
+        displayName: Android Arch-Common
+        url: https://developer.android.com/jetpack/androidx/releases/arch-core#2.2.0
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+      - key: core-runtime
+        displayName: Android Arch-Runtime
+        url: https://developer.android.com/jetpack/androidx/releases/arch-core#2.2.0
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+    androidx.autofill:
+      - key: autofill
+        displayName: AndroidX Autofill
+        url: https://developer.android.com/jetpack/androidx
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+    androidx.cardview:
+      - key: cardview
+        displayName: Android Support CardView v7
+        url: http://developer.android.com/tools/extras/support-library.html
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+    androidx.collection:
+      - key: collection
+        displayName: Android Support Library collections
+        url: http://developer.android.com/tools/extras/support-library.html
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+      - key: collection-ktx
+        displayName: Collections Kotlin Extensions
+        url: http://developer.android.com/tools/extras/support-library.html
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+    androidx.compose.animation:
+      - key: animation
+        displayName: Compose Animation
+        url: https://developer.android.com/jetpack/androidx/releases/compose-animation#1.3.0
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+      - key: animation-core
+        displayName: Compose Animation Core
+        url: https://developer.android.com/jetpack/androidx/releases/compose-animation#1.3.0
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+    androidx.compose.foundation:
+      - key: foundation
+        displayName: Compose Foundation
+        url: https://developer.android.com/jetpack/androidx/releases/compose-foundation#1.3.0
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+      - key: foundation-layout
+        displayName: Compose Layouts
+        url: https://developer.android.com/jetpack/androidx/releases/compose-foundation#1.3.0
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+    androidx.compose.material:
+      - key: material-icons-core
+        displayName: Compose Material Icons Core
+        url: https://developer.android.com/jetpack/androidx/releases/compose-material#1.3.0
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+      - key: material-ripple
+        displayName: Compose Material Ripple
+        url: https://developer.android.com/jetpack/androidx/releases/compose-material#1.3.0
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+    androidx.compose.material3:
+      - key: material3
+        displayName: Compose Material3 Components
+        url: https://developer.android.com/jetpack/androidx/releases/compose-material3#1.0.0
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+    androidx.compose.runtime:
+      - key: runtime
+        displayName: Compose Runtime
+        url: https://developer.android.com/jetpack/androidx/releases/compose-runtime#1.3.0
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+      - key: runtime-saveable
+        displayName: Compose Saveable
+        url: https://developer.android.com/jetpack/androidx/releases/compose-runtime#1.3.0
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+    androidx.compose.ui:
+      - key: ui
+        displayName: Compose UI primitives
+        url: https://developer.android.com/jetpack/androidx/releases/compose-ui#1.3.0
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+      - key: ui-geometry
+        displayName: Compose Geometry
+        url: https://developer.android.com/jetpack/androidx/releases/compose-ui#1.3.0
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+      - key: ui-graphics
+        displayName: Compose Graphics
+        url: https://developer.android.com/jetpack/androidx/releases/compose-ui#1.3.0
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+      - key: ui-text
+        displayName: Compose UI Text
+        url: https://developer.android.com/jetpack/androidx/releases/compose-ui#1.3.0
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+      - key: ui-tooling-preview
+        displayName: Compose Tooling API
+        url: https://developer.android.com/jetpack/androidx/releases/compose-ui#1.3.0
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+      - key: ui-unit
+        displayName: Compose Unit
+        url: https://developer.android.com/jetpack/androidx/releases/compose-ui#1.3.0
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+      - key: ui-util
+        displayName: Compose Util
+        url: https://developer.android.com/jetpack/androidx/releases/compose-ui#1.3.0
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+    androidx.concurrent:
+      - key: concurrent-futures
+        displayName: AndroidX Futures
+        url: https://developer.android.com/topic/libraries/architecture/index.html
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+    androidx.constraintlayout:
+      - key: constraintlayout
+        displayName: Android ConstraintLayout
+        url: http://tools.android.com
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+      - key: constraintlayout-core
+        displayName: Android ConstraintLayout Core
+        url: http://tools.android.com
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+    androidx.coordinatorlayout:
+      - key: coordinatorlayout
+        displayName: Android Support Library Coordinator Layout
+        url: https://developer.android.com/jetpack/androidx
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+    androidx.core:
+      - key: core
+        displayName: Android Support Library compat
+        url: https://developer.android.com/jetpack/androidx/releases/core#1.10.1
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+      - key: core-ktx
+        displayName: Core Kotlin Extensions
+        url: https://developer.android.com/jetpack/androidx/releases/core#1.10.1
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+    androidx.cursoradapter:
+      - key: cursoradapter
+        displayName: Android Support Library Cursor Adapter
+        url: http://developer.android.com/tools/extras/support-library.html
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+    androidx.customview:
+      - key: customview
+        displayName: Android Support Library Custom View
+        url: https://developer.android.com/jetpack/androidx
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+      - key: customview-poolingcontainer
+        displayName: androidx.customview:poolingcontainer
+        url: https://developer.android.com/jetpack/androidx/releases/customview#1.0.0
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+    androidx.databinding:
+      - key: viewbinding
+        displayName: viewbinding
+        url: null
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+    androidx.datastore:
+      - key: datastore
+        displayName: Android DataStore
+        url: https://developer.android.com/jetpack/androidx/releases/datastore#1.0.0
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+      - key: datastore-core
+        displayName: Android DataStore Core
+        url: https://developer.android.com/jetpack/androidx/releases/datastore#1.0.0
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+      - key: datastore-preferences
+        displayName: Android Preferences DataStore
+        url: https://developer.android.com/jetpack/androidx/releases/datastore#1.0.0
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+      - key: datastore-preferences-core
+        displayName: Android Preferences DataStore Core
+        url: https://developer.android.com/jetpack/androidx/releases/datastore#1.0.0
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+    androidx.documentfile:
+      - key: documentfile
+        displayName: Android Support Library Document File
+        url: http://developer.android.com/tools/extras/support-library.html
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+    androidx.drawerlayout:
+      - key: drawerlayout
+        displayName: Android Support Library Drawer Layout
+        url: https://developer.android.com/jetpack/androidx
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+    androidx.dynamicanimation:
+      - key: dynamicanimation
+        displayName: Android Support DynamicAnimation
+        url: http://developer.android.com/tools/extras/support-library.html
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+    androidx.emoji2:
+      - key: emoji2
+        displayName: Android Emoji2 Compat
+        url: https://developer.android.com/jetpack/androidx/releases/emoji2#1.2.0
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+      - key: emoji2-views-helper
+        displayName: Android Emoji2 Compat view helpers
+        url: https://developer.android.com/jetpack/androidx/releases/emoji2#1.2.0
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+    androidx.fragment:
+      - key: fragment
+        displayName: Android Support Library fragment
+        url: https://developer.android.com/jetpack/androidx/releases/fragment#1.3.6
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+    androidx.interpolator:
+      - key: interpolator
+        displayName: Android Support Library Interpolators
+        url: http://developer.android.com/tools/extras/support-library.html
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+    androidx.legacy:
+      - key: legacy-support-core-utils
+        displayName: Android Support Library core utils
+        url: http://developer.android.com/tools/extras/support-library.html
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+    androidx.lifecycle:
+      - key: lifecycle-common
+        displayName: Android Lifecycle-Common
+        url: https://developer.android.com/jetpack/androidx/releases/lifecycle#2.6.1
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+      - key: lifecycle-common-java8
+        displayName: Android Lifecycle-Common for Java 8 Language
+        url: https://developer.android.com/jetpack/androidx/releases/lifecycle#2.6.1
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+      - key: lifecycle-livedata
+        displayName: Android Lifecycle LiveData
+        url: https://developer.android.com/jetpack/androidx/releases/lifecycle#2.6.1
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+      - key: lifecycle-livedata-core
+        displayName: Android Lifecycle LiveData Core
+        url: https://developer.android.com/jetpack/androidx/releases/lifecycle#2.6.1
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+      - key: lifecycle-process
+        displayName: Android Lifecycle Process
+        url: https://developer.android.com/jetpack/androidx/releases/lifecycle#2.6.1
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+      - key: lifecycle-runtime
+        displayName: Android Lifecycle Runtime
+        url: https://developer.android.com/jetpack/androidx/releases/lifecycle#2.6.1
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+      - key: lifecycle-runtime-compose
+        displayName: Lifecycle Runtime Compose
+        url: https://developer.android.com/jetpack/androidx/releases/lifecycle#2.6.1
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+      - key: lifecycle-runtime-ktx
+        displayName: Android Lifecycle Kotlin Extensions
+        url: https://developer.android.com/jetpack/androidx/releases/lifecycle#2.6.1
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+      - key: lifecycle-viewmodel
+        displayName: Android Lifecycle ViewModel
+        url: https://developer.android.com/jetpack/androidx/releases/lifecycle#2.6.1
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+      - key: lifecycle-viewmodel-compose
+        displayName: Lifecycle ViewModel Compose
+        url: https://developer.android.com/jetpack/androidx/releases/lifecycle#2.6.1
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+      - key: lifecycle-viewmodel-ktx
+        displayName: Android Lifecycle ViewModel Kotlin Extensions
+        url: https://developer.android.com/jetpack/androidx/releases/lifecycle#2.6.1
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+      - key: lifecycle-viewmodel-savedstate
+        displayName: Android Lifecycle ViewModel with SavedState
+        url: https://developer.android.com/jetpack/androidx/releases/lifecycle#2.6.1
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+    androidx.loader:
+      - key: loader
+        displayName: Android Support Library loader
+        url: http://developer.android.com/tools/extras/support-library.html
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+    androidx.localbroadcastmanager:
+      - key: localbroadcastmanager
+        displayName: Android Support Library Local Broadcast Manager
+        url: http://developer.android.com/tools/extras/support-library.html
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+    androidx.navigation:
+      - key: navigation-common
+        displayName: Android Navigation Common
+        url: https://developer.android.com/jetpack/androidx/releases/navigation#2.6.0
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+      - key: navigation-common-ktx
+        displayName: Android Navigation Common Kotlin Extensions
+        url: https://developer.android.com/jetpack/androidx/releases/navigation#2.6.0
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+      - key: navigation-compose
+        displayName: Compose Navigation
+        url: https://developer.android.com/jetpack/androidx/releases/navigation#2.6.0
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+      - key: navigation-runtime
+        displayName: Android Navigation Runtime
+        url: https://developer.android.com/jetpack/androidx/releases/navigation#2.6.0
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+      - key: navigation-runtime-ktx
+        displayName: Android Navigation Runtime Kotlin Extensions
+        url: https://developer.android.com/jetpack/androidx/releases/navigation#2.6.0
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+    androidx.print:
+      - key: print
+        displayName: Android Support Library Print
+        url: http://developer.android.com/tools/extras/support-library.html
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+    androidx.profileinstaller:
+      - key: profileinstaller
+        displayName: androidx.profileinstaller:profileinstaller
+        url: https://developer.android.com/jetpack/androidx/releases/profileinstaller#1.3.0
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+    androidx.recyclerview:
+      - key: recyclerview
+        displayName: Android Support RecyclerView v7
+        url: https://developer.android.com/jetpack/androidx
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+    androidx.resourceinspection:
+      - key: resourceinspection-annotation
+        displayName: Android Resource Inspection - Annotations
+        url: https://developer.android.com/jetpack/androidx/releases/resourceinspection#1.0.1
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+    androidx.savedstate:
+      - key: savedstate
+        displayName: Saved State
+        url: https://developer.android.com/jetpack/androidx/releases/savedstate#1.2.1
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+      - key: savedstate-ktx
+        displayName: SavedState Kotlin Extensions
+        url: https://developer.android.com/jetpack/androidx/releases/savedstate#1.2.1
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+    androidx.startup:
+      - key: startup-runtime
+        displayName: Android App Startup Runtime
+        url: https://developer.android.com/jetpack/androidx/releases/startup#1.1.1
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+    androidx.tracing:
+      - key: tracing
+        displayName: Android Tracing
+        url: https://developer.android.com/jetpack/androidx/releases/tracing#1.0.0
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+    androidx.transition:
+      - key: transition
+        displayName: Android Transition Support Library
+        url: https://developer.android.com/jetpack/androidx
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+    androidx.vectordrawable:
+      - key: vectordrawable
+        displayName: Android Support VectorDrawable
+        url: https://developer.android.com/jetpack/androidx
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+      - key: vectordrawable-animated
+        displayName: Android Support AnimatedVectorDrawable
+        url: https://developer.android.com/jetpack/androidx
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+    androidx.versionedparcelable:
+      - key: versionedparcelable
+        displayName: VersionedParcelable
+        url: http://developer.android.com/tools/extras/support-library.html
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+    androidx.viewpager:
+      - key: viewpager
+        displayName: Android Support Library View Pager
+        url: http://developer.android.com/tools/extras/support-library.html
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+    androidx.viewpager2:
+      - key: viewpager2
+        displayName: AndroidX Widget ViewPager2
+        url: https://developer.android.com/jetpack/androidx
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+    com.google.android.material:
+      - key: material
+        displayName: Material Components for Android
+        url: https://github.com/material-components/material-components-android
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+    com.google.errorprone:
+      - key: error_prone_annotations
+        displayName: error-prone annotations
+        url: null
+        copyrightHolders:
+          - The Error Prone Authors
+        licenses:
+          - apache-2.0
+    com.google.flatbuffers:
+      - key: flatbuffers-java
+        displayName: FlatBuffers Java API
+        url: https://github.com/google/flatbuffers
+        copyrightHolders:
+          - Wouter van Oortmerssen
+        licenses:
+          - apache-2.0
+    com.google.guava:
+      - key: listenablefuture
+        displayName: Guava ListenableFuture only
+        url: null
+        copyrightHolders:
+          - The Guava Authors
+        licenses:
+          - apache-2.0
+    com.squareup.okhttp3:
+      - key: okhttp
+        displayName: okhttp
+        url: https://square.github.io/okhttp/
+        copyrightHolders:
+          - Square, Inc.
+        licenses:
+          - apache-2.0
+    com.squareup.okio:
+      - key: okio-jvm
+        displayName: okio
+        url: https://github.com/square/okio/
+        copyrightHolders:
+          - Square, Inc.
+        licenses:
+          - apache-2.0
+    org.checkerframework:
+      - key: checker-qual
+        displayName: Checker Qual
+        url: https://checkerframework.org
+        copyrightHolders:
+          - Michael Ernst
+          - Werner M. Dietl
+          - Suzanne Millstein
+        licenses:
+          - mit
+    org.jetbrains:
+      - key: annotations
+        displayName: IntelliJ IDEA Annotations
+        url: http://www.jetbrains.org
+        copyrightHolders:
+          - JetBrains Team
+        licenses:
+          - apache-2.0
+    org.jetbrains.kotlin:
+      - key: kotlin-stdlib
+        displayName: Kotlin Stdlib
+        url: https://kotlinlang.org/
+        copyrightHolders:
+          - Kotlin Team
+        licenses:
+          - apache-2.0
+      - key: kotlin-stdlib-common
+        displayName: Kotlin Stdlib Common
+        url: https://kotlinlang.org/
+        copyrightHolders:
+          - Kotlin Team
+        licenses:
+          - apache-2.0
+      - key: kotlin-stdlib-jdk7
+        displayName: Kotlin Stdlib Jdk7
+        url: https://kotlinlang.org/
+        copyrightHolders:
+          - Kotlin Team
+        licenses:
+          - apache-2.0
+      - key: kotlin-stdlib-jdk8
+        displayName: Kotlin Stdlib Jdk8
+        url: https://kotlinlang.org/
+        copyrightHolders:
+          - Kotlin Team
+        licenses:
+          - apache-2.0
+    org.jetbrains.kotlinx:
+      - key: kotlinx-coroutines-android
+        displayName: kotlinx-coroutines-android
+        url: https://github.com/Kotlin/kotlinx.coroutines
+        copyrightHolders:
+          - JetBrains Team
+        licenses:
+          - apache-2.0
+      - key: kotlinx-coroutines-core-jvm
+        displayName: kotlinx-coroutines-core
+        url: https://github.com/Kotlin/kotlinx.coroutines
+        copyrightHolders:
+          - JetBrains Team
+        licenses:
+          - apache-2.0
+      - key: kotlinx-serialization-core-jvm
+        displayName: kotlinx-serialization-core
+        url: https://github.com/Kotlin/kotlinx.serialization
+        copyrightHolders:
+          - JetBrains Team
+        licenses:
+          - apache-2.0
+      - key: kotlinx-serialization-json-jvm
+        displayName: kotlinx-serialization-json
+        url: https://github.com/Kotlin/kotlinx.serialization
+        copyrightHolders:
+          - JetBrains Team
+        licenses:
+          - apache-2.0
+    org.tensorflow:
+      - key: tensorflow-lite-metadata
+        displayName: TensorFlow Lite Metadata
+        url: https://tensorflow.org/lite/
+        copyrightHolders:
+          - TensorFlow Authors
+        licenses:
+          - apache-2.0
+test:
+    junit:
+      - key: junit
+        displayName: JUnit
+        url: http://junit.org
+        copyrightHolders:
+          - David Saff
+          - Kevin Cooney
+          - Stefan Birkner
+          - Marc Philipp
+        licenses:
+          - epl-1.0
+    org.hamcrest:
+      - key: hamcrest-core
+        displayName: Hamcrest Core
+        url: null
+        copyrightHolders:
+          - Hamcrest
+        licenses:
+          - bsd-3-clause
+androidTest:
+    androidx.activity:
+      - key: activity
+        displayName: Activity
+        url: https://developer.android.com/jetpack/androidx/releases/activity#1.5.1
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+      - key: activity-compose
+        displayName: Activity Compose
+        url: https://developer.android.com/jetpack/androidx/releases/activity#1.3.0
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+      - key: activity-ktx
+        displayName: Activity Kotlin Extensions
+        url: https://developer.android.com/jetpack/androidx/releases/activity#1.5.1
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+    androidx.annotation:
+      - key: annotation
+        displayName: Android Support Library Annotations
+        url: https://developer.android.com/jetpack/androidx/releases/annotation#1.5.0
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+      - key: annotation-experimental
+        displayName: Experimental annotation
+        url: https://developer.android.com/jetpack/androidx/releases/annotation#1.1.0
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+    androidx.arch.core:
+      - key: core-common
+        displayName: Android Arch-Common
+        url: https://developer.android.com/topic/libraries/architecture/index.html
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+      - key: core-runtime
+        displayName: Android Arch-Runtime
+        url: https://developer.android.com/topic/libraries/architecture/index.html
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+    androidx.collection:
+      - key: collection
+        displayName: Android Support Library collections
+        url: http://developer.android.com/tools/extras/support-library.html
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+    androidx.compose.ui:
+      - key: ui-test
+        displayName: Compose Testing
+        url: https://developer.android.com/jetpack/androidx/releases/compose-ui#1.3.0
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+      - key: ui-test-junit4
+        displayName: Compose Testing for JUnit4
+        url: https://developer.android.com/jetpack/androidx/releases/compose-ui#1.3.0
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+    androidx.core:
+      - key: core
+        displayName: Android Support Library compat
+        url: https://developer.android.com/jetpack/androidx/releases/core#1.8.0
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+      - key: core-ktx
+        displayName: Core Kotlin Extensions
+        url: https://developer.android.com/jetpack/androidx/releases/core#1.5.0
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+    androidx.lifecycle:
+      - key: lifecycle-common
+        displayName: Android Lifecycle-Common
+        url: https://developer.android.com/jetpack/androidx/releases/lifecycle#2.5.1
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+      - key: lifecycle-common-java8
+        displayName: Android Lifecycle-Common for Java 8 Language
+        url: https://developer.android.com/jetpack/androidx/releases/lifecycle#2.5.1
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+      - key: lifecycle-livedata-core
+        displayName: Android Lifecycle LiveData Core
+        url: https://developer.android.com/jetpack/androidx/releases/lifecycle#2.5.1
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+      - key: lifecycle-runtime
+        displayName: Android Lifecycle Runtime
+        url: https://developer.android.com/jetpack/androidx/releases/lifecycle#2.5.1
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+      - key: lifecycle-runtime-ktx
+        displayName: Android Lifecycle Kotlin Extensions
+        url: https://developer.android.com/jetpack/androidx/releases/lifecycle#2.5.1
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+      - key: lifecycle-viewmodel
+        displayName: Android Lifecycle ViewModel
+        url: https://developer.android.com/jetpack/androidx/releases/lifecycle#2.5.1
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+      - key: lifecycle-viewmodel-ktx
+        displayName: Android Lifecycle ViewModel Kotlin Extensions
+        url: https://developer.android.com/jetpack/androidx/releases/lifecycle#2.5.1
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+      - key: lifecycle-viewmodel-savedstate
+        displayName: Android Lifecycle ViewModel with SavedState
+        url: https://developer.android.com/jetpack/androidx/releases/lifecycle#2.5.1
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+    androidx.profileinstaller:
+      - key: profileinstaller
+        displayName: androidx.profileinstaller:profileinstaller
+        url: https://developer.android.com/jetpack/androidx/releases/profileinstaller#1.2.0
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+    androidx.savedstate:
+      - key: savedstate
+        displayName: Saved State
+        url: https://developer.android.com/jetpack/androidx/releases/savedstate#1.2.0
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+      - key: savedstate-ktx
+        displayName: SavedState Kotlin Extensions
+        url: https://developer.android.com/jetpack/androidx/releases/savedstate#1.2.0
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+    androidx.test:
+      - key: annotation
+        displayName: AndroidX Test Library
+        url: https://developer.android.com/testing
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+      - key: core
+        displayName: AndroidX Test Library
+        url: https://developer.android.com/testing
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+      - key: monitor
+        displayName: AndroidX Test Library
+        url: https://developer.android.com/testing
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+      - key: runner
+        displayName: AndroidX Test Library
+        url: https://developer.android.com/testing
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+    androidx.test.espresso:
+      - key: espresso-core
+        displayName: AndroidX Test Library
+        url: https://developer.android.com/testing
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+      - key: espresso-idling-resource
+        displayName: AndroidX Test Library
+        url: https://developer.android.com/testing
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+    androidx.test.ext:
+      - key: junit
+        displayName: AndroidX Test Library
+        url: https://developer.android.com/testing
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+    androidx.test.services:
+      - key: storage
+        displayName: AndroidX Test Library
+        url: https://developer.android.com/testing
+        copyrightHolders:
+          - The Android Open Source Project
+        licenses:
+          - apache-2.0
+    com.google.code.findbugs:
+      - key: jsr305
+        displayName: FindBugs-jsr305
+        url: http://findbugs.sourceforge.net/
+        copyrightHolders:
+          - The Findbugs Authors
+        licenses:
+          - apache-2.0
+    com.squareup:
+      - key: javawriter
+        displayName: JavaWriter
+        url: http://github.com/square/javawriter/
+        copyrightHolders:
+          - Square, Inc.
+        licenses:
+          - apache-2.0
+    javax.inject:
+      - key: javax.inject
+        displayName: javax.inject
+        url: http://code.google.com/p/atinject/
+        copyrightHolders:
+          - The Atinject Authors
+        licenses:
+          - apache-2.0
+    org.hamcrest:
+      - key: hamcrest-integration
+        displayName: Hamcrest Integration
+        url: null
+        copyrightHolders:
+          - Hamcrest
+        licenses:
+          - bsd-3-clause
+      - key: hamcrest-library
+        displayName: Hamcrest library
+        url: null
+        copyrightHolders:
+          - Hamcrest
+        licenses:
+          - bsd-3-clause
+    org.jetbrains.kotlin:
+      - key: kotlin-stdlib
+        displayName: Kotlin Stdlib
+        url: https://kotlinlang.org/
+        copyrightHolders:
+          - Kotlin Team
+        licenses:
+          - apache-2.0
+      - key: kotlin-stdlib-common
+        displayName: Kotlin Stdlib Common
+        url: https://kotlinlang.org/
+        copyrightHolders:
+          - Kotlin Team
+        licenses:
+          - apache-2.0
+    org.jetbrains.kotlinx:
+      - key: kotlinx-coroutines-test-jvm
+        displayName: kotlinx-coroutines-test
+        url: https://github.com/Kotlin/kotlinx.coroutines
+        copyrightHolders:
+          - JetBrains Team
+        licenses:
+          - apache-2.0
