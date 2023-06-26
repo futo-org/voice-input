@@ -10,7 +10,9 @@ import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
@@ -35,7 +37,7 @@ import org.futo.voiceinput.ui.theme.WhisperVoiceInputTheme
 
 
 @Composable
-fun RecognizeWindow(onClose: () -> Unit, content: @Composable ColumnScope.() -> Unit) {
+fun RecognizeWindow(onClose: (() -> Unit)?, content: @Composable ColumnScope.() -> Unit) {
     WhisperVoiceInputTheme {
         Surface(
             modifier = Modifier
@@ -56,12 +58,16 @@ fun RecognizeWindow(onClose: () -> Unit, content: @Composable ColumnScope.() -> 
                     }
                 }
             }){
-                IconButton( onClick = onClose, modifier = Modifier.align(Alignment.End) ) {
-                    Icon(
-                        Icons.Default.Close,
-                        contentDescription = "Cancel",
-                        tint = MaterialTheme.colorScheme.onSurface
-                    )
+                if(onClose != null) {
+                    IconButton(onClick = onClose, modifier = Modifier.align(Alignment.End)) {
+                        Icon(
+                            Icons.Default.Close,
+                            contentDescription = "Cancel",
+                            tint = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                } else {
+                    Spacer(modifier = Modifier.height(32.dp))
                 }
 
                 Column(

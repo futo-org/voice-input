@@ -16,7 +16,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -46,6 +46,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -72,6 +73,7 @@ import org.futo.voiceinput.ENABLE_SOUND
 import org.futo.voiceinput.LANGUAGE_LIST
 import org.futo.voiceinput.LANGUAGE_TOGGLES
 import org.futo.voiceinput.MULTILINGUAL_MODEL_DATA
+import org.futo.voiceinput.RecognizeWindow
 import org.futo.voiceinput.Status
 import org.futo.voiceinput.VERBOSE_PROGRESS
 import org.futo.voiceinput.modelNeedsDownloading
@@ -103,6 +105,22 @@ class SettingsViewModel : ViewModel() {
             currentState.copy(
                 intentResultText = result
             )
+        }
+    }
+}
+
+@Composable
+fun SettingsScreen(title: String, content: @Composable () -> Unit) {
+    Column(modifier = Modifier
+        .padding(16.dp)
+        .fillMaxSize()) {
+        Text(title, style = Typography.titleLarge)
+
+
+        Column(modifier = Modifier
+            .padding(8.dp)
+            .fillMaxSize()) {
+            content()
         }
     }
 }
@@ -179,9 +197,73 @@ fun SettingList(content: @Composable () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(0.dp, 8.dp)
     ) {
         content()
+    }
+}
+
+
+@Composable
+@Preview
+fun HelpMenu() {
+    val textItem: @Composable (text: String) -> Unit = { text ->
+        Text(text, style= Typography.bodyMedium, modifier = Modifier.padding(2.dp, 4.dp))
+    }
+    SettingsScreen("Help") {
+        LazyColumn {
+            item {
+                textItem("You have installed Voice Input and enabled the Voice input method. You should now be able to use Voice Input within supported apps and keyboards.")
+                textItem("When you open Voice Input, it will look something like this:")
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    Box(modifier = Modifier.align(CenterHorizontally)) {
+                        RecognizeWindow(onClose = null) {
+                            Text(
+                                "Voice Input will look like this",
+                                modifier = Modifier.align(CenterHorizontally),
+                                textAlign = TextAlign.Center
+                            )
+                            Text("Look for the big off-center FUTO logo in the background!", style = Typography.bodyMedium, modifier = Modifier.padding(2.dp, 4.dp).align(CenterHorizontally), textAlign = TextAlign.Center)
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                textItem("You can use one of the following open-source keyboards that are tested to work:")
+                Column(modifier = Modifier.padding(16.dp, 0.dp)) {
+                    textItem("• AOSP Keyboard, included in AOSP-based ROMs")
+                    textItem("• OpenBoard, available on F-Droid")
+                    textItem("• AnySoftKeyboard, available on F-Droid and Google Play")
+                }
+
+                Tip("Note: Not all keyboards are compatible with Voice Input. You need to make sure you're using a compatible keyboard.")
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                textItem("The following proprietary keyboards may also work, but they are not recommended as they may not respect your privacy:")
+                Column(modifier = Modifier.padding(16.dp, 0.dp)) {
+                    textItem("• Grammarly Keyboard")
+                    textItem("• Microsoft SwiftKey")
+                }
+
+                Tip("Everything you type is seen by your keyboard app, and proprietary commercial keyboards often have lengthy and complicated privacy policies. Choose carefully!")
+
+                Spacer(modifier = Modifier.height(16.dp))
+                textItem("Some keyboards are simply incompatible, as they do not integrate with Android APIs for voice input. If your keyboard is listed here, you will need to use a different one as it is NOT compatible:")
+                Column(modifier = Modifier.padding(16.dp, 0.dp)) {
+                    textItem("• Gboard")
+                    textItem("• TypeWise")
+                    textItem("• Simple Keyboard")
+                    textItem("• FlorisBoard")
+                    textItem("• Unexpected Keyboard")
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Tip("Some non-keyboard apps also support voice input! Look for a voice button in Firefox, Organic Maps, etc.")
+                textItem("This app is still in development. If you experience any issues, please report them to futovoiceinput@sapples.net")
+            }
+        }
     }
 }
 
@@ -195,12 +277,11 @@ fun SettingsHome(settingsViewModel: SettingsViewModel = viewModel(), navControll
         null
     }
 
-    Column(modifier = Modifier
-        .padding(16.dp)
-        .fillMaxHeight()) {
-        Text("Settings", style = Typography.titleLarge)
-
+    SettingsScreen("Settings") {
         SettingList {
+            SettingItem(title = "Help / Info", onClick = { navController.navigate("help") }) {
+                Icon(Icons.Default.ArrowForward, contentDescription = "Go")
+            }
             SettingToggle(
                 "Sounds",
                 ENABLE_SOUND,
@@ -244,7 +325,9 @@ fun LanguageToggle(id: String, name: String, languages: Set<String>, setLanguage
 @Composable
 @Preview
 fun Tip(text: String = "This is an example tip") {
-    Surface(color = MaterialTheme.colorScheme.primaryContainer, modifier = Modifier.fillMaxWidth().padding(8.dp), shape = RoundedCornerShape(4.dp)) {
+    Surface(color = MaterialTheme.colorScheme.primaryContainer, modifier = Modifier
+        .fillMaxWidth()
+        .padding(8.dp), shape = RoundedCornerShape(4.dp)) {
         Text("$text", modifier = Modifier.padding(8.dp), style = Typography.bodyMedium, color = MaterialTheme.colorScheme.onPrimaryContainer)
     }
 }
@@ -267,16 +350,12 @@ fun SettingsLanguages(settingsViewModel: SettingsViewModel = viewModel(), navCon
         if(multilingual != newMultilingual) setMultilingual(newMultilingual)
     }
 
-    Column(modifier = Modifier
-        .padding(16.dp)
-        .fillMaxHeight()) {
-        Text("Languages", style = Typography.titleLarge)
-
+    SettingsScreen("Languages") {
         SettingList {
             LazyColumn {
                 item {
                     Tip("The model will automatically detect which language you're speaking.")
-                    Tip("Some languages may work better than others, depending on the hours of training data.")
+                    Tip("Some languages may work better than others, depending on the amount of training data.")
                     Tip("Voice Input may be slower if you enable more than English.")
                 }
                 item {
@@ -359,11 +438,7 @@ fun CreditItem(name: String, thanksFor: String, link: String, license: String, c
 @Composable
 @Preview
 fun CreditsMenu(openDependencies: () -> Unit = {}) {
-    Column(modifier = Modifier
-        .padding(16.dp)
-        .fillMaxHeight()) {
-        Text("Credits", style = Typography.titleLarge)
-
+    SettingsScreen("Credits") {
         SettingList {
             LazyColumn {
                 item {
@@ -444,6 +519,9 @@ fun SettingsMain(settingsViewModel: SettingsViewModel = viewModel(), navControll
         composable("settingsHome") {
             SettingsHome(settingsViewModel, navController)
         }
+        composable("help") {
+            HelpMenu()
+        }
         composable("languages") {
             SettingsLanguages(settingsViewModel, navController)
         }
@@ -456,28 +534,30 @@ fun SettingsMain(settingsViewModel: SettingsViewModel = viewModel(), navControll
             })
         }
         composable("dependencies") {
-            AndroidView(factory = {
-                WebView(it).apply {
-                    layoutParams = ViewGroup.LayoutParams(
-                        ViewGroup.LayoutParams.MATCH_PARENT,
-                        ViewGroup.LayoutParams.MATCH_PARENT
-                    )
+            SettingsScreen("Dependencies") {
+                AndroidView(factory = {
+                    WebView(it).apply {
+                        layoutParams = ViewGroup.LayoutParams(
+                            ViewGroup.LayoutParams.MATCH_PARENT,
+                            ViewGroup.LayoutParams.MATCH_PARENT
+                        )
 
-                    // Open all links in external browser
-                    webViewClient = object : WebViewClient() {
-                        override fun shouldOverrideUrlLoading(
-                            view: WebView?,
-                            request: WebResourceRequest?
-                        ): Boolean {
-                            val intent = Intent(Intent.ACTION_VIEW, request!!.url)
-                            view!!.context.startActivity(intent)
-                            return true
+                        // Open all links in external browser
+                        webViewClient = object : WebViewClient() {
+                            override fun shouldOverrideUrlLoading(
+                                view: WebView?,
+                                request: WebResourceRequest?
+                            ): Boolean {
+                                val intent = Intent(Intent.ACTION_VIEW, request!!.url)
+                                view!!.context.startActivity(intent)
+                                return true
+                            }
                         }
                     }
-                }
-            }, update = {
-                it.loadUrl("file:///android_asset/license-list.html")
-            })
+                }, update = {
+                    it.loadUrl("file:///android_asset/license-list.html")
+                })
+            }
         }
     }
 
