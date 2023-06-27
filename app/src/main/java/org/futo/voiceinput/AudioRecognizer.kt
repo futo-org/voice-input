@@ -212,6 +212,7 @@ abstract class AudioRecognizer {
 
                     val vadSampleBuffer = ShortBuffer.allocate(480)
                     var numConsecutiveNonSpeech = 0
+                    var numConsecutiveSpeech = 0
 
                     val samples = FloatArray(1600)
 
@@ -235,10 +236,13 @@ abstract class AudioRecognizer {
                                 vadSampleBuffer.clear()
                                 vadSampleBuffer.rewind()
 
-                                if(!isSpeech)
+                                if(!isSpeech) {
                                     numConsecutiveNonSpeech++
-                                else
+                                    numConsecutiveSpeech = 0
+                                } else {
                                     numConsecutiveNonSpeech = 0
+                                    numConsecutiveSpeech++
+                                }
                             }
 
                             val samplesToRead = min(min(remainingSamples, 480), vadSampleBuffer.remaining())
@@ -254,10 +258,11 @@ abstract class AudioRecognizer {
                         // Don't set hasTalked if the start sound may still be playing, otherwise on some
                         // devices the rms just explodes and `hasTalked` is always true
                         val startSoundPassed = (floatSamples.position() > 16000*0.6)
+                        if(!startSoundPassed) numConsecutiveSpeech = 0
 
                         val rms = sqrt(samples.sumOf { (it * it).toDouble() } / samples.size).toFloat()
 
-                        if(startSoundPassed && (rms > 0.01)) hasTalked = true
+                        if(startSoundPassed && ((rms > 0.01) || (numConsecutiveSpeech > 8))) hasTalked = true
 
                         if(rms > 0.0001){
                             anyNoiseAtAll = true
