@@ -6,12 +6,6 @@
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
 
-    <queries>
-        <intent>
-            <action android:name="android.speech.RecognitionService" />
-        </intent>
-    </queries>
-
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -25,7 +19,7 @@
         <activity
             android:name=".RecognizeActivity"
             android:exported="true"
-            android:label="@string/title_activity_recognize"
+            android:label="Recognize Activity"
             android:clearTaskOnLaunch="true"
             android:launchMode="singleTask"
             android:theme="@style/Theme.RecognizerInput">
@@ -55,26 +49,6 @@
             android:clearTaskOnLaunch="true"
             android:launchMode="singleTask"
             android:theme="@style/Theme.WhisperVoiceInput" />
-
-        <service
-            android:name=".WhisperRecognizerService"
-            android:exported="true"
-            android:foregroundServiceType="microphone"
-            android:icon="@drawable/ic_launcher_foreground"
-            android:label="@string/whisper_recognition_service"
-            android:permission="android.permission.RECORD_AUDIO" >
-            <intent-filter>
-
-                <!-- The constant value is defined at RecognitionService.SERVICE_INTERFACE. -->
-                <action android:name="android.speech.RecognitionService" />
-
-                <category android:name="android.intent.category.DEFAULT" />
-            </intent-filter>
-
-            <meta-data
-                android:name="android.speech"
-                android:resource="@xml/recognition_service" /> <!-- is this necessary? -->
-        </service>
 
         <service
             android:name=".VoiceInputMethodService"
