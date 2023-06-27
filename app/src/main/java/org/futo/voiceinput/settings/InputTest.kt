@@ -23,7 +23,7 @@ import androidx.compose.ui.unit.dp
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 @Preview
-fun InputTest(voiceIntentResult: String = "Voice Intent Result") {
+fun TestScreen(voiceIntentResult: String = "Voice Intent Result") {
     var text by remember { mutableStateOf("") }
 
 
@@ -34,7 +34,8 @@ fun InputTest(voiceIntentResult: String = "Voice Intent Result") {
     }
 
     val context = LocalContext.current
-    Column {
+
+    SettingsScreen("Input testing") {
         TextField(
             value = text,
             onValueChange = { text = it },

@@ -4,19 +4,26 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -30,6 +37,8 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
 import org.futo.voiceinput.fileNeedsDownloading
+import org.futo.voiceinput.settings.SettingsScreen
+import org.futo.voiceinput.ui.theme.Typography
 import org.futo.voiceinput.ui.theme.WhisperVoiceInputTheme
 import java.io.File
 import java.io.IOException
@@ -44,39 +53,58 @@ data class ModelInfo(
     var finished: Boolean = false
 )
 
-val EXAMPLE_MODELS = listOf(ModelInfo(
-    name = "tiny-multilingual",
-    url = "example.com",
-    size = 56L*1024L*1024L,
-    progress = 0.5f,
-    error = true
-))
+val EXAMPLE_MODELS = listOf(
+    ModelInfo(
+        name = "tiny-encoder-xatn.tflite",
+        url = "example.com",
+        size = 56L*1024L*1024L,
+        progress = 0.5f,
+        error = true
+    ),
+    ModelInfo(
+        name = "tiny-decoder.tflite",
+        url = "example.com",
+        size = 73L*1024L*1024L,
+        progress = 0.3f,
+        error = false
+    ),
+)
 
 @Composable
-fun ModelItem(model: ModelInfo = EXAMPLE_MODELS[0], showProgress: Boolean = false) {
+fun ModelItem(model: ModelInfo, showProgress: Boolean) {
     Column(modifier = Modifier.padding(4.dp)) {
-        val rowModifier = if(model.error) {
-            Modifier.background(MaterialTheme.colorScheme.errorContainer)
+        val color = if(model.error) {
+            MaterialTheme.colorScheme.errorContainer
         } else {
-            Modifier
+            MaterialTheme.colorScheme.primaryContainer
         }
+        Surface(modifier = Modifier, color = color, shape = RoundedCornerShape(4.dp)) {
+            Row(modifier = Modifier
+                .fillMaxWidth()
+                .padding(8.dp)) {
+                if (model.error) {
+                    Icon(Icons.Default.Warning, contentDescription = "Failed", modifier = Modifier
+                        .align(CenterVertically)
+                        .padding(4.dp))
+                }
 
-        Row(modifier = rowModifier.padding(4.dp)) {
-            val size = if(model.size != null) {
-                "%.1f".format(model.size!!.toFloat() / 1000000.0f)
-            } else {
-                "?"
-            }
-            Text(
-                "${model.name}: $size MB",
-            )
-            if(model.error) {
-                Text(" [Error]")
-            }
-        }
+                val size = if (model.size != null) {
+                    "%.1f".format(model.size!!.toFloat() / 1000000.0f)
+                } else {
+                    "?"
+                }
 
-        if (showProgress) {
-            LinearProgressIndicator(progress = model.progress, modifier = Modifier.fillMaxWidth())
+                Column {
+                    Text(model.name, style = Typography.bodyLarge)
+                    Text("$size MB", style = Typography.bodySmall, color = MaterialTheme.colorScheme.outline)
+                    if (showProgress && !model.error) {
+                        LinearProgressIndicator(progress = model.progress, modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(0.dp, 8.dp))
+                    }
+                }
+
+            }
         }
     }
 }
@@ -84,24 +112,32 @@ fun ModelItem(model: ModelInfo = EXAMPLE_MODELS[0], showProgress: Boolean = fals
 @Composable
 @Preview
 fun DownloadPrompt(onContinue: () -> Unit = {}, onCancel: () -> Unit = {}, models: List<ModelInfo> = EXAMPLE_MODELS) {
-    Column(modifier = Modifier.padding(8.dp)) {
-        Text("To continue, one or more speech recognition model resources need to be downloaded. This may incur data fees if you're using mobile data instead of Wi-Fi")
+    SettingsScreen("Download Required") {
+        Text("To continue, one or more speech recognition model resources need to be downloaded. This may incur data fees if you're using mobile data instead of Wi-Fi", style = Typography.bodyMedium)
 
-        Column(modifier = Modifier.padding(8.dp)) {
-            models.forEach {
-                ModelItem(it, showProgress = false)
+        Spacer(modifier = Modifier.height(8.dp))
+
+        LazyColumn {
+            items(models.size) {
+                ModelItem(models[it], showProgress = false)
             }
         }
 
+        Spacer(modifier = Modifier.height(8.dp))
+
         Row {
-            Button(onClick = onContinue, modifier = Modifier.padding(8.dp).weight(1.0f)) {
-                Text("Continue")
-            }
             Button(onClick = onCancel, colors = ButtonDefaults.buttonColors(
                 containerColor = MaterialTheme.colorScheme.secondary,
                 contentColor = MaterialTheme.colorScheme.onSecondary
-            ), modifier = Modifier.padding(8.dp).weight(1.0f)) {
+            ), modifier = Modifier
+                .padding(8.dp)
+                .weight(1.0f)) {
                 Text("Cancel")
+            }
+            Button(onClick = onContinue, modifier = Modifier
+                .padding(8.dp)
+                .weight(1.5f)) {
+                Text("Continue")
             }
         }
     }
@@ -110,14 +146,21 @@ fun DownloadPrompt(onContinue: () -> Unit = {}, onCancel: () -> Unit = {}, model
 @Composable
 @Preview
 fun DownloadScreen(models: List<ModelInfo> = EXAMPLE_MODELS) {
-    Column(modifier = Modifier.padding(8.dp)) {
-        Text("Downloading the models...")
+    SettingsScreen("Download Progress") {
+        if (models.any { it.error }) {
+            Text("One or more files have failed to download. This may be due to a network error. Please try again later.", style = Typography.bodyMedium)
+        } else {
+            Text("Downloading model resources...", style = Typography.bodyMedium)
+        }
 
-        Column(modifier = Modifier.padding(8.dp)) {
-            models.forEach {
-                ModelItem(it, showProgress = true)
+        Spacer(modifier = Modifier.height(8.dp))
+
+        LazyColumn {
+            items(models.size) {
+                ModelItem(models[it], showProgress = true)
             }
         }
+
     }
 }
 

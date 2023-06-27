@@ -88,15 +88,17 @@ fun Context.modelNeedsDownloading(model: ModelData): Boolean {
             || this.fileNeedsDownloading(model.vocab_file)
 }
 
-fun Context.startModelDownloadActivity(model: ModelData) {
-    if(!this.modelNeedsDownloading(model)) return
+fun Context.startModelDownloadActivity(models: List<ModelData>) {
+    if(!models.any { this.modelNeedsDownloading(it) }) return
 
     val intent = Intent(this, DownloadActivity::class.java)
-    intent.putStringArrayListExtra("models", arrayListOf(
-        model.encoder_xatn_file,
-        model.decoder_file,
-        model.vocab_file
-    ))
+    intent.putStringArrayListExtra("models", ArrayList(models.map { model ->
+        arrayListOf(
+            model.encoder_xatn_file,
+            model.decoder_file,
+            model.vocab_file
+        )
+    }.flatten()))
 
     if(this !is Activity) {
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)

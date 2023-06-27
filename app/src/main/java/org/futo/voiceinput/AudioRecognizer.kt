@@ -127,7 +127,7 @@ abstract class AudioRecognizer {
                                         )
                                     } catch (e: IOException) {
                                         context.startModelDownloadActivity(
-                                            MULTILINGUAL_MODEL_DATA
+                                            listOf(MULTILINGUAL_MODEL_DATA)
                                         )
                                         cancelRecognizer()
                                     }
