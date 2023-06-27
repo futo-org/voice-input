@@ -148,8 +148,6 @@ abstract class AudioRecognizer {
     fun create() {
         loading()
 
-        loadModel()
-
         if (context.checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
             needPermission()
         }else{
@@ -175,7 +173,7 @@ abstract class AudioRecognizer {
                 MediaRecorder.AudioSource.VOICE_RECOGNITION,
                 16000,
                 AudioFormat.CHANNEL_IN_MONO,
-                AudioFormat.ENCODING_PCM_FLOAT, // could use ENCODING_PCM_FLOAT
+                AudioFormat.ENCODING_PCM_FLOAT,
                 16000 * 2 * 5
             )
 
@@ -258,7 +256,10 @@ abstract class AudioRecognizer {
                         // Don't set hasTalked if the start sound may still be playing, otherwise on some
                         // devices the rms just explodes and `hasTalked` is always true
                         val startSoundPassed = (floatSamples.position() > 16000*0.6)
-                        if(!startSoundPassed) numConsecutiveSpeech = 0
+                        if(!startSoundPassed){
+                            numConsecutiveSpeech = 0
+                            numConsecutiveNonSpeech = 0
+                        }
 
                         val rms = sqrt(samples.sumOf { (it * it).toDouble() } / samples.size).toFloat()
 
@@ -311,6 +312,11 @@ abstract class AudioRecognizer {
                     }
                 }
             }
+
+            // We can only load model now, because the model loading may fail and need to cancel
+            // everything we just did.
+            // TODO: We could check if the model exists before doing all this work
+            loadModel()
 
             recordingStarted()
         } catch(e: SecurityException){
