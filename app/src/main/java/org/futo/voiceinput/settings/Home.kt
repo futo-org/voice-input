@@ -10,6 +10,10 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import org.futo.voiceinput.ENABLE_MULTILINGUAL
 import org.futo.voiceinput.ENABLE_SOUND
+import org.futo.voiceinput.ENGLISH_MODEL_INDEX
+import org.futo.voiceinput.ENGLISH_MODEL_INDEX_DEFAULT
+import org.futo.voiceinput.MULTILINGUAL_MODEL_INDEX
+import org.futo.voiceinput.MULTILINGUAL_MODEL_INDEX_DEFAULT
 import org.futo.voiceinput.Screen
 
 @Composable
@@ -17,32 +21,54 @@ import org.futo.voiceinput.Screen
 fun HomeScreen(settingsViewModel: SettingsViewModel = viewModel(), navController: NavHostController = rememberNavController()) {
     val (multilingual, _) = useDataStore(key = ENABLE_MULTILINGUAL, default = false)
     val multilingualSubtitle = if(multilingual) {
-        "Multilingual enabled, English latency will be increased"
+        "Multilingual enabled, English will be slower"
     } else {
         null
     }
 
-    Screen("Settings") {
+    val (englishIdx, _) = useDataStore(key = ENGLISH_MODEL_INDEX, default = ENGLISH_MODEL_INDEX_DEFAULT)
+    val (multilingualIdx, _) = useDataStore(key = MULTILINGUAL_MODEL_INDEX, default = MULTILINGUAL_MODEL_INDEX_DEFAULT)
+
+    val totalDiff =
+        (englishIdx - ENGLISH_MODEL_INDEX_DEFAULT) + (multilingualIdx - MULTILINGUAL_MODEL_INDEX_DEFAULT)
+    val modelPlural =
+        if ((englishIdx != ENGLISH_MODEL_INDEX_DEFAULT) && (multilingualIdx != MULTILINGUAL_MODEL_INDEX_DEFAULT)) {
+            "models"
+        } else {
+            "model"
+        }
+    val modelSubtitle = if (totalDiff < 0) {
+        "Using smaller $modelPlural, accuracy may be worse"
+    } else if (totalDiff > 0) {
+        "Using larger $modelPlural, speed may be slower"
+    } else if ((englishIdx != ENGLISH_MODEL_INDEX_DEFAULT) || (multilingualIdx != MULTILINGUAL_MODEL_INDEX_DEFAULT)) {
+        "Using non-default $modelPlural"
+    } else {
+        null
+    }
+
+    Screen("FUTO Voice Input Settings") {
         SettingList {
-            SettingItem(title = "Help / Info", onClick = { navController.navigate("help") }) {
+            SettingItem(title = "Help", onClick = { navController.navigate("help") }) {
+                Icon(Icons.Default.ArrowForward, contentDescription = "Go")
+            }
+            SettingItem(title = "Languages", onClick = { navController.navigate("languages") }, subtitle = multilingualSubtitle) {
+                Icon(Icons.Default.ArrowForward, contentDescription = "Go")
+            }
+            SettingItem(title = "Models", onClick = { navController.navigate("models") }, subtitle = modelSubtitle) {
                 Icon(Icons.Default.ArrowForward, contentDescription = "Go")
             }
             SettingToggle(
                 "Sounds",
                 ENABLE_SOUND,
                 default = true,
-                subtitle = "Play sound when recognition starts/cancels"
+                subtitle = "Will play a sound when started / cancelled",
+                disabledSubtitle = "Will not play sounds when started / cancelled"
             )
-            SettingItem(title = "Languages", onClick = { navController.navigate("languages") }, subtitle = multilingualSubtitle) {
-                Icon(Icons.Default.ArrowForward, contentDescription = "Go")
-            }
-            SettingItem(title = "Models", onClick = { navController.navigate("models") }) {
-                Icon(Icons.Default.ArrowForward, contentDescription = "Go")
-            }
-            SettingItem(title = "Credits and Acknowledgments", onClick = { navController.navigate("credits") }) {
-                Icon(Icons.Default.ArrowForward, contentDescription = "Go")
-            }
             SettingItem(title = "Advanced", onClick = { navController.navigate("advanced") }) {
+                Icon(Icons.Default.ArrowForward, contentDescription = "Go")
+            }
+            SettingItem(title = "Credits", onClick = { navController.navigate("credits") }) {
                 Icon(Icons.Default.ArrowForward, contentDescription = "Go")
             }
         }

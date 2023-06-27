@@ -136,10 +136,16 @@ fun SettingToggleRaw(title: String, enabled: Boolean, setValue: (Boolean) -> Uni
 }
 
 @Composable
-fun SettingToggle(title: String, key: Preferences.Key<Boolean>, default: Boolean, subtitle: String? = null, disabled: Boolean = false, icon: (@Composable () -> Unit)? = null) {
+fun SettingToggle(title: String, key: Preferences.Key<Boolean>, default: Boolean, subtitle: String? = null, disabledSubtitle: String? = null, disabled: Boolean = false, icon: (@Composable () -> Unit)? = null) {
     val (enabled, setValue) = useDataStore(key, default)
 
-    SettingToggleRaw(title, enabled, { setValue(it) }, subtitle, disabled, icon)
+    val subtitleValue = if(!enabled && disabledSubtitle != null) {
+        disabledSubtitle
+    } else {
+        subtitle
+    }
+
+    SettingToggleRaw(title, enabled, { setValue(it) }, subtitleValue, disabled, icon)
 }
 
 @Composable
