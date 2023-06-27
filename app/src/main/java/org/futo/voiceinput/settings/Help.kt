@@ -15,6 +15,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import org.futo.voiceinput.RecognizeWindow
+import org.futo.voiceinput.Screen
 import org.futo.voiceinput.ui.theme.Typography
 
 
@@ -24,7 +25,7 @@ fun HelpScreen() {
     val textItem: @Composable (text: String) -> Unit = { text ->
         Text(text, style= Typography.bodyMedium, modifier = Modifier.padding(2.dp, 4.dp))
     }
-    SettingsScreen("Help") {
+    Screen("Help") {
         LazyColumn {
             item {
                 textItem("You have installed Voice Input and enabled the Voice input method. You should now be able to use Voice Input within supported apps and keyboards.")

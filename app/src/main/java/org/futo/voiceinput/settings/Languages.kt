@@ -12,8 +12,10 @@ import kotlinx.coroutines.Job
 import org.futo.voiceinput.ENABLE_MULTILINGUAL
 import org.futo.voiceinput.LANGUAGE_LIST
 import org.futo.voiceinput.LANGUAGE_TOGGLES
-import org.futo.voiceinput.MULTILINGUAL_MODEL_DATA
-import org.futo.voiceinput.modelNeedsDownloading
+import org.futo.voiceinput.MULTILINGUAL_MODELS
+import org.futo.voiceinput.MULTILINGUAL_MODEL_INDEX
+import org.futo.voiceinput.MULTILINGUAL_MODEL_INDEX_DEFAULT
+import org.futo.voiceinput.Screen
 import org.futo.voiceinput.startModelDownloadActivity
 
 
@@ -31,12 +33,14 @@ fun LanguageToggle(id: String, name: String, languages: Set<String>, setLanguage
 @Preview
 fun LanguagesScreen(settingsViewModel: SettingsViewModel = viewModel(), navController: NavHostController = rememberNavController()) {
     val (multilingual, setMultilingual) = useDataStore(key = ENABLE_MULTILINGUAL, default = false)
+    val (multilingualModelIndex, _) = useDataStore(key = MULTILINGUAL_MODEL_INDEX, default = MULTILINGUAL_MODEL_INDEX_DEFAULT)
     val (languages, setLanguages) = useDataStore(key = LANGUAGE_TOGGLES, default = setOf("en"))
     val context = LocalContext.current
 
-    LaunchedEffect(multilingual) {
-        if(multilingual && context.modelNeedsDownloading(MULTILINGUAL_MODEL_DATA)) {
-            context.startModelDownloadActivity(listOf(MULTILINGUAL_MODEL_DATA))
+
+    LaunchedEffect(listOf(multilingualModelIndex, multilingual)) {
+        if(multilingual) {
+            context.startModelDownloadActivity(listOf(MULTILINGUAL_MODELS[multilingualModelIndex]))
         }
     }
 
@@ -45,7 +49,7 @@ fun LanguagesScreen(settingsViewModel: SettingsViewModel = viewModel(), navContr
         if(multilingual != newMultilingual) setMultilingual(newMultilingual)
     }
 
-    SettingsScreen("Languages") {
+    Screen("Languages") {
         SettingList {
             LazyColumn {
                 item {

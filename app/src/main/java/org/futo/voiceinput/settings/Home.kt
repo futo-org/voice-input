@@ -10,7 +10,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import org.futo.voiceinput.ENABLE_MULTILINGUAL
 import org.futo.voiceinput.ENABLE_SOUND
-
+import org.futo.voiceinput.Screen
 
 @Composable
 @Preview
@@ -22,7 +22,7 @@ fun HomeScreen(settingsViewModel: SettingsViewModel = viewModel(), navController
         null
     }
 
-    SettingsScreen("Settings") {
+    Screen("Settings") {
         SettingList {
             SettingItem(title = "Help / Info", onClick = { navController.navigate("help") }) {
                 Icon(Icons.Default.ArrowForward, contentDescription = "Go")
@@ -34,6 +34,9 @@ fun HomeScreen(settingsViewModel: SettingsViewModel = viewModel(), navController
                 subtitle = "Play sound when recognition starts/cancels"
             )
             SettingItem(title = "Languages", onClick = { navController.navigate("languages") }, subtitle = multilingualSubtitle) {
+                Icon(Icons.Default.ArrowForward, contentDescription = "Go")
+            }
+            SettingItem(title = "Models", onClick = { navController.navigate("models") }) {
                 Icon(Icons.Default.ArrowForward, contentDescription = "Go")
             }
             SettingItem(title = "Credits and Acknowledgments", onClick = { navController.navigate("credits") }) {

@@ -18,6 +18,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import org.futo.voiceinput.Screen
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -35,7 +36,7 @@ fun TestScreen(voiceIntentResult: String = "Voice Intent Result") {
 
     val context = LocalContext.current
 
-    SettingsScreen("Input testing") {
+    Screen("Input testing") {
         TextField(
             value = text,
             onValueChange = { text = it },

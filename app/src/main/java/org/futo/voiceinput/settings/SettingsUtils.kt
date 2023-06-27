@@ -71,23 +71,7 @@ fun Tip(text: String = "This is an example tip") {
         .fillMaxWidth()
         .padding(8.dp), shape = RoundedCornerShape(4.dp)
     ) {
-        Text("$text", modifier = Modifier.padding(8.dp), style = Typography.bodyMedium, color = MaterialTheme.colorScheme.onPrimaryContainer)
-    }
-}
-
-@Composable
-fun SettingsScreen(title: String, content: @Composable () -> Unit) {
-    Column(modifier = Modifier
-        .padding(16.dp)
-        .fillMaxSize()) {
-        Text(title, style = Typography.titleLarge)
-
-
-        Column(modifier = Modifier
-            .padding(8.dp)
-            .fillMaxSize()) {
-            content()
-        }
+        Text(text, modifier = Modifier.padding(8.dp), style = Typography.bodyMedium, color = MaterialTheme.colorScheme.onPrimaryContainer)
     }
 }
 
@@ -199,6 +183,9 @@ fun SettingsMain(settingsViewModel: SettingsViewModel = viewModel(), navControll
         }
         composable("dependencies") {
             DependenciesScreen()
+        }
+        composable("models") {
+            ModelsScreen(settingsViewModel, navController)
         }
     }
 }

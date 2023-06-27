@@ -9,13 +9,14 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import org.futo.voiceinput.DISALLOW_SYMBOLS
+import org.futo.voiceinput.Screen
 import org.futo.voiceinput.VERBOSE_PROGRESS
 
 
 @Composable
 @Preview
 fun AdvancedScreen(settingsViewModel: SettingsViewModel = viewModel(), navController: NavHostController = rememberNavController()) {
-    SettingsScreen("Advanced Settings") {
+    Screen("Advanced Settings") {
         SettingList {
             SettingToggle(
                 "Suppress non-speech annotations",

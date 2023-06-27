@@ -20,9 +20,6 @@ import com.konovalov.vad.config.Model
 import com.konovalov.vad.config.SampleRate
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.futo.voiceinput.ml.RunState
@@ -104,38 +101,44 @@ abstract class AudioRecognizer {
         cancelRecognizer()
     }
 
+    private val languages = ValueFromSettings(LANGUAGE_TOGGLES, setOf("en"))
+    private val useMultilingualModel = ValueFromSettings(ENABLE_MULTILINGUAL, false)
+    private val suppressNonSpeech = ValueFromSettings(DISALLOW_SYMBOLS, true)
+    private val englishModelIndex = ValueFromSettings(ENGLISH_MODEL_INDEX, ENGLISH_MODEL_INDEX_DEFAULT)
+    private val multilingualModelIndex = ValueFromSettings(MULTILINGUAL_MODEL_INDEX, MULTILINGUAL_MODEL_INDEX_DEFAULT)
+    private suspend fun tryLoadModelOrCancel(primaryModel: ModelData, secondaryModel: ModelData?) {
+        try {
+            model = WhisperModelWrapper(
+                context,
+                primaryModel,
+                secondaryModel,
+                suppressNonSpeech.get(context),
+                if(secondaryModel != null) languages.get(context) else null
+            )
+        } catch (e: IOException) {
+            context.startModelDownloadActivity(
+                listOf(primaryModel).let {
+                    if(secondaryModel != null) it + secondaryModel
+                    else it
+                }
+            )
+            cancelRecognizer()
+        }
+    }
     private fun loadModel() {
         if(model == null) {
             loadModelJob = lifecycleScope.launch {
                 withContext(Dispatchers.Default) {
-                    // TODO: Make this more abstract and less of a mess
-                    val languages: Flow<Set<String>> = context.dataStore.data.map { preferences -> preferences[LANGUAGE_TOGGLES] ?: setOf("en") }.take(1)
-                    val isMultilingual: Flow<Boolean> = context.dataStore.data.map { preferences -> preferences[ENABLE_MULTILINGUAL] ?: false }.take(1)
-                    val suppressNonSpeech: Flow<Boolean> = context.dataStore.data.map { preferences -> preferences[DISALLOW_SYMBOLS] ?: true }.take(1)
-
-                    isMultilingual.collect { multilingual ->
-                        suppressNonSpeech.collect { suppressNonSpeech ->
-                            if (multilingual) {
-                                languages.collect { languages ->
-                                    try {
-                                        model = WhisperModelWrapper(
-                                            context,
-                                            MULTILINGUAL_MODEL_DATA,
-                                            TINY_ENGLISH_MODEL_DATA,
-                                            suppressNonSpeech,
-                                            languages
-                                        )
-                                    } catch (e: IOException) {
-                                        context.startModelDownloadActivity(
-                                            listOf(MULTILINGUAL_MODEL_DATA)
-                                        )
-                                        cancelRecognizer()
-                                    }
-                                }
-                            } else {
-                                model = WhisperModelWrapper(context, TINY_ENGLISH_MODEL_DATA, null, suppressNonSpeech)
-                            }
-                        }
+                    if(useMultilingualModel.get(context)) {
+                        tryLoadModelOrCancel(
+                            MULTILINGUAL_MODELS[multilingualModelIndex.get(context)],
+                            ENGLISH_MODELS[englishModelIndex.get(context)]
+                        )
+                    } else {
+                        tryLoadModelOrCancel(
+                            ENGLISH_MODELS[englishModelIndex.get(context)],
+                            null
+                        )
                     }
                 }
             }

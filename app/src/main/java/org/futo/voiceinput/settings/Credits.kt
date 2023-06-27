@@ -23,6 +23,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import org.futo.voiceinput.Screen
 import org.futo.voiceinput.ui.theme.Sky200
 import org.futo.voiceinput.ui.theme.Typography
 
@@ -77,7 +78,7 @@ fun CreditItem(name: String, thanksFor: String, link: String, license: String, c
 @Composable
 @Preview
 fun CreditsScreen(openDependencies: () -> Unit = {}) {
-    SettingsScreen("Credits") {
+    Screen("Credits") {
         SettingList {
             LazyColumn {
                 item {
@@ -149,7 +150,7 @@ fun CreditsScreen(openDependencies: () -> Unit = {}) {
 
 @Composable
 fun DependenciesScreen() {
-    SettingsScreen("Dependencies") {
+    Screen("Dependencies") {
         AndroidView(factory = {
             WebView(it).apply {
                 layoutParams = ViewGroup.LayoutParams(

@@ -36,8 +36,8 @@ import okhttp3.Callback
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
+import org.futo.voiceinput.Screen
 import org.futo.voiceinput.fileNeedsDownloading
-import org.futo.voiceinput.settings.SettingsScreen
 import org.futo.voiceinput.ui.theme.Typography
 import org.futo.voiceinput.ui.theme.WhisperVoiceInputTheme
 import java.io.File
@@ -100,7 +100,8 @@ fun ModelItem(model: ModelInfo, showProgress: Boolean) {
                     if (showProgress && !model.error) {
                         LinearProgressIndicator(progress = model.progress, modifier = Modifier
                             .fillMaxWidth()
-                            .padding(0.dp, 8.dp))
+                            .padding(0.dp, 8.dp),
+                        color = MaterialTheme.colorScheme.onPrimary)
                     }
                 }
 
@@ -112,7 +113,7 @@ fun ModelItem(model: ModelInfo, showProgress: Boolean) {
 @Composable
 @Preview
 fun DownloadPrompt(onContinue: () -> Unit = {}, onCancel: () -> Unit = {}, models: List<ModelInfo> = EXAMPLE_MODELS) {
-    SettingsScreen("Download Required") {
+    Screen("Download Required") {
         Text("To continue, one or more speech recognition model resources need to be downloaded. This may incur data fees if you're using mobile data instead of Wi-Fi", style = Typography.bodyMedium)
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -146,7 +147,7 @@ fun DownloadPrompt(onContinue: () -> Unit = {}, onCancel: () -> Unit = {}, model
 @Composable
 @Preview
 fun DownloadScreen(models: List<ModelInfo> = EXAMPLE_MODELS) {
-    SettingsScreen("Download Progress") {
+    Screen("Download Progress") {
         if (models.any { it.error }) {
             Text("One or more files have failed to download. This may be due to a network error. Please try again later.", style = Typography.bodyMedium)
         } else {
