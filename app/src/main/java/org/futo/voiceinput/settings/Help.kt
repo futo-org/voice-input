@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -41,83 +40,81 @@ fun HelpScreen() {
     }
 
     Screen("Help") {
-        LazyColumn {
-            item {
-                textItem("You have installed Voice Input and enabled the Voice input method. You should now be able to use Voice Input within supported apps and keyboards.")
-                textItem("When you open Voice Input, it will look something like this:")
-                Column(modifier = Modifier.fillMaxWidth()) {
-                    Box(modifier = Modifier.align(CenterHorizontally)) {
-                        RecognizeWindow(onClose = showAntiConfusionToast) {
-                            Text(
-                                "Voice Input will look like this",
-                                modifier = Modifier.align(CenterHorizontally),
-                                textAlign = TextAlign.Center
-                            )
-                            Text("Look for the big off-center FUTO logo in the background!", style = Typography.bodyMedium, modifier = Modifier
-                                .padding(2.dp, 4.dp)
-                                .align(CenterHorizontally), textAlign = TextAlign.Center)
-                        }
+        SettingList {
+            textItem("You have installed Voice Input and enabled the Voice input method. You should now be able to use Voice Input within supported apps and keyboards.")
+            textItem("When you open Voice Input, it will look something like this:")
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Box(modifier = Modifier.align(CenterHorizontally)) {
+                    RecognizeWindow(onClose = showAntiConfusionToast) {
+                        Text(
+                            "Voice Input will look like this",
+                            modifier = Modifier.align(CenterHorizontally),
+                            textAlign = TextAlign.Center
+                        )
+                        Text("Look for the big off-center FUTO logo in the background!", style = Typography.bodyMedium, modifier = Modifier
+                            .padding(2.dp, 4.dp)
+                            .align(CenterHorizontally), textAlign = TextAlign.Center)
                     }
                 }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Column(modifier = Modifier.fillMaxWidth()) {
-                    Box(modifier = Modifier.align(CenterHorizontally)) {
-                        RecognizeWindow(onClose = showAntiConfusionToast) {
-                            IconButton(onClick = showAntiConfusionToast, modifier = Modifier.align(CenterHorizontally)) {
-                                Icon(
-                                    painter = painterResource(R.drawable.mic_2_),
-                                    contentDescription = "Stop Recording",
-                                    modifier = Modifier.size(48.dp),
-                                    tint = MaterialTheme.colorScheme.onSecondary
-                                )
-                            }
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text("Once you're done talking, you can hit the microphone button to stop", style = Typography.bodyMedium, modifier = Modifier
-                                .padding(2.dp, 4.dp)
-                                .align(CenterHorizontally), textAlign = TextAlign.Center)
-                        }
-                    }
-                }
-                Spacer(modifier = Modifier.height(16.dp))
-
-                textItem("You can use one of the following open-source keyboards that are tested to work:")
-                Column(modifier = Modifier.padding(16.dp, 0.dp)) {
-                    textItem("• AOSP Keyboard, included in AOSP-based ROMs")
-                    textItem("• OpenBoard, available on F-Droid")
-                    textItem("• AnySoftKeyboard, available on F-Droid and Google Play")
-                }
-
-                Tip("Note: Not all keyboards are compatible with Voice Input. You need to make sure you're using a compatible keyboard.")
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                textItem("The following proprietary keyboards may also work, but they are not recommended as they may not respect your privacy:")
-                Column(modifier = Modifier.padding(16.dp, 0.dp)) {
-                    textItem("• Grammarly Keyboard")
-                    textItem("• Microsoft SwiftKey")
-                }
-
-                Tip("Everything you type is seen by your keyboard app, and proprietary commercial keyboards often have lengthy and complicated privacy policies. Choose carefully!")
-
-                Spacer(modifier = Modifier.height(16.dp))
-                textItem("Some keyboards are simply incompatible, as they do not integrate with Android APIs for voice input. If your keyboard is listed here, you will need to use a different one as it is NOT compatible:")
-                Column(modifier = Modifier.padding(16.dp, 0.dp)) {
-                    textItem("• Gboard")
-                    textItem("• TypeWise")
-                    textItem("• Simple Keyboard")
-                    textItem("• FlorisBoard")
-                    textItem("• Unexpected Keyboard")
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Tip("Some non-keyboard apps also support voice input! Look for a voice button in Firefox, Organic Maps, etc.")
-                textItem("This app is still in development. Please report any issues or suggestions to FUTOVoiceInput@sapples.net")
-
-                Spacer(modifier = Modifier.height(100.dp))
             }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Box(modifier = Modifier.align(CenterHorizontally)) {
+                    RecognizeWindow(onClose = showAntiConfusionToast) {
+                        IconButton(onClick = showAntiConfusionToast, modifier = Modifier.align(CenterHorizontally)) {
+                            Icon(
+                                painter = painterResource(R.drawable.mic_2_),
+                                contentDescription = "Stop Recording",
+                                modifier = Modifier.size(48.dp),
+                                tint = MaterialTheme.colorScheme.onSecondary
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text("Once you're done talking, you can hit the microphone button to stop", style = Typography.bodyMedium, modifier = Modifier
+                            .padding(2.dp, 4.dp)
+                            .align(CenterHorizontally), textAlign = TextAlign.Center)
+                    }
+                }
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+
+            textItem("You can use one of the following open-source keyboards that are tested to work:")
+            Column(modifier = Modifier.padding(16.dp, 0.dp)) {
+                textItem("• AOSP Keyboard, included in AOSP-based ROMs")
+                textItem("• OpenBoard, available on F-Droid")
+                textItem("• AnySoftKeyboard, available on F-Droid and Google Play")
+            }
+
+            Tip("Note: Not all keyboards are compatible with Voice Input. You need to make sure you're using a compatible keyboard.")
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            textItem("The following proprietary keyboards may also work, but they are not recommended as they may not respect your privacy:")
+            Column(modifier = Modifier.padding(16.dp, 0.dp)) {
+                textItem("• Grammarly Keyboard")
+                textItem("• Microsoft SwiftKey")
+            }
+
+            Tip("Everything you type is seen by your keyboard app, and proprietary commercial keyboards often have lengthy and complicated privacy policies. Choose carefully!")
+
+            Spacer(modifier = Modifier.height(16.dp))
+            textItem("Some keyboards are simply incompatible, as they do not integrate with Android APIs for voice input. If your keyboard is listed here, you will need to use a different one as it is NOT compatible:")
+            Column(modifier = Modifier.padding(16.dp, 0.dp)) {
+                textItem("• Gboard")
+                textItem("• TypeWise")
+                textItem("• Simple Keyboard")
+                textItem("• FlorisBoard")
+                textItem("• Unexpected Keyboard")
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Tip("Some non-keyboard apps also support voice input! Look for a voice button in Firefox, Organic Maps, etc.")
+            textItem("This app is still in development. Please report any issues or suggestions to FUTOVoiceInput@sapples.net")
+
+            Spacer(modifier = Modifier.height(100.dp))
         }
     }
 }

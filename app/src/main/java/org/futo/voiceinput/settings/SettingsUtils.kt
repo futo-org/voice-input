@@ -9,7 +9,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -150,7 +154,20 @@ fun SettingToggle(title: String, key: Preferences.Key<Boolean>, default: Boolean
 
 @Composable
 fun SettingList(content: @Composable () -> Unit) {
+    val scrollState = rememberScrollState()
+
     Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(scrollState)
+    ) {
+        content()
+    }
+}
+
+@Composable
+fun SettingListLazy(content: LazyListScope.() -> Unit) {
+    LazyColumn(
         modifier = Modifier
             .fillMaxSize()
     ) {
