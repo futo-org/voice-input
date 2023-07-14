@@ -15,7 +15,7 @@ build-job:
     - echo keyAlias=$KEYSTORE_ALIAS >> keystore.properties
     - echo storeFile=key.jks >> keystore.properties
     - gradle assembleRelease -s
-    - mv app/build/outputs/apk/release/app-release.apk ./app-release-$CI_COMMIT_SHORT_SHA.apk
+    - mv app/build/outputs/apk/dev/release/app-dev-release.apk ./app-release-$CI_COMMIT_SHORT_SHA.apk
     - curl -X POST https://zulip.futo.org/api/v1/messages -u $ZULIP_WEBHOOK --data-urlencode type=stream --data-urlencode 'to="Android Keyboard"' --data-urlencode topic=builds --data-urlencode "content=New APK build - https://gitlab.futo.org/alex/voiceinput/-/jobs/$CI_JOB_ID/artifacts/raw/app-release-$CI_COMMIT_SHORT_SHA.apk"
   artifacts:
     name: "app-release-$CI_COMMIT_SHORT_SHA"
