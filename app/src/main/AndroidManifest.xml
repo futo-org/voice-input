@@ -50,6 +50,14 @@
             android:launchMode="singleTask"
             android:theme="@style/Theme.WhisperVoiceInput" />
 
+        <activity
+            android:name=".settings.PaymentActivity"
+            android:exported="false"
+            android:label="Payment"
+            android:clearTaskOnLaunch="false"
+            android:launchMode="singleInstance"
+            android:theme="@style/Theme.WhisperVoiceInput" />
+
         <service
             android:name=".VoiceInputMethodService"
             android:exported="true"

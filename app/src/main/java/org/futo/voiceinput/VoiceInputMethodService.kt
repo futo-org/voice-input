@@ -10,7 +10,9 @@ import android.view.inputmethod.InputMethodSubtype
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.material.icons.Icons
@@ -26,6 +28,7 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -46,6 +49,7 @@ import androidx.savedstate.SavedStateRegistryController
 import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.findViewTreeSavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
+import org.futo.voiceinput.settings.ConditionalUnpaidNoticeInVoiceInputWindow
 import org.futo.voiceinput.ui.theme.WhisperVoiceInputTheme
 
 
@@ -74,13 +78,26 @@ fun RecognizerInputMethodWindow(switchBack: (() -> Unit)? = null, content: @Comp
                 }
             ) {
 
-                if (switchBack != null) {
-                    IconButton(onClick = switchBack, modifier = Modifier.align(Alignment.End)) {
-                        Icon(
-                            Icons.Default.Close,
-                            contentDescription = "Cancel",
-                            tint = MaterialTheme.colorScheme.onSurface
-                        )
+                val context = LocalContext.current
+                Box(modifier = Modifier.fillMaxWidth()) {
+                    Box(modifier = Modifier.align(Alignment.CenterStart)) {
+                        ConditionalUnpaidNoticeInVoiceInputWindow(switchBack)
+                    }
+
+                    Box(modifier = Modifier.align(Alignment.CenterEnd)) {
+                        if (switchBack != null) {
+                            IconButton(
+                                onClick = switchBack
+                            ) {
+                                Icon(
+                                    Icons.Default.Close,
+                                    contentDescription = "Cancel",
+                                    tint = MaterialTheme.colorScheme.onSurface
+                                )
+                            }
+                        } else {
+                            Spacer(modifier = Modifier.height(32.dp))
+                        }
                     }
                 }
 

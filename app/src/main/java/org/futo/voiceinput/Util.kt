@@ -141,6 +141,16 @@ fun Context.startModelDownloadActivity(models: List<ModelData>) {
     startActivity(intent)
 }
 
+fun <T> Context.startAppActivity(activity: Class<T>) {
+    val intent = Intent(this, activity)
+
+    if(this !is Activity) {
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    }
+
+    startActivity(intent)
+}
+
 // Numbers from Appendix E. Figure 11. https://cdn.openai.com/papers/whisper.pdf
 // Trained hours are for transcribing, translation hours are not included.
 data class LanguageEntry(val id: String, val name: String, val trainedHourCount: Int)

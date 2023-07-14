@@ -8,6 +8,7 @@ import android.speech.RecognizerIntent
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Spacer
@@ -33,6 +34,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.LifecycleCoroutineScope
 import androidx.lifecycle.lifecycleScope
+import org.futo.voiceinput.settings.ConditionalUnpaidNoticeInVoiceInputWindow
 import org.futo.voiceinput.ui.theme.WhisperVoiceInputTheme
 
 
@@ -58,16 +60,26 @@ fun RecognizeWindow(onClose: (() -> Unit)?, content: @Composable ColumnScope.() 
                     }
                 }
             }){
-                if(onClose != null) {
-                    IconButton(onClick = onClose, modifier = Modifier.align(Alignment.End)) {
-                        Icon(
-                            Icons.Default.Close,
-                            contentDescription = "Cancel",
-                            tint = MaterialTheme.colorScheme.onSurface
-                        )
+                Box(modifier = Modifier.fillMaxWidth()) {
+                    Box(modifier = Modifier.align(Alignment.CenterStart)) {
+                        ConditionalUnpaidNoticeInVoiceInputWindow(onClose)
                     }
-                } else {
-                    Spacer(modifier = Modifier.height(32.dp))
+
+                    Box(modifier = Modifier.align(Alignment.CenterEnd)) {
+                        if (onClose != null) {
+                            IconButton(
+                                onClick = onClose
+                            ) {
+                                Icon(
+                                    Icons.Default.Close,
+                                    contentDescription = "Cancel",
+                                    tint = MaterialTheme.colorScheme.onSurface
+                                )
+                            }
+                        } else {
+                            Spacer(modifier = Modifier.height(32.dp))
+                        }
+                    }
                 }
 
                 Column(
