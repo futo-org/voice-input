@@ -16,6 +16,7 @@ import org.futo.voiceinput.MULTILINGUAL_MODEL_INDEX
 import org.futo.voiceinput.MULTILINGUAL_MODEL_INDEX_DEFAULT
 import org.futo.voiceinput.Screen
 
+
 @Composable
 @Preview
 fun HomeScreen(settingsViewModel: SettingsViewModel = viewModel(), navController: NavHostController = rememberNavController()) {
@@ -54,6 +55,7 @@ fun HomeScreen(settingsViewModel: SettingsViewModel = viewModel(), navController
 
     Screen("FUTO Voice Input Settings") {
         SettingList {
+            ConditionalUnpaidNoticeWithNav(navController)
             SettingItem(title = "Help", onClick = { navController.navigate("help") }) {
                 Icon(Icons.Default.ArrowForward, contentDescription = "Go")
             }

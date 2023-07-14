@@ -76,6 +76,27 @@ fun useDefaultIME(i: Int): MutableState<String> {
 }
 
 
+@Composable
+fun useNumberOfDaysInstalled() : MutableState<Int> {
+    val dayCount = remember { mutableStateOf(-1) }
+
+    val context = LocalContext.current
+    LaunchedEffect(Unit) {
+        val packageManager = context.packageManager
+        val packageInfo = packageManager.getPackageInfo(context.packageName, 0)
+
+        val firstInstallTime = packageInfo.firstInstallTime
+
+
+        val currentTime = System.currentTimeMillis()
+
+        val diff = (currentTime - packageInfo.firstInstallTime) / (1000 * 60 * 60 * 24)
+        dayCount.value = diff.toInt()
+    }
+
+    return dayCount
+}
+
 
 
 data class DataStoreItem<T>(val value: T, val setValue: (T) -> Job)

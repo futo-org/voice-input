@@ -212,6 +212,9 @@ fun SettingsMain(settingsViewModel: SettingsViewModel = viewModel(), navControll
         composable("models") {
             ModelsScreen(settingsViewModel, navController)
         }
+        composable("payment") {
+            PaymentScreen(settingsViewModel, navController)
+        }
     }
 }
 

@@ -289,3 +289,6 @@ val MULTILINGUAL_MODEL_INDEX = intPreferencesKey("multilingual_model_index")
 val MULTILINGUAL_MODEL_INDEX_DEFAULT = 1
 
 val LANGUAGE_TOGGLES = stringSetPreferencesKey("enabled_languages")
+
+val IS_ALREADY_PAID = booleanPreferencesKey("already_paid")
+val FORCE_SHOW_NOTICE = booleanPreferencesKey("force_show_notice")
