@@ -87,9 +87,11 @@ fun HelpScreen() {
                 textItem("• AnySoftKeyboard, available on F-Droid and Google Play")
             }
 
-            Tip("Note: Not all keyboards are compatible with Voice Input. You need to make sure you're using a compatible keyboard.")
+            Spacer(modifier = Modifier.height(24.dp))
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Tip("Everything you type is seen by your keyboard app, and proprietary commercial keyboards often have lengthy and complicated privacy policies. Choose carefully!")
+
+            Spacer(modifier = Modifier.height(4.dp))
 
             textItem("The following proprietary keyboards may also work, but they are not recommended as they may not respect your privacy:")
             Column(modifier = Modifier.padding(16.dp, 0.dp)) {
@@ -97,9 +99,11 @@ fun HelpScreen() {
                 textItem("• Microsoft SwiftKey")
             }
 
-            Tip("Everything you type is seen by your keyboard app, and proprietary commercial keyboards often have lengthy and complicated privacy policies. Choose carefully!")
+            Spacer(modifier = Modifier.height(24.dp))
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Tip("Note: Not all keyboards are compatible with Voice Input. You need to make sure you're using a compatible keyboard.")
+
+            Spacer(modifier = Modifier.height(4.dp))
             textItem("Some keyboards are simply incompatible, as they do not integrate with Android APIs for voice input. If your keyboard is listed here, you will need to use a different one as it is NOT compatible:")
             Column(modifier = Modifier.padding(16.dp, 0.dp)) {
                 textItem("• Gboard")

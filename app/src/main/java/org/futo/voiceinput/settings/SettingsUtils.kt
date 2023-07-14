@@ -22,6 +22,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -213,6 +215,24 @@ fun SettingsMain(settingsViewModel: SettingsViewModel = viewModel(), navControll
     }
 }
 
+data class BlacklistedInputMethod(val packageName: String, val name: String, val reason: String)
+
+val BLACKLISTED_KEYBOARDS = listOf(
+    BlacklistedInputMethod(
+        "com.google.android.inputmethod.latin/com.android.inputmethod.latin.LatinIME",
+        "Gboard",
+        "This keyboard is incompatible with FUTO Voice Input. " +
+                "\nGboard relies on its own voice typing system and does not appear to integrate with standard Android APIs for voice input at this time. " +
+                "You will need to use a different keyboard if you want to use FUTO Voice Input with your keyboard. " +
+                "\nPlease visit the Help page in settings for more information."
+    ),
+    BlacklistedInputMethod(
+        "ch.icoaching.typewise/ch.icoaching.wrio.Wrio",
+        "Typewise",
+        "This keyboard does not have a voice input button at this time."
+    )
+)
+
 @Composable
 @Preview
 fun SetupOrMain(settingsViewModel: SettingsViewModel = viewModel()) {
@@ -220,8 +240,14 @@ fun SetupOrMain(settingsViewModel: SettingsViewModel = viewModel()) {
 
     val inputMethodEnabled = useIsInputMethodEnabled(settingsUiState.numberOfResumes)
     val microphonePermitted = useIsMicrophonePermitted(settingsUiState.numberOfResumes)
+    val defaultIME = useDefaultIME(settingsUiState.numberOfResumes)
 
-    if (inputMethodEnabled.value == Status.False) {
+    val acknowledgedBlacklistedWarning = rememberSaveable { mutableStateOf(false) }
+    val blacklistedKeyboardInfo = BLACKLISTED_KEYBOARDS.firstOrNull { it.packageName == defaultIME.value }
+
+    if(blacklistedKeyboardInfo != null && !acknowledgedBlacklistedWarning.value) {
+        SetupBlacklistedKeyboardWarning(blacklistedKeyboardInfo, { acknowledgedBlacklistedWarning.value = true })
+    }else if (inputMethodEnabled.value == Status.False) {
         SetupEnableIME()
     } else if (microphonePermitted.value == Status.False) {
         SetupEnableMic()

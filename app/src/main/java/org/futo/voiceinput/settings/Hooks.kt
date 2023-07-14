@@ -2,6 +2,7 @@ package org.futo.voiceinput.settings
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.provider.Settings
 import android.view.inputmethod.InputMethodManager
 import androidx.activity.ComponentActivity
 import androidx.compose.runtime.Composable
@@ -57,6 +58,21 @@ fun useIsMicrophonePermitted(i: Int): MutableState<Status> {
     }
 
     return permitted
+}
+
+
+@Composable
+fun useDefaultIME(i: Int): MutableState<String> {
+    val defaultIME = remember { mutableStateOf("?") }
+
+    val context = LocalContext.current
+    LaunchedEffect(i) {
+        val value = Settings.Secure.getString(context.contentResolver, Settings.Secure.DEFAULT_INPUT_METHOD)
+        defaultIME.value = value
+        println("The default IME is $value")
+    }
+
+    return defaultIME
 }
 
 

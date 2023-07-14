@@ -6,9 +6,11 @@ import android.provider.Settings
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
@@ -56,7 +58,7 @@ fun SetupContainer(inner: @Composable () -> Unit) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .fillMaxHeight(fraction = 0.5f)
+                    .fillMaxHeight(fraction = 1.0f)
                     .align(Alignment.CenterVertically)
                     .padding(32.dp)
             ) {
@@ -159,6 +161,39 @@ fun SetupEnableMic(onClick: () -> Unit = { }) {
                     .padding(16.dp)
             ) {
                 Text("Grant Microphone")
+            }
+        }
+    }
+}
+
+
+@Composable
+@Preview
+fun SetupBlacklistedKeyboardWarning(info: BlacklistedInputMethod = BlacklistedInputMethod("sample", "Example Keyboard", "This keyboard is incompatible because xyz.."), onClick: () -> Unit = { }) {
+
+    SetupContainer {
+        Column {
+            Text(
+                "Incompatible keyboard",
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text(
+                "You appear to be using ${info.name}. ${info.reason}",
+                textAlign = TextAlign.Start,
+                modifier = Modifier.fillMaxWidth(),
+                style = Typography.bodySmall
+            )
+            Button(
+                onClick = onClick,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+            ) {
+                Text("I understand ${info.name} is incompatible")
             }
         }
     }
