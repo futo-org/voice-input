@@ -15,7 +15,7 @@ import org.futo.voiceinput.IS_ALREADY_PAID
 import org.futo.voiceinput.Screen
 import org.futo.voiceinput.VERBOSE_PROGRESS
 import org.futo.voiceinput.ui.theme.Typography
-
+import org.futo.voiceinput.BuildConfig
 
 @Composable
 @Preview
@@ -37,17 +37,20 @@ fun AdvancedScreen(settingsViewModel: SettingsViewModel = viewModel(), navContro
                 Icon(Icons.Default.ArrowForward, contentDescription = "Go")
             }
 
-            Text("Payment testing", style = Typography.labelLarge)
-            SettingToggle(
-                "Force show payment notice",
-                FORCE_SHOW_NOTICE,
-                default = false
-            )
-            SettingToggle(
-                "Is paid?",
-                IS_ALREADY_PAID,
-                default = false
-            )
+            if(BuildConfig.FLAVOR == "dev") {
+                Text("Payment testing", style = Typography.labelLarge)
+                SettingToggle(
+                    "Force show payment notice",
+                    FORCE_SHOW_NOTICE,
+                    default = false
+                )
+                SettingToggle(
+                    "Is paid?",
+                    IS_ALREADY_PAID,
+                    default = false
+                )
+            }
+
         }
     }
 }

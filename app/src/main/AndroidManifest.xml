@@ -54,7 +54,7 @@
             android:name=".VoiceInputMethodService"
             android:exported="true"
             android:foregroundServiceType="microphone"
-            android:label="Voice Input Method"
+            android:label="@string/voice_input_method"
             android:permission="android.permission.BIND_INPUT_METHOD">
             <intent-filter>
                 <action android:name="android.view.InputMethod" />

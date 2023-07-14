@@ -4,6 +4,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -14,6 +15,7 @@ import org.futo.voiceinput.ENGLISH_MODEL_INDEX
 import org.futo.voiceinput.ENGLISH_MODEL_INDEX_DEFAULT
 import org.futo.voiceinput.MULTILINGUAL_MODEL_INDEX
 import org.futo.voiceinput.MULTILINGUAL_MODEL_INDEX_DEFAULT
+import org.futo.voiceinput.R
 import org.futo.voiceinput.Screen
 
 
@@ -53,7 +55,7 @@ fun HomeScreen(settingsViewModel: SettingsViewModel = viewModel(), navController
         null
     }
 
-    Screen("FUTO Voice Input Settings") {
+    Screen("${stringResource(R.string.app_name)} Settings") {
         SettingList {
             ConditionalUnpaidNoticeWithNav(navController)
             SettingItem(title = "Help", onClick = { navController.navigate("help") }) {

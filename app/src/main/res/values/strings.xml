@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">FUTO Voice Input</string>
+    <string name="voice_input_method">FUTO Voice Input Method</string>
 </resources>
