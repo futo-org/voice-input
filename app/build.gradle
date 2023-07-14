@@ -81,7 +81,6 @@ android {
 
         dev {
             dimension "version"
-            applicationIdSuffix ".dev"
             versionNameSuffix "-dev"
         }
     }
