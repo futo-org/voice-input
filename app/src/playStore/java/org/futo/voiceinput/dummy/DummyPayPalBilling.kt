@@ -1,0 +1,26 @@
+package org.futo.voiceinput.payments
+
+import android.content.Context
+
+
+class PayPalBilling(private val context: Context) : BillingImpl {
+    override fun checkAlreadyOwnsProduct() {
+        throw RuntimeException("PayPalBilling is not available on this build")
+    }
+
+    override fun startConnection(onReady: () -> Unit) {
+        throw RuntimeException("PayPalBilling is not available on this build")
+    }
+
+    override fun onResume() {
+        throw RuntimeException("PayPalBilling is not available on this build")
+    }
+
+    override fun launchBillingFlow() {
+        throw RuntimeException("PayPalBilling is not available on this build")
+    }
+
+    override fun getName(): String {
+        throw RuntimeException("PayPalBilling is not available on this build")
+    }
+}

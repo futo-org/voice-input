@@ -16,10 +16,11 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import kotlinx.coroutines.launch
+import org.futo.voiceinput.payments.BillingManager
 import org.futo.voiceinput.ui.theme.WhisperVoiceInputTheme
 
 class SettingsActivity : ComponentActivity() {
-    lateinit var billing: PlayBilling
+    lateinit var billing: BillingManager
     private fun updateContent() {
         setContent {
             WhisperVoiceInputTheme {
@@ -63,7 +64,7 @@ class SettingsActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        billing = PlayBilling(applicationContext, lifecycleScope)
+        billing = BillingManager(applicationContext, lifecycleScope)
 
         viewModel = viewModels<SettingsViewModel>().value
 
@@ -80,7 +81,7 @@ class SettingsActivity : ComponentActivity() {
         super.onStart()
 
         billing.startConnection {
-            billing.checkAlreadyOwnsProduct()
+            it.checkAlreadyOwnsProduct()
         }
     }
 

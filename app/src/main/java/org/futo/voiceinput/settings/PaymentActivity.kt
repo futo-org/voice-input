@@ -12,10 +12,11 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import kotlinx.coroutines.launch
+import org.futo.voiceinput.payments.BillingManager
 import org.futo.voiceinput.ui.theme.WhisperVoiceInputTheme
 
 class PaymentActivity : ComponentActivity() {
-    lateinit var billing: PlayBilling
+    lateinit var billing: BillingManager
 
     private fun updateContent() {
         setContent {
@@ -24,7 +25,7 @@ class PaymentActivity : ComponentActivity() {
                 Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
                     PaymentScreen(onExit = {
                         finish()
-                    }, launchPlayBilling = { billing.launchBillingFlow() })
+                    }, billing = billing)
                 }
             }
         }
@@ -34,7 +35,7 @@ class PaymentActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        billing = PlayBilling(applicationContext, lifecycleScope)
+        billing = BillingManager(applicationContext, lifecycleScope)
 
         viewModel = viewModels<SettingsViewModel>().value
 
@@ -51,7 +52,7 @@ class PaymentActivity : ComponentActivity() {
         super.onStart()
 
         billing.startConnection {
-            billing.checkAlreadyOwnsProduct()
+            it.checkAlreadyOwnsProduct()
         }
     }
 

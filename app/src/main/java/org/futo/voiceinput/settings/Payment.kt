@@ -1,8 +1,6 @@
 package org.futo.voiceinput.settings
 
 import android.content.Context
-import android.content.Intent
-import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,7 +13,6 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -45,6 +42,7 @@ import org.futo.voiceinput.IS_ALREADY_PAID
 import org.futo.voiceinput.NOTICE_REMINDER_TIME
 import org.futo.voiceinput.Screen
 import org.futo.voiceinput.dataStore
+import org.futo.voiceinput.payments.BillingManager
 import org.futo.voiceinput.startAppActivity
 import org.futo.voiceinput.ui.theme.Slate200
 import org.futo.voiceinput.ui.theme.Typography
@@ -57,30 +55,6 @@ fun PaymentText() {
 
     localText("You've been using FUTO Voice Input for ${numDaysInstalled.value} days. If you find this app useful, please consider paying to support future development of FUTO software.")
     localText("FUTO is dedicated to making good software that doesn't abuse you. This app will never serve you ads or collect your personal data.")
-}
-
-@Composable
-fun PlayStorePayment(launchPlayBilling: () -> Unit = { }) {
-    val context = LocalContext.current
-    Button(onClick = {
-        println("Launching play billing")
-        launchPlayBilling()
-    }, modifier = Modifier
-        .padding(8.dp)) {
-        Text("Pay via Google Play")
-    }
-}
-
-@Composable
-fun PayPalPayment() {
-    val context = LocalContext.current
-    Button(onClick = {
-        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://example.com"))
-        context.startActivity(intent)
-    }, modifier = Modifier
-        .padding(8.dp)) {
-        Text("Pay via PayPal")
-    }
 }
 
 suspend fun pushNoticeReminderTime(context: Context, days: Float) {
@@ -195,11 +169,8 @@ fun ConditionalUnpaidNoticeWithNav(navController: NavController = rememberNavCon
 }
 
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-@Preview
-fun PaymentScreen(settingsViewModel: SettingsViewModel = viewModel(), navController: NavHostController = rememberNavController(), onExit: () -> Unit = { }, launchPlayBilling: () -> Unit = { }) {
-    val numDaysInstalled = useNumberOfDaysInstalled()
+fun PaymentScreen(settingsViewModel: SettingsViewModel = viewModel(), navController: NavHostController = rememberNavController(), onExit: () -> Unit = { }, billing: BillingManager) {
     val isAlreadyPaid = useDataStore(IS_ALREADY_PAID, default = false)
 
     if(isAlreadyPaid.value) {
@@ -213,15 +184,12 @@ fun PaymentScreen(settingsViewModel: SettingsViewModel = viewModel(), navControl
             val context = LocalContext.current
             Column(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(8.dp).align(CenterHorizontally)) {
-                    if (BuildConfig.FLAVOR == "playStore" || BuildConfig.FLAVOR == "dev") {
-                        Box(modifier = Modifier.align(CenterHorizontally)) {
-                            PlayStorePayment(launchPlayBilling = launchPlayBilling)
-                        }
-                    }
-
-                    if (BuildConfig.FLAVOR == "fDroid" || BuildConfig.FLAVOR == "dev") {
-                        Box(modifier = Modifier.align(CenterHorizontally)) {
-                            PayPalPayment()
+                    billing.getBillings().forEach {
+                        Button(onClick = {
+                            it.launchBillingFlow()
+                        }, modifier = Modifier
+                            .padding(8.dp).align(CenterHorizontally)) {
+                            Text("Pay via ${it.getName()}")
                         }
                     }
 

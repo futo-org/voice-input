@@ -1,4 +1,4 @@
-package org.futo.voiceinput.settings
+package org.futo.voiceinput.payments
 
 import android.app.Activity
 import android.content.Context
@@ -10,7 +10,6 @@ import com.android.billingclient.api.BillingClientStateListener
 import com.android.billingclient.api.BillingFlowParams
 import com.android.billingclient.api.BillingResult
 import com.android.billingclient.api.Purchase
-import com.android.billingclient.api.PurchasesResponseListener
 import com.android.billingclient.api.PurchasesUpdatedListener
 import com.android.billingclient.api.QueryProductDetailsParams
 import com.android.billingclient.api.QueryPurchaseHistoryParams
@@ -25,7 +24,7 @@ import org.futo.voiceinput.IS_ALREADY_PAID
 import org.futo.voiceinput.dataStore
 
 const val PRODUCT_ID = "one_time_license"
-class PlayBilling(val context: Context, val coroutine: CoroutineScope) {
+class PlayBilling(private val context: Context, private val coroutine: CoroutineScope) : BillingImpl {
     private val purchasesUpdatedListener =
         PurchasesUpdatedListener { billingResult, purchases ->
             if (billingResult.responseCode == BillingClient.BillingResponseCode.OK && purchases != null) {
@@ -64,7 +63,7 @@ class PlayBilling(val context: Context, val coroutine: CoroutineScope) {
         }
     }
 
-    fun checkAlreadyOwnsProduct() {
+    override fun checkAlreadyOwnsProduct() {
         if(billingClient.connectionState != BillingClient.ConnectionState.CONNECTED) {
             Toast.makeText(context, "PlayBilling - Not connected to Billing", Toast.LENGTH_SHORT).show()
             return startConnection { checkAlreadyOwnsProduct() }
@@ -87,7 +86,7 @@ class PlayBilling(val context: Context, val coroutine: CoroutineScope) {
         }
     }
 
-    fun startConnection(onReady: () -> Unit = { }) {
+    override fun startConnection(onReady: () -> Unit) {
         billingClient.startConnection(object : BillingClientStateListener {
             override fun onBillingSetupFinished(billingResult: BillingResult) {
                 if (billingResult.responseCode ==  BillingClient.BillingResponseCode.OK) {
@@ -102,7 +101,7 @@ class PlayBilling(val context: Context, val coroutine: CoroutineScope) {
         })
     }
 
-    fun onResume() {
+    override fun onResume() {
         if(billingClient.connectionState != BillingClient.ConnectionState.CONNECTED) {
             //Toast.makeText(context, "PlayBilling - Not connected to Billing", Toast.LENGTH_SHORT).show()
             return startConnection { onResume() }
@@ -111,23 +110,27 @@ class PlayBilling(val context: Context, val coroutine: CoroutineScope) {
         val params = QueryPurchasesParams.newBuilder()
             .setProductType(BillingClient.ProductType.INAPP)
             .build()
-        val purchases = billingClient.queryPurchasesAsync(params, PurchasesResponseListener { result, purchases ->
+        billingClient.queryPurchasesAsync(params) { result, purchases ->
             if (result.responseCode == BillingClient.BillingResponseCode.OK) {
                 for (purchase in purchases) {
-                    if(purchase.products.contains(PRODUCT_ID)) {
+                    if (purchase.products.contains(PRODUCT_ID)) {
                         handlePurchasedLicense(purchase)
                     }
                 }
             } else {
-                Toast.makeText(context, "PlayBilling - Query purchases responded with non-OK", Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    context,
+                    "PlayBilling - Query purchases responded with non-OK",
+                    Toast.LENGTH_SHORT
+                ).show()
                 // Handle any other error codes.
             }
-        })
+        }
 
         checkAlreadyOwnsProduct()
     }
 
-    fun launchBillingFlow() {
+    override fun launchBillingFlow() {
         if(billingClient.connectionState != BillingClient.ConnectionState.CONNECTED) {
             println("Launch billing flow - not connected")
             Toast.makeText(context, "PlayBilling - Not connected to Billing", Toast.LENGTH_SHORT).show()
@@ -165,7 +168,7 @@ class PlayBilling(val context: Context, val coroutine: CoroutineScope) {
             val productDetails = detailsList[0]
 
             // An activity reference from which the billing flow will be launched.
-            val activity: Activity = context as Activity;
+            val activity: Activity = context as Activity
 
             val productDetailsParamsList = listOf(
                 BillingFlowParams.ProductDetailsParams.newBuilder()
@@ -184,5 +187,9 @@ class PlayBilling(val context: Context, val coroutine: CoroutineScope) {
                 return@launch
             }
         }
+    }
+
+    override fun getName(): String {
+        return "Google Play"
     }
 }

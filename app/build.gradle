@@ -83,6 +83,19 @@ android {
             versionNameSuffix "-dev"
         }
     }
+
+    sourceSets {
+        dev {
+            java.srcDir 'src/playStore/java/org/futo/voiceinput/payments'
+            java.srcDir 'src/fDroid/java/org/futo/voiceinput/payments'
+        }
+        playStore {
+            java.srcDirs = ['src/main/java', 'src/playStore/java']
+        }
+        fDroid {
+            java.srcDirs = ['src/main/java', 'src/fDroid/java']
+        }
+    }
 }
 
 dependencies {

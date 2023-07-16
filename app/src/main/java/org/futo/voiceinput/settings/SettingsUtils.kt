@@ -41,6 +41,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import org.futo.voiceinput.Status
+import org.futo.voiceinput.payments.BillingManager
 import org.futo.voiceinput.ui.theme.Typography
 
 
@@ -179,7 +180,7 @@ fun SettingListLazy(content: LazyListScope.() -> Unit) {
 
 @Composable
 @Preview
-fun SettingsMain(settingsViewModel: SettingsViewModel = viewModel(), navController: NavHostController = rememberNavController(), billing: PlayBilling? = null) {
+fun SettingsMain(settingsViewModel: SettingsViewModel = viewModel(), navController: NavHostController = rememberNavController(), billing: BillingManager? = null) {
     val settingsUiState by settingsViewModel.uiState.collectAsState()
 
     NavHost(
@@ -213,7 +214,7 @@ fun SettingsMain(settingsViewModel: SettingsViewModel = viewModel(), navControll
             ModelsScreen(settingsViewModel, navController)
         }
         composable("payment") {
-            PaymentScreen(settingsViewModel, navController, launchPlayBilling = { billing!!.launchBillingFlow() })
+            PaymentScreen(settingsViewModel, navController, billing = billing!!)
         }
     }
 }
@@ -237,8 +238,7 @@ val BLACKLISTED_KEYBOARDS = listOf(
 )
 
 @Composable
-@Preview
-fun SetupOrMain(settingsViewModel: SettingsViewModel = viewModel(), billing: PlayBilling? = null) {
+fun SetupOrMain(settingsViewModel: SettingsViewModel = viewModel(), billing: BillingManager) {
     val settingsUiState by settingsViewModel.uiState.collectAsState()
 
     val inputMethodEnabled = useIsInputMethodEnabled(settingsUiState.numberOfResumes)
