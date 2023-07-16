@@ -179,7 +179,7 @@ fun SettingListLazy(content: LazyListScope.() -> Unit) {
 
 @Composable
 @Preview
-fun SettingsMain(settingsViewModel: SettingsViewModel = viewModel(), navController: NavHostController = rememberNavController()) {
+fun SettingsMain(settingsViewModel: SettingsViewModel = viewModel(), navController: NavHostController = rememberNavController(), billing: PlayBilling? = null) {
     val settingsUiState by settingsViewModel.uiState.collectAsState()
 
     NavHost(
@@ -213,7 +213,7 @@ fun SettingsMain(settingsViewModel: SettingsViewModel = viewModel(), navControll
             ModelsScreen(settingsViewModel, navController)
         }
         composable("payment") {
-            PaymentScreen(settingsViewModel, navController)
+            PaymentScreen(settingsViewModel, navController, launchPlayBilling = { billing!!.launchBillingFlow() })
         }
     }
 }
@@ -238,7 +238,7 @@ val BLACKLISTED_KEYBOARDS = listOf(
 
 @Composable
 @Preview
-fun SetupOrMain(settingsViewModel: SettingsViewModel = viewModel()) {
+fun SetupOrMain(settingsViewModel: SettingsViewModel = viewModel(), billing: PlayBilling? = null) {
     val settingsUiState by settingsViewModel.uiState.collectAsState()
 
     val inputMethodEnabled = useIsInputMethodEnabled(settingsUiState.numberOfResumes)
@@ -266,6 +266,6 @@ fun SetupOrMain(settingsViewModel: SettingsViewModel = viewModel()) {
             }
         }
     } else {
-        SettingsMain(settingsViewModel)
+        SettingsMain(settingsViewModel, billing = billing)
     }
 }

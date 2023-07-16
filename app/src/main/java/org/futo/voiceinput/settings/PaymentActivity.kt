@@ -15,6 +15,8 @@ import kotlinx.coroutines.launch
 import org.futo.voiceinput.ui.theme.WhisperVoiceInputTheme
 
 class PaymentActivity : ComponentActivity() {
+    lateinit var billing: PlayBilling
+
     private fun updateContent() {
         setContent {
             WhisperVoiceInputTheme {
@@ -22,7 +24,7 @@ class PaymentActivity : ComponentActivity() {
                 Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
                     PaymentScreen(onExit = {
                         finish()
-                    })
+                    }, launchPlayBilling = { billing.launchBillingFlow() })
                 }
             }
         }
@@ -31,6 +33,8 @@ class PaymentActivity : ComponentActivity() {
     private lateinit var viewModel: SettingsViewModel
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        billing = PlayBilling(applicationContext, lifecycleScope)
 
         viewModel = viewModels<SettingsViewModel>().value
 
@@ -43,15 +47,25 @@ class PaymentActivity : ComponentActivity() {
         }
     }
 
+    override fun onStart() {
+        super.onStart()
+
+        billing.startConnection {
+            billing.checkAlreadyOwnsProduct()
+        }
+    }
+
     override fun onResume() {
         super.onResume()
 
+        billing.onResume()
         viewModel.onResume()
     }
 
     override fun onRestart() {
         super.onRestart()
 
+        billing.onResume()
         viewModel.onResume()
     }
 }

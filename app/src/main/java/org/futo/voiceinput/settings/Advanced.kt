@@ -39,10 +39,12 @@ fun AdvancedScreen(settingsViewModel: SettingsViewModel = viewModel(), navContro
             }
 
             if(BuildConfig.FLAVOR == "dev") {
+                val daysInstalled = useNumberOfDaysInstalled()
                 Text("Payment testing [Developer Build only]", style = Typography.labelLarge)
                 SettingToggle(
-                    "Force show payment notice",
+                    "Show payment notice despite not being past $TRIAL_PERIOD_DAYS days",
                     FORCE_SHOW_NOTICE,
+                    subtitle = "You are currently at ${daysInstalled.value} days",
                     default = false
                 )
                 SettingToggle(

@@ -3,7 +3,6 @@ package org.futo.voiceinput.settings
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -61,11 +60,11 @@ fun PaymentText() {
 }
 
 @Composable
-fun PlayStorePayment() {
+fun PlayStorePayment(launchPlayBilling: () -> Unit = { }) {
     val context = LocalContext.current
     Button(onClick = {
-        val toast = Toast.makeText(context, "Payment not yet implemented", Toast.LENGTH_SHORT)
-        toast.show()
+        println("Launching play billing")
+        launchPlayBilling()
     }, modifier = Modifier
         .padding(8.dp)) {
         Text("Pay via Google Play")
@@ -199,9 +198,13 @@ fun ConditionalUnpaidNoticeWithNav(navController: NavController = rememberNavCon
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 @Preview
-fun PaymentScreen(settingsViewModel: SettingsViewModel = viewModel(), navController: NavHostController = rememberNavController(), onExit: () -> Unit = { }) {
+fun PaymentScreen(settingsViewModel: SettingsViewModel = viewModel(), navController: NavHostController = rememberNavController(), onExit: () -> Unit = { }, launchPlayBilling: () -> Unit = { }) {
     val numDaysInstalled = useNumberOfDaysInstalled()
     val isAlreadyPaid = useDataStore(IS_ALREADY_PAID, default = false)
+
+    if(isAlreadyPaid.value) {
+        onExit()
+    }
 
     Screen("Payment") {
         ScrollableList {
@@ -212,7 +215,7 @@ fun PaymentScreen(settingsViewModel: SettingsViewModel = viewModel(), navControl
                 Column(modifier = Modifier.padding(8.dp).align(CenterHorizontally)) {
                     if (BuildConfig.FLAVOR == "playStore" || BuildConfig.FLAVOR == "dev") {
                         Box(modifier = Modifier.align(CenterHorizontally)) {
-                            PlayStorePayment()
+                            PlayStorePayment(launchPlayBilling = launchPlayBilling)
                         }
                     }
 
@@ -224,7 +227,11 @@ fun PaymentScreen(settingsViewModel: SettingsViewModel = viewModel(), navControl
 
                     if (BuildConfig.FLAVOR == "dev") {
                         Text(
-                            "[You are on the Developer release, so you will see all payment methods. The Play Store release will only have the Play payment method]",
+                            "[You are on the Developer release, so you are seeing all payment methods]",
+                            style = Typography.labelSmall
+                        )
+                        Text(
+                            "[The F-Droid/Standalone release will only have PayPal option, and the Play Store release will only have the Play payment option as per Google Play's policy]",
                             style = Typography.labelSmall
                         )
                     }

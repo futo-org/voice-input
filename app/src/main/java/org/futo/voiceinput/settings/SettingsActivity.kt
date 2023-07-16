@@ -19,12 +19,13 @@ import kotlinx.coroutines.launch
 import org.futo.voiceinput.ui.theme.WhisperVoiceInputTheme
 
 class SettingsActivity : ComponentActivity() {
+    lateinit var billing: PlayBilling
     private fun updateContent() {
         setContent {
             WhisperVoiceInputTheme {
                 // A surface container using the 'background' color from the theme
                 Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-                    SetupOrMain()
+                    SetupOrMain(billing = billing)
                 }
             }
         }
@@ -62,6 +63,8 @@ class SettingsActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        billing = PlayBilling(applicationContext, lifecycleScope)
+
         viewModel = viewModels<SettingsViewModel>().value
 
         lifecycleScope.launch {
@@ -73,15 +76,25 @@ class SettingsActivity : ComponentActivity() {
         }
     }
 
+    override fun onStart() {
+        super.onStart()
+
+        billing.startConnection {
+            billing.checkAlreadyOwnsProduct()
+        }
+    }
+
     override fun onResume() {
         super.onResume()
 
+        billing.onResume()
         viewModel.onResume()
     }
 
     override fun onRestart() {
         super.onRestart()
 
+        billing.onResume()
         viewModel.onResume()
     }
 }
