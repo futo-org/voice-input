@@ -14,6 +14,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import kotlinx.coroutines.Job
@@ -78,6 +79,10 @@ fun useDefaultIME(i: Int): MutableState<String> {
 
 @Composable
 fun useNumberOfDaysInstalled() : MutableState<Int> {
+    if(LocalInspectionMode.current) {
+        return remember { mutableStateOf(55) }
+    }
+
     val dayCount = remember { mutableStateOf(-1) }
 
     val context = LocalContext.current
@@ -87,10 +92,9 @@ fun useNumberOfDaysInstalled() : MutableState<Int> {
 
         val firstInstallTime = packageInfo.firstInstallTime
 
-
         val currentTime = System.currentTimeMillis()
 
-        val diff = (currentTime - packageInfo.firstInstallTime) / (1000 * 60 * 60 * 24)
+        val diff = (currentTime - firstInstallTime) / (1000 * 60 * 60 * 24)
         dayCount.value = diff.toInt()
     }
 

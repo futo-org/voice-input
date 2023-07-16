@@ -14,6 +14,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
@@ -302,3 +303,6 @@ val LANGUAGE_TOGGLES = stringSetPreferencesKey("enabled_languages")
 
 val IS_ALREADY_PAID = booleanPreferencesKey("already_paid")
 val FORCE_SHOW_NOTICE = booleanPreferencesKey("force_show_notice")
+
+// UNIX timestamp in seconds of when to next show the payment reminder
+val NOTICE_REMINDER_TIME = longPreferencesKey("notice_reminder_time")
