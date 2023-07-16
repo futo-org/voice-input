@@ -1,6 +1,8 @@
 package org.futo.voiceinput.settings
 
 import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -38,6 +40,7 @@ import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.launch
+import org.futo.voiceinput.BuildConfig
 import org.futo.voiceinput.FORCE_SHOW_NOTICE
 import org.futo.voiceinput.IS_ALREADY_PAID
 import org.futo.voiceinput.NOTICE_REMINDER_TIME
@@ -55,6 +58,30 @@ fun PaymentText() {
 
     localText("You've been using FUTO Voice Input for ${numDaysInstalled.value} days. If you find this app useful, please consider paying to support future development of FUTO software.")
     localText("FUTO is dedicated to making good software that doesn't abuse you. This app will never serve you ads or collect your personal data.")
+}
+
+@Composable
+fun PlayStorePayment() {
+    val context = LocalContext.current
+    Button(onClick = {
+        val toast = Toast.makeText(context, "Payment not yet implemented", Toast.LENGTH_SHORT)
+        toast.show()
+    }, modifier = Modifier
+        .padding(8.dp)) {
+        Text("Pay via Google Play")
+    }
+}
+
+@Composable
+fun PayPalPayment() {
+    val context = LocalContext.current
+    Button(onClick = {
+        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://example.com"))
+        context.startActivity(intent)
+    }, modifier = Modifier
+        .padding(8.dp)) {
+        Text("Pay via PayPal")
+    }
 }
 
 suspend fun pushNoticeReminderTime(context: Context, days: Float) {
@@ -130,7 +157,7 @@ fun UnpaidNotice(onPay: () -> Unit = { }, onAlreadyPaid: () -> Unit = { }) {
 
             Row(modifier = Modifier
                 .padding(8.dp)
-                .align(Alignment.CenterHorizontally)) {
+                .align(CenterHorizontally)) {
 
                 Box(modifier = Modifier.weight(1.0f)) {
                     Button(onClick = onPay, modifier = Modifier.align(Alignment.Center)) {
@@ -177,58 +204,74 @@ fun PaymentScreen(settingsViewModel: SettingsViewModel = viewModel(), navControl
     val isAlreadyPaid = useDataStore(IS_ALREADY_PAID, default = false)
 
     Screen("Payment") {
-        PaymentText()
+        ScrollableList {
+            PaymentText()
 
-        val context = LocalContext.current
-        Column(modifier = Modifier.fillMaxWidth()) {
-            Button(onClick = {
-                val toast = Toast.makeText(context, "Payment not yet implemented", Toast.LENGTH_SHORT)
-                toast.show()
-            }, modifier = Modifier
-                .align(CenterHorizontally)
-                .padding(16.dp)) {
-                Text("Pay via Google Play")
-            }
-
-            // TODO: On non-Google-Play releases, we should probably have the "I already paid" button here
-            // because we can't automatically check whether or not someone already paid via PayPal/etc
-
-            val lastValidRemindValue = remember { mutableStateOf(5.0f) }
-            val remindDays = remember { mutableStateOf("5")}
-            Row(modifier = Modifier
-                .align(CenterHorizontally)
-                .padding(16.dp)) {
-                val coroutineScope = rememberCoroutineScope()
-                Button(
-                    onClick = {
-                        coroutineScope.launch {
-                            pushNoticeReminderTime(context, lastValidRemindValue.value)
+            val context = LocalContext.current
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Column(modifier = Modifier.padding(8.dp).align(CenterHorizontally)) {
+                    if (BuildConfig.FLAVOR == "playStore" || BuildConfig.FLAVOR == "dev") {
+                        Box(modifier = Modifier.align(CenterHorizontally)) {
+                            PlayStorePayment()
                         }
-                        navController.popBackStack()
-                        onExit()
-                    }, colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.secondary,
-                        contentColor = MaterialTheme.colorScheme.onSecondary
-                    )
-                ) {
-                    Text("Remind me in ")
-                    Surface(color = MaterialTheme.colorScheme.surface) {
-                        BasicTextField(
-                            value = remindDays.value,
-                            onValueChange = {
-                                remindDays.value = it
+                    }
 
-                                it.toFloatOrNull()?.let { lastValidRemindValue.value = it }
-                            },
-                            modifier = Modifier
-                                .width(32.dp)
-                                .background(MaterialTheme.colorScheme.surface),
-                            textStyle = Typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface),
-                            cursorBrush = SolidColor(MaterialTheme.colorScheme.onSurface),
-                            keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number)
+                    if (BuildConfig.FLAVOR == "fDroid" || BuildConfig.FLAVOR == "dev") {
+                        Box(modifier = Modifier.align(CenterHorizontally)) {
+                            PayPalPayment()
+                        }
+                    }
+
+                    if (BuildConfig.FLAVOR == "dev") {
+                        Text(
+                            "[You are on the Developer release, so you will see all payment methods. The Play Store release will only have the Play payment method]",
+                            style = Typography.labelSmall
                         )
                     }
-                    Text(" days")
+                }
+
+                // TODO: On non-Google-Play releases, we should probably have the "I already paid" button here
+                // because we can't automatically check whether or not someone already paid via PayPal/etc
+
+                val lastValidRemindValue = remember { mutableStateOf(5.0f) }
+                val remindDays = remember { mutableStateOf("5") }
+                Row(
+                    modifier = Modifier
+                        .align(CenterHorizontally)
+                        .padding(16.dp)
+                ) {
+                    val coroutineScope = rememberCoroutineScope()
+                    Button(
+                        onClick = {
+                            coroutineScope.launch {
+                                pushNoticeReminderTime(context, lastValidRemindValue.value)
+                            }
+                            navController.popBackStack()
+                            onExit()
+                        }, colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.secondary,
+                            contentColor = MaterialTheme.colorScheme.onSecondary
+                        )
+                    ) {
+                        Text("Remind me in ")
+                        Surface(color = MaterialTheme.colorScheme.surface) {
+                            BasicTextField(
+                                value = remindDays.value,
+                                onValueChange = {
+                                    remindDays.value = it
+
+                                    it.toFloatOrNull()?.let { lastValidRemindValue.value = it }
+                                },
+                                modifier = Modifier
+                                    .width(32.dp)
+                                    .background(MaterialTheme.colorScheme.surface),
+                                textStyle = Typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface),
+                                cursorBrush = SolidColor(MaterialTheme.colorScheme.onSurface),
+                                keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number)
+                            )
+                        }
+                        Text(" days")
+                    }
                 }
             }
         }

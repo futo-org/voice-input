@@ -78,7 +78,7 @@ fun CreditItem(name: String, thanksFor: String, link: String, license: String, c
 @Preview
 fun CreditsScreen(openDependencies: () -> Unit = {}) {
     Screen("Credits") {
-        SettingList {
+        ScrollableList {
             CreditItem(
                 name = "OpenAI Whisper",
                 thanksFor = "the voice recognition model",

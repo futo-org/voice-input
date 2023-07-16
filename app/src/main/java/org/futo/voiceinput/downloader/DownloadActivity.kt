@@ -114,31 +114,41 @@ fun ModelItem(model: ModelInfo, showProgress: Boolean) {
 @Preview
 fun DownloadPrompt(onContinue: () -> Unit = {}, onCancel: () -> Unit = {}, models: List<ModelInfo> = EXAMPLE_MODELS) {
     Screen("Download Required") {
-        Text("To continue, one or more speech recognition model resources need to be downloaded. This may incur data fees if you're using mobile data instead of Wi-Fi", style = Typography.bodyMedium)
-
-        Spacer(modifier = Modifier.height(8.dp))
-
         LazyColumn {
+            item {
+                Text(
+                    "To continue, one or more speech recognition model resources need to be downloaded. This may incur data fees if you're using mobile data instead of Wi-Fi",
+                    style = Typography.bodyMedium
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+            }
             items(models.size) {
                 ModelItem(models[it], showProgress = false)
             }
-        }
 
-        Spacer(modifier = Modifier.height(8.dp))
+            item {
+                Spacer(modifier = Modifier.height(8.dp))
 
-        Row {
-            Button(onClick = onCancel, colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.secondary,
-                contentColor = MaterialTheme.colorScheme.onSecondary
-            ), modifier = Modifier
-                .padding(8.dp)
-                .weight(1.0f)) {
-                Text("Cancel")
-            }
-            Button(onClick = onContinue, modifier = Modifier
-                .padding(8.dp)
-                .weight(1.5f)) {
-                Text("Continue")
+                Row {
+                    Button(
+                        onClick = onCancel, colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.secondary,
+                            contentColor = MaterialTheme.colorScheme.onSecondary
+                        ), modifier = Modifier
+                            .padding(8.dp)
+                            .weight(1.0f)
+                    ) {
+                        Text("Cancel")
+                    }
+                    Button(
+                        onClick = onContinue, modifier = Modifier
+                            .padding(8.dp)
+                            .weight(1.5f)
+                    ) {
+                        Text("Continue")
+                    }
+                }
             }
         }
     }
@@ -148,20 +158,24 @@ fun DownloadPrompt(onContinue: () -> Unit = {}, onCancel: () -> Unit = {}, model
 @Preview
 fun DownloadScreen(models: List<ModelInfo> = EXAMPLE_MODELS) {
     Screen("Download Progress") {
-        if (models.any { it.error }) {
-            Text("One or more files have failed to download. This may be due to a network error. Please try again later.", style = Typography.bodyMedium)
-        } else {
-            Text("Downloading model resources...", style = Typography.bodyMedium)
-        }
-
-        Spacer(modifier = Modifier.height(8.dp))
-
         LazyColumn {
+            item {
+                if (models.any { it.error }) {
+                    Text(
+                        "One or more files have failed to download. This may be due to a network error. Please try again later.",
+                        style = Typography.bodyMedium
+                    )
+                } else {
+                    Text("Downloading model resources...", style = Typography.bodyMedium)
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+            }
+
             items(models.size) {
                 ModelItem(models[it], showProgress = true)
             }
         }
-
     }
 }
 
@@ -204,6 +218,15 @@ class DownloadActivity : ComponentActivity() {
 
                 override fun onResponse(call: Call, response: Response) {
                     response.body?.source()?.let { source ->
+
+                        try {
+                            it.size = response.headers["content-length"]!!.toLong()
+                        } catch(e: Exception) {
+                            println("url failed ${it.url}")
+                            println(response.headers)
+                            e.printStackTrace()
+                        }
+
                         val fileName = it.name + ".download"
                         val file = File.createTempFile(fileName, null, this@DownloadActivity.cacheDir)
                         val os = file.outputStream()
@@ -218,7 +241,9 @@ class DownloadActivity : ComponentActivity() {
 
                             downloaded += read
 
-                            it.progress = downloaded.toFloat() / it.size!!.toFloat()
+                            if(it.size != null) {
+                                it.progress = downloaded.toFloat() / it.size!!.toFloat()
+                            }
 
                             lifecycleScope.launch {
                                 withContext(Dispatchers.Main) {
@@ -228,6 +253,7 @@ class DownloadActivity : ComponentActivity() {
                         }
 
                         it.finished = true
+                        it.progress = 1.0f
                         os.flush()
                         os.close()
 

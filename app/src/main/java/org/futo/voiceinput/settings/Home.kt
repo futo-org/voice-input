@@ -56,7 +56,7 @@ fun HomeScreen(settingsViewModel: SettingsViewModel = viewModel(), navController
     }
 
     Screen("${stringResource(R.string.app_name)} Settings") {
-        SettingList {
+        ScrollableList {
             ConditionalUnpaidNoticeWithNav(navController)
             SettingItem(title = "Help", onClick = { navController.navigate("help") }) {
                 Icon(Icons.Default.ArrowForward, contentDescription = "Go")

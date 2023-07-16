@@ -117,18 +117,20 @@ fun ModelsScreen(settingsViewModel: SettingsViewModel = viewModel(), navControll
     }
 
     Screen("Model Picker") {
-        Tip("Tip: The number is the model's parameter count in millions. More parameters = slower and more accurate")
-        Spacer(modifier = Modifier.height(16.dp))
-        ModelSizeItem("English", ENGLISH_MODELS, ENGLISH_MODEL_INDEX, ENGLISH_MODEL_INDEX_DEFAULT)
-
-        if(useMultilingual) {
+        ScrollableList {
+            Tip("Tip: The number is the model's parameter count in millions. More parameters = slower and more accurate")
             Spacer(modifier = Modifier.height(16.dp))
-            ModelSizeItem(
-                "Multilingual",
-                MULTILINGUAL_MODELS,
-                MULTILINGUAL_MODEL_INDEX,
-                MULTILINGUAL_MODEL_INDEX_DEFAULT
-            )
+            ModelSizeItem("English", ENGLISH_MODELS, ENGLISH_MODEL_INDEX, ENGLISH_MODEL_INDEX_DEFAULT)
+
+            if(useMultilingual) {
+                Spacer(modifier = Modifier.height(16.dp))
+                ModelSizeItem(
+                    "Multilingual",
+                    MULTILINGUAL_MODELS,
+                    MULTILINGUAL_MODEL_INDEX,
+                    MULTILINGUAL_MODEL_INDEX_DEFAULT
+                )
+            }
         }
     }
 }

@@ -40,12 +40,12 @@ fun HelpScreen() {
     }
 
     Screen("Help") {
-        SettingList {
+        ScrollableList {
             textItem("You have installed Voice Input and enabled the Voice input method. You should now be able to use Voice Input within supported apps and keyboards.")
             textItem("When you open Voice Input, it will look something like this:")
             Column(modifier = Modifier.fillMaxWidth()) {
                 Box(modifier = Modifier.align(CenterHorizontally)) {
-                    RecognizeWindow(onClose = showAntiConfusionToast) {
+                    RecognizeWindow(onClose = showAntiConfusionToast, forceNoUnpaidNotice = true) {
                         Text(
                             "Voice Input will look like this",
                             modifier = Modifier.align(CenterHorizontally),
@@ -62,7 +62,7 @@ fun HelpScreen() {
 
             Column(modifier = Modifier.fillMaxWidth()) {
                 Box(modifier = Modifier.align(CenterHorizontally)) {
-                    RecognizeWindow(onClose = showAntiConfusionToast) {
+                    RecognizeWindow(onClose = showAntiConfusionToast, forceNoUnpaidNotice = true) {
                         IconButton(onClick = showAntiConfusionToast, modifier = Modifier.align(CenterHorizontally)) {
                             Icon(
                                 painter = painterResource(R.drawable.mic_2_),

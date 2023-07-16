@@ -4,9 +4,9 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -86,7 +86,7 @@ fun Tip(text: String = "This is an example tip") {
 fun SettingItem(title: String, subtitle: String? = null, onClick: () -> Unit, icon: (@Composable () -> Unit)? = null, disabled: Boolean = false, content: @Composable () -> Unit) {
     Row(modifier = Modifier
         .fillMaxWidth()
-        .height(68.dp)
+        .defaultMinSize(0.dp, 68.dp)
         .clickable(enabled = !disabled, onClick = {
             if (!disabled) {
                 onClick()
@@ -155,7 +155,7 @@ fun SettingToggle(title: String, key: Preferences.Key<Boolean>, default: Boolean
 }
 
 @Composable
-fun SettingList(content: @Composable () -> Unit) {
+fun ScrollableList(content: @Composable () -> Unit) {
     val scrollState = rememberScrollState()
 
     Column(

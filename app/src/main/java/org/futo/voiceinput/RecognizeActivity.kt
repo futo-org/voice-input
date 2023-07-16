@@ -39,7 +39,7 @@ import org.futo.voiceinput.ui.theme.WhisperVoiceInputTheme
 
 
 @Composable
-fun RecognizeWindow(onClose: (() -> Unit)?, content: @Composable ColumnScope.() -> Unit) {
+fun RecognizeWindow(forceNoUnpaidNotice: Boolean = false, onClose: (() -> Unit)?, content: @Composable ColumnScope.() -> Unit) {
     WhisperVoiceInputTheme {
         Surface(
             modifier = Modifier
@@ -61,8 +61,10 @@ fun RecognizeWindow(onClose: (() -> Unit)?, content: @Composable ColumnScope.() 
                 }
             }){
                 Box(modifier = Modifier.fillMaxWidth()) {
-                    Box(modifier = Modifier.align(Alignment.CenterStart)) {
-                        ConditionalUnpaidNoticeInVoiceInputWindow(onClose)
+                    if(!forceNoUnpaidNotice) {
+                        Box(modifier = Modifier.align(Alignment.CenterStart)) {
+                            ConditionalUnpaidNoticeInVoiceInputWindow(onClose)
+                        }
                     }
 
                     Box(modifier = Modifier.align(Alignment.CenterEnd)) {

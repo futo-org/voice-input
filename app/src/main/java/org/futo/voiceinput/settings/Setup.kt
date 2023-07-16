@@ -5,24 +5,26 @@ import android.net.Uri
 import android.provider.Settings
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
+import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
@@ -35,37 +37,30 @@ import org.futo.voiceinput.ui.theme.Typography
 
 @Composable
 fun SetupContainer(inner: @Composable () -> Unit) {
-    Box(modifier = Modifier.fillMaxSize()) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth(fraction = 1.0f)
-                .fillMaxHeight(fraction = 0.4f)
-        ) {
+    Column(modifier = Modifier.fillMaxSize()) {
+        ScrollableList {
+
+            Spacer(modifier = Modifier.height(48.dp))
+
             Icon(
                 painter = painterResource(id = R.drawable.futo_logo),
                 contentDescription = "FUTO Logo",
                 modifier = Modifier
-                    .fillMaxHeight()
-                    .fillMaxWidth(0.75f)
-                    .align(Alignment.CenterHorizontally),
+                    .size(LocalConfiguration.current.screenWidthDp.dp * 0.75f, LocalConfiguration.current.screenHeightDp.dp * 0.2f)
+                    .align(CenterHorizontally),
                 tint = Slate300
             )
-        }
 
-        Row(
-            modifier = Modifier.fillMaxSize()
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .fillMaxHeight(fraction = 1.0f)
-                    .align(Alignment.CenterVertically)
-                    .padding(32.dp)
-            ) {
-                Box(modifier = Modifier.align(Alignment.CenterVertically)) {
-                    inner()
+            Box(modifier = Modifier.align(CenterHorizontally)) {
+                // If the system font size is way big, the content may be big enough to overlap
+                // with the FUTO logo, so just block the logo with a surface to keep text readable
+                Surface(color = MaterialTheme.colorScheme.background, modifier = Modifier.padding(16.dp).fillMaxSize()) {
+                    Column {
+                        inner()
+                    }
                 }
             }
+
         }
     }
 }
@@ -102,22 +97,20 @@ fun SetupEnableIME(onClick: () -> Unit = { }) {
     }
 
     SetupContainer {
-        Column {
-            Step(fraction = 0.33f, text = "Step 1 of 2")
+        Step(fraction = 0.33f, text = "Step 1 of 2")
 
-            Text(
-                "To integrate with existing keyboards, you need to enable the Voice Input Method.",
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth()
-            )
-            Button(
-                onClick = launchImeOptions,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
-            ) {
-                Text("Open Input Method Settings")
-            }
+        Text(
+            "To integrate with existing keyboards, you need to enable the Voice Input Method.",
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth()
+        )
+        Button(
+            onClick = launchImeOptions,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            Text("Open Input Method Settings")
         }
     }
 }
@@ -146,22 +139,20 @@ fun SetupEnableMic(onClick: () -> Unit = { }) {
     }
 
     SetupContainer {
-        Column {
-            Step(fraction = 0.66f, text = "Step 2 of 2")
-            // TODO: Include some privacy statement
-            Text(
-                "In order to use Voice Input, you need to grant microphone permission.",
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth()
-            )
-            Button(
-                onClick = askMicAccess,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
-            ) {
-                Text("Grant Microphone")
-            }
+        Step(fraction = 0.66f, text = "Step 2 of 2")
+        // TODO: Include some privacy statement
+        Text(
+            "In order to use Voice Input, you need to grant microphone permission.",
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth()
+        )
+        Button(
+            onClick = askMicAccess,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            Text("Grant Microphone")
         }
     }
 }
@@ -172,29 +163,27 @@ fun SetupEnableMic(onClick: () -> Unit = { }) {
 fun SetupBlacklistedKeyboardWarning(info: BlacklistedInputMethod = BlacklistedInputMethod("sample", "Example Keyboard", "This keyboard is incompatible because xyz.."), onClick: () -> Unit = { }) {
 
     SetupContainer {
-        Column {
-            Text(
-                "Incompatible keyboard",
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth()
-            )
+        Text(
+            "Incompatible keyboard",
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth()
+        )
 
-            Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
-            Text(
-                "You appear to be using ${info.name}. ${info.reason}",
-                textAlign = TextAlign.Start,
-                modifier = Modifier.fillMaxWidth(),
-                style = Typography.bodySmall
-            )
-            Button(
-                onClick = onClick,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
-            ) {
-                Text("I understand ${info.name} is incompatible")
-            }
+        Text(
+            "You appear to be using ${info.name}. ${info.reason}",
+            textAlign = TextAlign.Start,
+            modifier = Modifier.fillMaxWidth(),
+            style = Typography.bodyMedium
+        )
+        Button(
+            onClick = onClick,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            Text("I understand ${info.name} is incompatible")
         }
     }
 }

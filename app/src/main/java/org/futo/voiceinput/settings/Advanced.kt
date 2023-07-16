@@ -22,7 +22,7 @@ import org.futo.voiceinput.ui.theme.Typography
 @Preview
 fun AdvancedScreen(settingsViewModel: SettingsViewModel = viewModel(), navController: NavHostController = rememberNavController()) {
     Screen("Advanced Settings") {
-        SettingList {
+        ScrollableList {
             SettingToggle(
                 "Suppress non-speech annotations",
                 DISALLOW_SYMBOLS,

@@ -76,7 +76,6 @@ android {
 
         fDroid {
             dimension "version"
-
         }
 
         dev {
