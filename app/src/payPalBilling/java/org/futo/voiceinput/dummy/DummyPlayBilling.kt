@@ -4,6 +4,12 @@ import android.content.Context
 import kotlinx.coroutines.CoroutineScope
 
 class PlayBilling(private val context: Context, private val coroutine: CoroutineScope) : BillingImpl {
+    companion object {
+        fun isAllowed(): Boolean {
+            return false
+        }
+    }
+
     override fun checkAlreadyOwnsProduct() {
         throw RuntimeException("PlayBilling is not available on this build")
     }
@@ -20,7 +26,12 @@ class PlayBilling(private val context: Context, private val coroutine: Coroutine
         throw RuntimeException("PlayBilling is not available on this build")
     }
 
+    override fun supportsCheckingIfAlreadyOwnsProduct(): Boolean {
+        throw RuntimeException("PlayBilling is not available on this build")
+    }
+
     override fun getName(): String {
         throw RuntimeException("PlayBilling is not available on this build")
     }
+
 }

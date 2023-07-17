@@ -6,5 +6,7 @@ interface BillingImpl {
     fun onResume()
     fun launchBillingFlow()
 
+    fun supportsCheckingIfAlreadyOwnsProduct(): Boolean
+
     fun getName(): String
 }

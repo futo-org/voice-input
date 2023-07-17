@@ -1,7 +1,8 @@
 plugins {
     id 'com.android.application'
-    id 'org.jetbrains.kotlin.android' version '1.8.20'
     id 'io.github.jmatsu.license-list' version '0.8.1'
+    id 'org.jetbrains.kotlin.android' version '1.8.20'
+    id 'org.jetbrains.kotlin.plugin.serialization' version '1.8.20'
 }
 
 licenseList {
@@ -74,6 +75,10 @@ android {
             dimension "version"
         }
 
+        standalone {
+            dimension "version"
+        }
+
         fDroid {
             dimension "version"
         }
@@ -86,14 +91,36 @@ android {
 
     sourceSets {
         dev {
-            java.srcDir 'src/playStore/java/org/futo/voiceinput/payments'
-            java.srcDir 'src/fDroid/java/org/futo/voiceinput/payments'
+            // Include update checking for testing
+            java.srcDir 'src/withUpdateChecking/java'
+
+            // Include only the payments directories, not the dummy directories, to compile both billing methods
+            java.srcDir 'src/playStoreBilling/java/org/futo/voiceinput/payments'
+            java.srcDir 'src/payPalBilling/java/org/futo/voiceinput/payments'
         }
+
         playStore {
-            java.srcDirs = ['src/main/java', 'src/playStore/java']
+            // Updates are handled by Play Store
+            java.srcDir 'src/withoutUpdateChecking/java'
+
+            // Include only Play Store billing
+            java.srcDir 'src/playStoreBilling/java'
         }
+
         fDroid {
-            java.srcDirs = ['src/main/java', 'src/fDroid/java']
+            // Updates are handled by F-Droid
+            java.srcDir 'src/withoutUpdateChecking/java'
+
+            // Include only PayPal billing, do not depend on Play Store billing
+            java.srcDir 'src/payPalBilling/java'
+        }
+
+        standalone {
+            // It is our responsibility to handle updates
+            java.srcDir 'src/withUpdateChecking/java'
+
+            // Include only PayPal billing, do not depend on Play Store billing
+            java.srcDir 'src/payPalBilling/java'
         }
     }
 }

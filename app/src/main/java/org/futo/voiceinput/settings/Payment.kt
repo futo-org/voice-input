@@ -210,7 +210,7 @@ fun PaymentScreen(settingsViewModel: SettingsViewModel = viewModel(), navControl
                     }
                 }
 
-                if (BuildConfig.FLAVOR != "playStore") {
+                if (billing.getBillings().any { !it.supportsCheckingIfAlreadyOwnsProduct() }) {
                     Button(
                         onClick = { onAlreadyPaid() }, colors = ButtonDefaults.buttonColors(
                             containerColor = MaterialTheme.colorScheme.secondary,
@@ -266,7 +266,7 @@ fun PaymentScreen(settingsViewModel: SettingsViewModel = viewModel(), navControl
 
                 if (BuildConfig.FLAVOR == "dev") {
                     Text(
-                        "You are on the Developer release, so you are seeing all payment methods and options",
+                        "You are on the Developer release, so you are seeing all payment methods",
                         style = Typography.labelSmall,
                         modifier = Modifier.padding(8.dp)
                     )

@@ -25,6 +25,12 @@ import org.futo.voiceinput.dataStore
 
 const val PRODUCT_ID = "one_time_license"
 class PlayBilling(private val context: Context, private val coroutine: CoroutineScope) : BillingImpl {
+    companion object {
+        fun isAllowed(): Boolean {
+            return true
+        }
+    }
+
     private val purchasesUpdatedListener =
         PurchasesUpdatedListener { billingResult, purchases ->
             if (billingResult.responseCode == BillingClient.BillingResponseCode.OK && purchases != null) {
@@ -187,6 +193,10 @@ class PlayBilling(private val context: Context, private val coroutine: Coroutine
                 return@launch
             }
         }
+    }
+
+    override fun supportsCheckingIfAlreadyOwnsProduct(): Boolean {
+        return true
     }
 
     override fun getName(): String {

@@ -36,6 +36,7 @@ import androidx.lifecycle.LifecycleCoroutineScope
 import androidx.lifecycle.lifecycleScope
 import org.futo.voiceinput.settings.ConditionalUnpaidNoticeInVoiceInputWindow
 import org.futo.voiceinput.ui.theme.WhisperVoiceInputTheme
+import org.futo.voiceinput.updates.scheduleUpdateCheckingJob
 
 
 @Composable
@@ -162,6 +163,7 @@ class RecognizeActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         recognizer.reset()
         recognizer.init()
+        scheduleUpdateCheckingJob(applicationContext)
     }
 
     private val permission = registerForActivityResult(ActivityResultContracts.RequestPermission()) {

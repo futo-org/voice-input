@@ -18,6 +18,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import kotlinx.coroutines.launch
 import org.futo.voiceinput.payments.BillingManager
 import org.futo.voiceinput.ui.theme.WhisperVoiceInputTheme
+import org.futo.voiceinput.updates.scheduleUpdateCheckingJob
 
 class SettingsActivity : ComponentActivity() {
     lateinit var billing: BillingManager
@@ -75,6 +76,8 @@ class SettingsActivity : ComponentActivity() {
                 }
             }
         }
+
+        scheduleUpdateCheckingJob(applicationContext)
     }
 
     override fun onStart() {

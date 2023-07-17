@@ -2,17 +2,16 @@ package org.futo.voiceinput.payments
 
 import android.content.Context
 import kotlinx.coroutines.CoroutineScope
-import org.futo.voiceinput.BuildConfig
 
 class BillingManager(val context: Context, val coroutineScope: CoroutineScope) {
     private var billings: ArrayList<BillingImpl> = ArrayList()
 
     init {
-        if(BuildConfig.FLAVOR == "playStore" || BuildConfig.FLAVOR == "dev") {
+        if(PlayBilling.isAllowed()) {
             billings.add(PlayBilling(context, coroutineScope))
         }
 
-        if(BuildConfig.FLAVOR == "fDroid" || BuildConfig.FLAVOR == "dev") {
+        if(PayPalBilling.isAllowed()) {
             billings.add(PayPalBilling(context))
         }
     }

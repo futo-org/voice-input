@@ -15,6 +15,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
+import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
@@ -306,3 +307,6 @@ val FORCE_SHOW_NOTICE = booleanPreferencesKey("force_show_notice")
 
 // UNIX timestamp in seconds of when to next show the payment reminder
 val NOTICE_REMINDER_TIME = longPreferencesKey("notice_reminder_time")
+
+
+val LAST_UPDATE_CHECK_RESULT = stringPreferencesKey("last_update_check_result")
