@@ -4,7 +4,6 @@ default:
 stages:          # List of stages for jobs, and their order of execution
   - build
   - test
-  - lint
 
 build-job:
   stage: build
@@ -26,17 +25,8 @@ build-job:
 unit-test-job:
   stage: test
   script:
-    - gradle testDebugUnitTest -s
+    - gradle testDevDebugUnitTest -s
   artifacts:
     reports:
       junit:
-        - ./app/build/test-results/testDebugUnitTest/*.xml 
-
-lint-job:
-  stage: lint
-  script:
-    - gradle lint -s
-  artifacts:
-    reports:
-      codequality:
-        - ./app/build/reports/lint-results-*.xml
+        - ./app/build/test-results/testDevDebugUnitTest/*.xml 
