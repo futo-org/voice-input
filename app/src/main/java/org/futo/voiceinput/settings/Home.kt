@@ -77,6 +77,11 @@ fun HomeScreen(settingsViewModel: SettingsViewModel = viewModel(), navController
             SettingItem(title = "Advanced", onClick = { navController.navigate("advanced") }) {
                 Icon(Icons.Default.ArrowForward, contentDescription = "Go")
             }
+            UnpaidNoticeCondition(showOnlyIfReminder = true) {
+                SettingItem(title = "Payment", onClick = { navController.navigate("payment") }) {
+                    Icon(Icons.Default.ArrowForward, contentDescription = "Go")
+                }
+            }
             SettingItem(title = "Credits", onClick = { navController.navigate("credits") }) {
                 Icon(Icons.Default.ArrowForward, contentDescription = "Go")
             }

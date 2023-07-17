@@ -18,6 +18,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -75,18 +76,20 @@ suspend fun pushNoticeReminderTime(context: Context, days: Float) {
 const val TRIAL_PERIOD_DAYS = 30
 
 @Composable
-fun UnpaidNoticeCondition(force: Boolean = LocalInspectionMode.current, inner: @Composable () -> Unit) {
+fun UnpaidNoticeCondition(force: Boolean = LocalInspectionMode.current, showOnlyIfReminder: Boolean = false, inner: @Composable () -> Unit) {
     val numDaysInstalled = useNumberOfDaysInstalled()
     val forceShowNotice = useDataStore(FORCE_SHOW_NOTICE, default = false)
     val isAlreadyPaid = useDataStore(IS_ALREADY_PAID, default = false)
     val pushReminderTime = useDataStore(NOTICE_REMINDER_TIME, default = 0L)
     val currentTime = System.currentTimeMillis() / 1000L
 
+    val reminderTimeIsUp = (currentTime >= pushReminderTime.value)
+
     val displayCondition =
         // The trial period time is over
         (forceShowNotice.value || (numDaysInstalled.value >= TRIAL_PERIOD_DAYS))
-                // and the current time is past the reminder time
-                && (currentTime >= pushReminderTime.value)
+                // and the current time is past the reminder time (or it's not past if showOnlyIfReminder)
+                && ((!showOnlyIfReminder && reminderTimeIsUp) || (showOnlyIfReminder && !reminderTimeIsUp))
                 // and we have not already paid
                 && (!isAlreadyPaid.value)
 
@@ -172,9 +175,19 @@ fun ConditionalUnpaidNoticeWithNav(navController: NavController = rememberNavCon
 @Composable
 fun PaymentScreen(settingsViewModel: SettingsViewModel = viewModel(), navController: NavHostController = rememberNavController(), onExit: () -> Unit = { }, billing: BillingManager) {
     val isAlreadyPaid = useDataStore(IS_ALREADY_PAID, default = false)
+    val pushReminderTime = useDataStore(NOTICE_REMINDER_TIME, default = 0L)
+    val currentTime = System.currentTimeMillis() / 1000L
 
-    if(isAlreadyPaid.value) {
-        onExit()
+    val reminderTimeIsUp = (currentTime >= pushReminderTime.value)
+
+    val onAlreadyPaid = {
+        isAlreadyPaid.setValue(true)
+    }
+
+    LaunchedEffect(isAlreadyPaid.value) {
+        if(isAlreadyPaid.value) {
+            onExit()
+        }
     }
 
     Screen("Payment") {
@@ -183,70 +196,80 @@ fun PaymentScreen(settingsViewModel: SettingsViewModel = viewModel(), navControl
 
             val context = LocalContext.current
             Column(modifier = Modifier.fillMaxWidth()) {
-                Column(modifier = Modifier.padding(8.dp).align(CenterHorizontally)) {
+                Column(modifier = Modifier
+                    .padding(8.dp)
+                    .align(CenterHorizontally)) {
                     billing.getBillings().forEach {
                         Button(onClick = {
                             it.launchBillingFlow()
                         }, modifier = Modifier
-                            .padding(8.dp).align(CenterHorizontally)) {
+                            .padding(8.dp)
+                            .align(CenterHorizontally)) {
                             Text("Pay via ${it.getName()}")
                         }
                     }
+                }
 
-                    if (BuildConfig.FLAVOR == "dev") {
-                        Text(
-                            "[You are on the Developer release, so you are seeing all payment methods]",
-                            style = Typography.labelSmall
-                        )
-                        Text(
-                            "[The F-Droid/Standalone release will only have PayPal option, and the Play Store release will only have the Play payment option as per Google Play's policy]",
-                            style = Typography.labelSmall
-                        )
+                if (BuildConfig.FLAVOR != "playStore") {
+                    Button(
+                        onClick = { onAlreadyPaid() }, colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.secondary,
+                            contentColor = MaterialTheme.colorScheme.onSecondary
+                        ), modifier = Modifier.align(CenterHorizontally)
+                    ) {
+                        Text("I already paid")
                     }
                 }
 
-                // TODO: On non-Google-Play releases, we should probably have the "I already paid" button here
-                // because we can't automatically check whether or not someone already paid via PayPal/etc
-
-                val lastValidRemindValue = remember { mutableStateOf(5.0f) }
-                val remindDays = remember { mutableStateOf("5") }
-                Row(
-                    modifier = Modifier
-                        .align(CenterHorizontally)
-                        .padding(16.dp)
-                ) {
-                    val coroutineScope = rememberCoroutineScope()
-                    Button(
-                        onClick = {
-                            coroutineScope.launch {
-                                pushNoticeReminderTime(context, lastValidRemindValue.value)
-                            }
-                            navController.popBackStack()
-                            onExit()
-                        }, colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.secondary,
-                            contentColor = MaterialTheme.colorScheme.onSecondary
-                        )
+                if(reminderTimeIsUp) {
+                    val lastValidRemindValue = remember { mutableStateOf(5.0f) }
+                    val remindDays = remember { mutableStateOf("5") }
+                    Row(
+                        modifier = Modifier
+                            .align(CenterHorizontally)
+                            .padding(16.dp)
                     ) {
-                        Text("Remind me in ")
-                        Surface(color = MaterialTheme.colorScheme.surface) {
-                            BasicTextField(
-                                value = remindDays.value,
-                                onValueChange = {
-                                    remindDays.value = it
-
-                                    it.toFloatOrNull()?.let { lastValidRemindValue.value = it }
-                                },
-                                modifier = Modifier
-                                    .width(32.dp)
-                                    .background(MaterialTheme.colorScheme.surface),
-                                textStyle = Typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface),
-                                cursorBrush = SolidColor(MaterialTheme.colorScheme.onSurface),
-                                keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number)
+                        val coroutineScope = rememberCoroutineScope()
+                        Button(
+                            onClick = {
+                                coroutineScope.launch {
+                                    pushNoticeReminderTime(context, lastValidRemindValue.value)
+                                }
+                                onExit()
+                            }, colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.secondary,
+                                contentColor = MaterialTheme.colorScheme.onSecondary
                             )
+                        ) {
+                            Text("Remind me in ")
+                            Surface(color = MaterialTheme.colorScheme.surface) {
+                                BasicTextField(
+                                    value = remindDays.value,
+                                    onValueChange = {
+                                        remindDays.value = it
+
+                                        it.toFloatOrNull()?.let { lastValidRemindValue.value = it }
+                                    },
+                                    modifier = Modifier
+                                        .width(32.dp)
+                                        .background(MaterialTheme.colorScheme.surface),
+                                    textStyle = Typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface),
+                                    cursorBrush = SolidColor(MaterialTheme.colorScheme.onSurface),
+                                    keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number)
+                                )
+                            }
+                            Text(" days")
                         }
-                        Text(" days")
                     }
+                }
+
+
+                if (BuildConfig.FLAVOR == "dev") {
+                    Text(
+                        "You are on the Developer release, so you are seeing all payment methods and options",
+                        style = Typography.labelSmall,
+                        modifier = Modifier.padding(8.dp)
+                    )
                 }
             }
         }

@@ -214,7 +214,7 @@ fun SettingsMain(settingsViewModel: SettingsViewModel = viewModel(), navControll
             ModelsScreen(settingsViewModel, navController)
         }
         composable("payment") {
-            PaymentScreen(settingsViewModel, navController, billing = billing!!)
+            PaymentScreen(settingsViewModel, navController, billing = billing!!, onExit = { navController.popBackStack() })
         }
     }
 }
