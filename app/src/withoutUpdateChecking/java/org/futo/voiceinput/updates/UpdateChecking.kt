@@ -1,6 +1,5 @@
 package org.futo.voiceinput.updates
 
-// Updates are handled by Google Play, do not do any checking
 import android.content.Context
 
 suspend fun checkForUpdate(): UpdateResult? {

@@ -1,8 +1,7 @@
 package org.futo.voiceinput.payments
 
 import android.content.Context
-import android.content.Intent
-import android.net.Uri
+import org.futo.voiceinput.openURI
 
 class PayPalBilling(val context: Context) : BillingImpl {
     companion object {
@@ -21,9 +20,7 @@ class PayPalBilling(val context: Context) : BillingImpl {
     }
 
     override fun launchBillingFlow() {
-        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://example.com"))
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        context.startActivity(intent)
+        context.openURI("https://example.com", true) // TODO: Link to actual PayPal page
     }
 
     override fun supportsCheckingIfAlreadyOwnsProduct(): Boolean {

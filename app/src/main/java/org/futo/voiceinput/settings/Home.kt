@@ -4,6 +4,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -17,7 +18,19 @@ import org.futo.voiceinput.MULTILINGUAL_MODEL_INDEX
 import org.futo.voiceinput.MULTILINGUAL_MODEL_INDEX_DEFAULT
 import org.futo.voiceinput.R
 import org.futo.voiceinput.Screen
+import org.futo.voiceinput.openURI
 
+
+@Composable
+fun ShareFeedbackOption() {
+    val context = LocalContext.current
+    SettingItem(title = "Send Feedback", onClick = {
+        context.openURI("mailto:FUTOVoiceInput@sapples.net")
+    }) {
+        Icon(Icons.Default.ArrowForward, contentDescription = "Go")
+    }
+
+}
 
 @Composable
 @Preview
@@ -58,6 +71,7 @@ fun HomeScreen(settingsViewModel: SettingsViewModel = viewModel(), navController
     Screen("${stringResource(R.string.app_name)} Settings") {
         ScrollableList {
             ConditionalUnpaidNoticeWithNav(navController)
+            ConditionalUpdate()
             SettingItem(title = "Help", onClick = { navController.navigate("help") }) {
                 Icon(Icons.Default.ArrowForward, contentDescription = "Go")
             }
@@ -85,6 +99,7 @@ fun HomeScreen(settingsViewModel: SettingsViewModel = viewModel(), navController
             SettingItem(title = "Credits", onClick = { navController.navigate("credits") }) {
                 Icon(Icons.Default.ArrowForward, contentDescription = "Go")
             }
+            ShareFeedbackOption()
         }
     }
 }

@@ -3,6 +3,7 @@ package org.futo.voiceinput
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -147,6 +148,15 @@ fun <T> Context.startAppActivity(activity: Class<T>) {
     val intent = Intent(this, activity)
 
     if(this !is Activity) {
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    }
+
+    startActivity(intent)
+}
+
+fun Context.openURI(uri: String, newTask: Boolean = false) {
+    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(uri))
+    if(newTask) {
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
     }
 
@@ -309,4 +319,4 @@ val FORCE_SHOW_NOTICE = booleanPreferencesKey("force_show_notice")
 val NOTICE_REMINDER_TIME = longPreferencesKey("notice_reminder_time")
 
 
-val LAST_UPDATE_CHECK_RESULT = stringPreferencesKey("last_update_check_result")
+val LAST_UPDATE_CHECK_RESULT = stringPreferencesKey("last_update_check_result_${BuildConfig.FLAVOR}")

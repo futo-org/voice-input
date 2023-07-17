@@ -8,7 +8,6 @@ import android.os.Build
 import androidx.datastore.preferences.core.edit
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.SerializationException
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import okhttp3.OkHttpClient
@@ -40,12 +39,16 @@ suspend fun checkForUpdate(): UpdateResult? {
 
                 val latestVersion = data[0].toInt()
                 val latestVersionUrl = data[1]
-                // TODO: Do some checking with the URL to make sure it can be trusted
+                if(latestVersionUrl.startsWith("https://")){
+                    // TODO: Do some more checking with the URL to make sure it can be trusted
 
-                UpdateResult(
-                    nextVersion = latestVersion,
-                    apkUrl = latestVersionUrl
-                )
+                    UpdateResult(
+                        nextVersion = latestVersion,
+                        apkUrl = latestVersionUrl
+                    )
+                } else {
+                    null
+                }
             } else {
                 null
             }
@@ -74,19 +77,7 @@ suspend fun checkForUpdateAndSaveToPreferences(context: Context): Boolean {
 }
 
 suspend fun retrieveSavedLastUpdateCheckResult(context: Context): UpdateResult? {
-    val value = ValueFromSettings(LAST_UPDATE_CHECK_RESULT, "").get(context)
-
-    if(value.isEmpty()) {
-        return null
-    }
-
-    try {
-        return Json.decodeFromString<UpdateResult>(value)
-    } catch(e: SerializationException) {
-        return null
-    } catch(e: IllegalArgumentException) {
-        return null
-    }
+    return UpdateResult.fromString(ValueFromSettings(LAST_UPDATE_CHECK_RESULT, "").get(context))
 }
 
 const val JOB_ID: Int = 15782789
