@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">FUTO Voice Input</string>
     <string name="voice_input_method">FUTO Voice Input Method</string>
+    <string name="support_email">FUTOVoiceInput@sapples.net</string>
 </resources>

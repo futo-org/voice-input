@@ -2,6 +2,7 @@ package org.futo.voiceinput.settings
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
@@ -24,10 +25,11 @@ import org.futo.voiceinput.openURI
 @Composable
 fun ShareFeedbackOption() {
     val context = LocalContext.current
+    val mailUri = "mailto:${stringResource(R.string.support_email)}"
     SettingItem(title = "Send Feedback", onClick = {
-        context.openURI("mailto:FUTOVoiceInput@sapples.net")
+        context.openURI(mailUri)
     }) {
-        Icon(Icons.Default.ArrowForward, contentDescription = "Go")
+        Icon(Icons.Default.Send, contentDescription = "Go")
     }
 
 }
