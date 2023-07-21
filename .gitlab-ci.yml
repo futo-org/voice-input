@@ -2,25 +2,9 @@ default:
   image: "docker.io/abb128/android-build:latest@sha256:8df16e2badb5e42d2f5e3862683c7ff0ebdcc348affe059385e42eebef79302f"
 
 stages:          # List of stages for jobs, and their order of execution
-  - build
   - test
-
-build-job:
-  stage: build
-  script:
-    - echo $KEYSTORE_FILE | base64 --decode > key.jks
-    - echo storePassword=$KEYSTORE_PASSWORD > keystore.properties
-    - echo keyPassword=$KEY_PASSWORD >> keystore.properties
-    - echo keyAlias=$KEYSTORE_ALIAS >> keystore.properties
-    - echo storeFile=key.jks >> keystore.properties
-    - gradle assembleDevRelease -s
-    - mv app/build/outputs/apk/dev/release/app-dev-release.apk ./app-release-$CI_COMMIT_SHORT_SHA.apk
-    - curl -X POST https://zulip.futo.org/api/v1/messages -u $ZULIP_WEBHOOK --data-urlencode type=stream --data-urlencode 'to="Android Keyboard"' --data-urlencode topic=builds --data-urlencode "content=New APK build - https://gitlab.futo.org/alex/voiceinput/-/jobs/$CI_JOB_ID/artifacts/raw/app-release-$CI_COMMIT_SHORT_SHA.apk"
-  artifacts:
-    name: "app-release-$CI_COMMIT_SHORT_SHA"
-    paths: 
-      - ./*.apk
-
+  - buildDevRelease
+  - buildPlayStoreRelease
 
 unit-test-job:
   stage: test
@@ -30,3 +14,32 @@ unit-test-job:
     reports:
       junit:
         - ./app/build/test-results/testDevDebugUnitTest/*.xml 
+
+buildDevRelease:
+  stage: buildDevRelease
+  script:
+    - sh setUpKeysCI.sh
+    - gradle assembleDevRelease -s
+    - mv app/build/outputs/apk/dev/release/app-dev-release.apk ./app-release-$CI_COMMIT_SHORT_SHA.apk
+    - curl -X POST https://zulip.futo.org/api/v1/messages -u $ZULIP_WEBHOOK --data-urlencode type=stream --data-urlencode 'to="Android Keyboard"' --data-urlencode topic=builds --data-urlencode "content=New APK build - https://gitlab.futo.org/alex/voiceinput/-/jobs/$CI_JOB_ID/artifacts/raw/app-release-$CI_COMMIT_SHORT_SHA.apk"
+  artifacts:
+    name: "app-release-$CI_COMMIT_SHORT_SHA"
+    paths: 
+      - ./*.apk
+  when: manual
+
+buildPlayStoreRelease:
+  stage: buildPlayStoreRelease
+  script:
+    - sh setUpKeysCI.sh
+    - gradle bundlePlayStoreRelease -s
+    - mv app/build/outputs/bundle/playStoreRelease/app-playStore-release.aab .
+  artifacts:
+    name: "playStore-release-$CI_COMMIT_SHORT_SHA"
+    paths: 
+      - ./*.aab
+  only:
+    - tags
+  except:
+    - branches
+  when: manual
