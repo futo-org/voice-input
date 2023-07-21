@@ -18,13 +18,18 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.datastore.preferences.core.edit
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
+import org.futo.voiceinput.FORCE_SHOW_NOTICE
 import org.futo.voiceinput.Screen
+import org.futo.voiceinput.dataStore
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 @Preview
-fun TestScreen(voiceIntentResult: String = "Voice Intent Result") {
+fun TestScreen(voiceIntentResult: String = "Voice Intent Result", navController: NavHostController = rememberNavController()) {
     var text by remember { mutableStateOf("") }
 
 
@@ -35,6 +40,13 @@ fun TestScreen(voiceIntentResult: String = "Voice Intent Result") {
     }
 
     val context = LocalContext.current
+
+    LaunchedEffect(text) {
+        if(text.lowercase().trim() == "@force30days") {
+            context.dataStore.edit { it[FORCE_SHOW_NOTICE] = true }
+            navController.popBackStack("home", false, false)
+        }
+    }
 
     Screen("Input testing") {
         TextField(

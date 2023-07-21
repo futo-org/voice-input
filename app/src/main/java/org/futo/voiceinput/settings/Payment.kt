@@ -263,7 +263,7 @@ fun PaymentScreen(settingsViewModel: SettingsViewModel = viewModel(), navControl
                     }
                 }
 
-
+                @Suppress("KotlinConstantConditions")
                 if (BuildConfig.FLAVOR == "dev") {
                     Text(
                         "You are on the Developer release, so you are seeing all payment methods",

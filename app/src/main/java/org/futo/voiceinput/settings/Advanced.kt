@@ -38,6 +38,7 @@ fun AdvancedScreen(settingsViewModel: SettingsViewModel = viewModel(), navContro
                 Icon(Icons.Default.ArrowForward, contentDescription = "Go")
             }
 
+            @Suppress("KotlinConstantConditions")
             if(BuildConfig.FLAVOR == "dev") {
                 val daysInstalled = useNumberOfDaysInstalled()
                 Text("Payment testing [Developer Build only]", style = Typography.labelLarge)

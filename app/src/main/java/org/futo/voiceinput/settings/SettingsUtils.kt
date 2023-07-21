@@ -200,7 +200,7 @@ fun SettingsMain(settingsViewModel: SettingsViewModel = viewModel(), navControll
             LanguagesScreen(settingsViewModel, navController)
         }
         composable("testing") {
-            TestScreen(settingsUiState.intentResultText)
+            TestScreen(settingsUiState.intentResultText, navController)
         }
         composable("credits") {
             CreditsScreen(openDependencies = {
