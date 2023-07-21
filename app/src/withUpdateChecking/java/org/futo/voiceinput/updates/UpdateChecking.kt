@@ -39,12 +39,14 @@ suspend fun checkForUpdate(): UpdateResult? {
 
                 val latestVersion = data[0].toInt()
                 val latestVersionUrl = data[1]
+                val latestVersionString = data[2]
                 if(latestVersionUrl.startsWith("https://")){
                     // TODO: Do some more checking with the URL to make sure it can be trusted
 
                     UpdateResult(
                         nextVersion = latestVersion,
-                        apkUrl = latestVersionUrl
+                        apkUrl = latestVersionUrl,
+                        nextVersionString = latestVersionString
                     )
                 } else {
                     null

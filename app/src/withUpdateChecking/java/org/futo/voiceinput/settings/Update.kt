@@ -19,14 +19,14 @@ fun ConditionalUpdate() {
     val lastUpdateResult = if(!LocalInspectionMode.current){
         UpdateResult.fromString(updateInfo)
     } else {
-        UpdateResult(123, "abc")
+        UpdateResult(123, "abc", "1.2.3")
     }
 
     val context = LocalContext.current
     if(lastUpdateResult != null && lastUpdateResult.isNewer()) {
         SettingItem(
             title = "Update Available",
-            subtitle = "Tap to download APK for v${lastUpdateResult.nextVersion}",
+            subtitle = "${UpdateResult.currentVersionString()} -> ${lastUpdateResult.nextVersionString}",
             onClick = {
                 context.openURI(lastUpdateResult.apkUrl)
             }

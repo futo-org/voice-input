@@ -8,7 +8,8 @@ import org.futo.voiceinput.BuildConfig
 @Serializable
 data class UpdateResult(
     val nextVersion: Int,
-    val apkUrl: String
+    val apkUrl: String,
+    val nextVersionString: String
 ) {
     fun isNewer(): Boolean {
         return nextVersion > currentVersion()
@@ -17,6 +18,10 @@ data class UpdateResult(
     companion object {
         fun currentVersion(): Int {
             return BuildConfig.VERSION_CODE
+        }
+
+        fun currentVersionString(): String {
+            return BuildConfig.VERSION_NAME
         }
 
         fun fromString(value: String): UpdateResult? {
