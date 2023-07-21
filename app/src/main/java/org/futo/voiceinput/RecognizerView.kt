@@ -308,6 +308,10 @@ abstract class RecognizerView {
         }
     }
 
+    fun finishRecognizerIfRecording() {
+        recognizer.finishRecognizerIfRecording()
+    }
+
     fun reset() {
         recognizer.reset()
     }

@@ -7,6 +7,8 @@ import android.text.InputType
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodSubtype
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -22,6 +24,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
@@ -54,12 +57,20 @@ import org.futo.voiceinput.ui.theme.WhisperVoiceInputTheme
 
 
 @Composable
-fun RecognizerInputMethodWindow(switchBack: (() -> Unit)? = null, content: @Composable ColumnScope.() -> Unit) {
+fun RecognizerInputMethodWindow(switchBack: (() -> Unit)? = null, onFinish: () -> Unit = { }, content: @Composable ColumnScope.() -> Unit) {
     WhisperVoiceInputTheme {
         Surface(
             modifier = Modifier
                 .fillMaxWidth()
-                .wrapContentHeight(),
+                .wrapContentHeight()
+                .clickable(
+                    enabled = true,
+                    onClickLabel = null,
+                    onClick = onFinish,
+                    role = null,
+                    indication = null,
+                    interactionSource = remember { MutableInteractionSource() }
+                ),
             color = MaterialTheme.colorScheme.surface
         ) {
             val icon = painterResource(id = R.drawable.futo_o)
@@ -215,7 +226,7 @@ class VoiceInputMethodService : InputMethodService(), LifecycleOwner, ViewModelS
 
         @Composable
         override fun Window(onClose: () -> Unit, content: @Composable ColumnScope.() -> Unit) {
-            RecognizerInputMethodWindow(switchBack = onClose) {
+            RecognizerInputMethodWindow(switchBack = onClose, onFinish = { finishRecognizerIfRecording() }) {
                 content()
             }
         }

@@ -67,6 +67,11 @@ abstract class AudioRecognizer {
 
     protected abstract fun processing()
 
+    fun finishRecognizerIfRecording() {
+        if(isRecording) {
+            finishRecognizer()
+        }
+    }
 
     protected fun finishRecognizer() {
         println("Finish called")

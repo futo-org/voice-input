@@ -8,6 +8,8 @@ import android.speech.RecognizerIntent
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -25,6 +27,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
@@ -40,12 +43,20 @@ import org.futo.voiceinput.updates.scheduleUpdateCheckingJob
 
 
 @Composable
-fun RecognizeWindow(forceNoUnpaidNotice: Boolean = false, onClose: (() -> Unit)?, content: @Composable ColumnScope.() -> Unit) {
+fun RecognizeWindow(forceNoUnpaidNotice: Boolean = false, onClose: (() -> Unit)?, onFinish: () -> Unit = { }, content: @Composable ColumnScope.() -> Unit) {
     WhisperVoiceInputTheme {
         Surface(
             modifier = Modifier
                 .width(280.dp)
-                .wrapContentHeight(),
+                .wrapContentHeight()
+                .clickable(
+                    enabled = true,
+                    onClickLabel = null,
+                    onClick = onFinish,
+                    role = null,
+                    indication = null,
+                    interactionSource = remember { MutableInteractionSource() }
+                ),
             color = MaterialTheme.colorScheme.surface,
             shape = RoundedCornerShape(8.dp)
         ) {
@@ -149,7 +160,7 @@ class RecognizeActivity : ComponentActivity() {
 
         @Composable
         override fun Window(onClose: () -> Unit, content: @Composable ColumnScope.() -> Unit) {
-            RecognizeWindow(onClose = onClose) {
+            RecognizeWindow(onClose = onClose, onFinish = { finishRecognizerIfRecording() }) {
                 content()
             }
         }
