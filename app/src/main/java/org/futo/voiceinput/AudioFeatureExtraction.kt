@@ -1,5 +1,3 @@
-@file:Suppress("SpellCheckingInspection")
-
 package org.futo.voiceinput
 
 import org.futo.pocketfft.PocketFFT
