@@ -9,6 +9,7 @@ stages:          # List of stages for jobs, and their order of execution
 unit-test-job:
   stage: test
   script:
+    - ./setUpKeysCI.sh
     - gradle testDevDebugUnitTest -s
   artifacts:
     reports:
@@ -18,10 +19,10 @@ unit-test-job:
 buildDevRelease:
   stage: buildDevRelease
   script:
-    - sh setUpKeysCI.sh
+    - ./setUpKeysCI.sh
     - gradle assembleDevRelease -s
     - mv app/build/outputs/apk/dev/release/app-dev-release.apk ./app-release-$CI_COMMIT_SHORT_SHA.apk
-    - sh sendZulipMessage.sh "New dev build - https://gitlab.futo.org/alex/voiceinput/-/jobs/$CI_JOB_ID/artifacts/raw/app-release-$CI_COMMIT_SHORT_SHA.apk"
+    - ./sendZulipMessage.sh "New dev build - https://gitlab.futo.org/alex/voiceinput/-/jobs/$CI_JOB_ID/artifacts/raw/app-release-$CI_COMMIT_SHORT_SHA.apk"
   artifacts:
     name: "app-release-$CI_COMMIT_SHORT_SHA"
     paths: 
@@ -31,7 +32,7 @@ buildDevRelease:
 buildPlayStoreRelease:
   stage: buildPlayStoreRelease
   script:
-    - sh setUpKeysCI.sh
+    - ./setUpKeysCI.sh
     - gradle bundlePlayStoreRelease -s
     - mv app/build/outputs/bundle/playStoreRelease/app-playStore-release.aab .
   artifacts:
