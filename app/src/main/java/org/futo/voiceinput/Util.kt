@@ -1,9 +1,11 @@
 package org.futo.voiceinput
 
 import android.app.Activity
+import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.widget.Toast
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -155,12 +157,16 @@ fun <T> Context.startAppActivity(activity: Class<T>) {
 }
 
 fun Context.openURI(uri: String, newTask: Boolean = false) {
-    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(uri))
-    if(newTask) {
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-    }
+    try {
+        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(uri))
+        if (newTask) {
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
 
-    startActivity(intent)
+        startActivity(intent)
+    } catch(e: ActivityNotFoundException) {
+        Toast.makeText(this, e.localizedMessage, Toast.LENGTH_SHORT).show()
+    }
 }
 
 // Numbers from Appendix E. Figure 11. https://cdn.openai.com/papers/whisper.pdf
