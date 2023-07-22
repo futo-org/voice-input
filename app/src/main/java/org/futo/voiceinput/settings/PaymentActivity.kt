@@ -35,7 +35,7 @@ class PaymentActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        billing = BillingManager(applicationContext, lifecycleScope)
+        billing = BillingManager(this, lifecycleScope)
 
         viewModel = viewModels<SettingsViewModel>().value
 

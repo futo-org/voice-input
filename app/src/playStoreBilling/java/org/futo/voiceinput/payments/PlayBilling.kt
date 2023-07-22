@@ -40,7 +40,6 @@ class PlayBilling(private val context: Context, private val coroutine: Coroutine
                     }
                 }
             } else {
-                Toast.makeText(context, "PlayBilling - Update listener failed", Toast.LENGTH_SHORT).show()
                 // Handle any other error codes.
             }
         }
