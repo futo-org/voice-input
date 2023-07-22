@@ -9,7 +9,6 @@ stages:          # List of stages for jobs, and their order of execution
 unit-test-job:
   stage: test
   script:
-    - ./setUpKeysCI.sh
     - gradle testDevDebugUnitTest -s
   artifacts:
     reports:
