@@ -27,6 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -44,7 +45,7 @@ fun SetupContainer(inner: @Composable () -> Unit) {
 
             Icon(
                 painter = painterResource(id = R.drawable.futo_logo),
-                contentDescription = "FUTO Logo",
+                contentDescription = stringResource(R.string.futo_logo),
                 modifier = Modifier
                     .size(
                         LocalConfiguration.current.screenWidthDp.dp * 0.75f,
@@ -105,10 +106,10 @@ fun SetupEnableIME(onClick: () -> Unit = { }) {
     }
 
     SetupContainer {
-        Step(fraction = 0.33f, text = "Step 1 of 2")
+        Step(fraction = 0.33f, text = stringResource(R.string.step_1_of_2))
 
         Text(
-            "To integrate with existing keyboards, you need to enable the Voice Input Method.",
+            stringResource(R.string.to_integrate_with_existing_keyboards_you_need_to_enable_the_voice_input_method),
             textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth()
         )
@@ -118,7 +119,7 @@ fun SetupEnableIME(onClick: () -> Unit = { }) {
                 .fillMaxWidth()
                 .padding(16.dp)
         ) {
-            Text("Open Input Method Settings")
+            Text(stringResource(R.string.open_input_method_settings))
         }
     }
 }
@@ -147,10 +148,10 @@ fun SetupEnableMic(onClick: () -> Unit = { }) {
     }
 
     SetupContainer {
-        Step(fraction = 0.66f, text = "Step 2 of 2")
+        Step(fraction = 0.66f, text = stringResource(R.string.step_2_of_2))
         // TODO: Include some privacy statement
         Text(
-            "In order to use Voice Input, you need to grant microphone permission.",
+            stringResource(R.string.in_order_to_use_voice_input_you_need_to_grant_microphone_permission),
             textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth()
         )
@@ -160,7 +161,7 @@ fun SetupEnableMic(onClick: () -> Unit = { }) {
                 .fillMaxWidth()
                 .padding(16.dp)
         ) {
-            Text("Grant Microphone")
+            Text(stringResource(R.string.grant_microphone_permission))
         }
     }
 }
@@ -171,14 +172,14 @@ fun SetupEnableMic(onClick: () -> Unit = { }) {
 fun SetupBlacklistedKeyboardWarning(
     info: BlacklistedInputMethod = BlacklistedInputMethod(
         "sample",
-        "Example Keyboard",
-        "This keyboard is incompatible because xyz.."
+        "Example Keyboard is not compatible",
+        "Let me continue"
     ), onClick: () -> Unit = { }
 ) {
 
     SetupContainer {
         Text(
-            "Incompatible keyboard",
+            stringResource(R.string.incompatible_keyboard),
             textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth()
         )
@@ -186,7 +187,7 @@ fun SetupBlacklistedKeyboardWarning(
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(
-            "You appear to be using ${info.name}. ${info.reason}",
+            info.details,
             textAlign = TextAlign.Start,
             modifier = Modifier.fillMaxWidth(),
             style = Typography.bodyMedium
@@ -197,7 +198,7 @@ fun SetupBlacklistedKeyboardWarning(
                 .fillMaxWidth()
                 .padding(16.dp)
         ) {
-            Text("I understand ${info.name} is incompatible")
+            Text(info.dismiss)
         }
     }
 }

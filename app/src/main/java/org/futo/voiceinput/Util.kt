@@ -173,6 +173,7 @@ fun Context.openURI(uri: String, newTask: Boolean = false) {
 // Trained hours are for transcribing, translation hours are not included.
 data class LanguageEntry(val id: String, val name: String, val trainedHourCount: Int)
 val LANGUAGE_LIST = listOf(
+    // TODO: These are not localized
     LanguageEntry("zh", "Chinese", 23446),
     LanguageEntry("de", "German", 13344),
     LanguageEntry("es", "Spanish", 11100),
@@ -252,6 +253,7 @@ val LANGUAGE_LIST = listOf(
 )
 
 val ENGLISH_MODELS = listOf(
+    // TODO: The names are not localized
     ModelData(
         name = "English-39 (default)",
 

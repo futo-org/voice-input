@@ -1,5 +1,130 @@
-<resources>
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="app_name">FUTO Voice Input</string>
     <string name="voice_input_method">FUTO Voice Input Method</string>
-    <string name="support_email">FUTOVoiceInput@sapples.net</string>
+    <string name="support_email" translatable="false">FUTOVoiceInput@sapples.net</string>
+    <string name="suppress_non_speech_annotations">Suppress non-speech annotations</string>
+    <string name="suppress_non_speech_annotations_subtitle">[cough], [music], etc</string>
+    <string name="testing_menu">Testing Menu</string>
+    <string name="verbose_mode">Verbose Mode</string>
+    <string name="go">Go</string>
+    <string name="thanks_for_the_voice_recognition_model">Thanks for the voice recognition model.</string>
+    <string name="thanks_for_the_machine_learning_inference_library">Thanks for the machine learning inference library</string>
+    <string name="thanks_for_the_fft_library_used_to_convert_audio_to_model_input">Thanks for the FFT library, used to convert audio to model input</string>
+    <string name="thanks_for_the_voice_activity_detection_to_stop_recognition_on_silence">Thanks for the voice activity detection to stop recognition on silence</string>
+    <string name="thanks_for_the_android_bindings_to_webrtc_voice_activity_detection">Thanks for the Android bindings to WebRTC voice activity detection</string>
+    <string name="thanks_for_the_http_client_used_for_downloading_models">Thanks for the HTTP client, used for downloading models</string>
+    <string name="view_other_dependencies">View Other Dependencies</string>
+    <string name="the_authors_contributors_or_copyright_holders_listed_above_are_not_affiliated_with_this_product_and_do_not_endorse_or_promote_this_product_reference_to_the_authors_contributors_or_copyright_holders_is_solely_for_attribution_purposes_mention_of_their_names_does_not_imply_approval_or_endorsement">The authors, contributors or copyright holders listed above are not affiliated with this product and do not endorse or promote this product. Reference to the authors, contributors or copyright holders is solely for attribution purposes. Mention of their names does not imply approval or endorsement.</string>
+    <string name="just_a_demonstration">This is just a demonstration of how Voice Input looks</string>
+    <string name="help_paragraph_1">You have installed Voice Input and enabled the Voice input method. You should now be able to use Voice Input within supported apps and keyboards.</string>
+    <string name="help_paragraph_2">When you open Voice Input, it will look something like this:</string>
+    <string name="voice_input_will_look_like_this">Voice Input will look like this</string>
+    <string name="look_for_the_big_off_center_futo_logo_in_the_background">Look for the big off-center FUTO logo in the background!</string>
+    <string name="stop_recording">Stop Recording</string>
+    <string name="once_you_re_done_talking_you_can_hit_the_microphone_button_to_stop">Once you\'re done talking, you can hit the microphone button to stop</string>
+    <string name="help_paragraph_3">You can use one of the following open-source keyboards that are tested to work:</string>
+    <string name="aosp_keyboard_included_in_aosp_based_roms">• AOSP Keyboard, included in AOSP-based ROMs</string>
+    <string name="openboard_available_on_f_droid">• OpenBoard, available on F-Droid</string>
+    <string name="anysoftkeyboard_available_on_f_droid_and_google_play">• AnySoftKeyboard, available on F-Droid and Google Play</string>
+    <string name="help_paragraph_5">Everything you type is seen by your keyboard app, and proprietary commercial keyboards often have lengthy and complicated privacy policies. Choose carefully!</string>
+    <string name="help_paragraph_6">The following proprietary keyboards may also work, but they are not recommended as they may not respect your privacy:</string>
+    <string name="grammarly_keyboard" translatable="false">• Grammarly Keyboard</string>
+    <string name="microsoft_swiftkey" translatable="false">• Microsoft SwiftKey</string>
+    <string name="help_paragraph_7">Note: Not all keyboards are compatible with Voice Input. You need to make sure you\'re using a compatible keyboard.</string>
+    <string name="help_paragraph_8">Some keyboards are simply incompatible, as they do not integrate with Android APIs for voice input. If your keyboard is listed here, you will need to use a different one as it is NOT compatible:</string>
+    <string name="gboard" translatable="false">• Gboard</string>
+    <string name="typewise" translatable="false">• TypeWise</string>
+    <string name="simple_keyboard" translatable="false">• Simple Keyboard</string>
+    <string name="florisboard" translatable="false">• FlorisBoard</string>
+    <string name="unexpected_keyboard" translatable="false">• Unexpected Keyboard</string>
+    <string name="help_paragraph_9">Some non-keyboard apps also support voice input! Look for a voice button in Firefox, Organic Maps, etc.</string>
+    <string name="help_with_email">This app is still in development. Please report any issues or suggestions to FUTOVoiceInput@sapples.net</string>
+    <string name="multilingual_enabled_english_will_be_slower">Multilingual enabled, English will be slower</string>
+    <string name="using_smaller_models_accuracy_may_be_worse">Using smaller models, accuracy may be worse</string>
+    <string name="using_smaller_model_accuracy_may_be_worse">Using smaller model, accuracy may be worse</string>
+    <string name="using_larger_models_speed_may_be_slower">Using larger models, speed may be slower</string>
+    <string name="using_larger_model_speed_may_be_slower">Using larger model, speed may be slower</string>
+    <string name="using_non_default_models">Using non-default models</string>
+    <string name="using_non_default_model">Using non-default model</string>
+    <string name="futo_voice_input_settings">FUTO Voice Input Settings</string>
+    <string name="help">Help</string>
+    <string name="languages">Languages</string>
+    <string name="models">Models</string>
+    <string name="sounds">Sounds</string>
+    <string name="will_play_a_sound_when_started_cancelled">Will play a sound when started / cancelled</string>
+    <string name="will_not_play_sounds_when_started_cancelled">Will not play sounds when started / cancelled</string>
+    <string name="payment">Payment</string>
+    <string name="credits">Credits</string>
+    <string name="thank_you_for_using_the_paid_version_of_futo_voice_input">Thank you for using the paid version of FUTO Voice Input!</string>
+    <string name="input_test_field">Input test field</string>
+    <string name="trigger_voice_input_intent">Trigger voice input</string>
+    <string name="try_saying_something">Try saying something</string>
+    <string name="no_audio_detected_is_your_microphone_blocked">No audio detected, is your microphone blocked?</string>
+    <string name="listening">Listening…</string>
+    <string name="grant_microphone_permission_to_use_voice_input">Grant microphone permission to use Voice Input</string>
+    <string name="open_voice_input_settings">Open Voice Input Settings</string>
+    <string name="extracting_features">Extracting features…</string>
+    <string name="running_encoder">Running encoder…</string>
+    <string name="decoding_started">Decoding started…</string>
+    <string name="switching_to_english_model">Switching to English model…</string>
+    <string name="processing">Processing…</string>
+    <string name="initializing">Initializing…</string>
+    <string name="cancel">Cancel</string>
+    <string name="futo_logo">FUTO Logo</string>
+    <string name="to_integrate_with_existing_keyboards_you_need_to_enable_the_voice_input_method">To integrate with existing keyboards, you need to enable the Voice Input Method.</string>
+    <string name="open_input_method_settings">Open Input Method Settings</string>
+    <string name="step_1_of_2">Step 1 of 2</string>
+    <string name="step_2_of_2">Step 2 of 2</string>
+    <string name="in_order_to_use_voice_input_you_need_to_grant_microphone_permission">In order to use Voice Input, you need to grant microphone permission.</string>
+    <string name="grant_microphone_permission">Grant Microphone</string>
+    <string name="incompatible_keyboard">Incompatible keyboard</string>
+    <string name="gboard_incompatible_details">You appear to be using Gboard. This keyboard is incompatible with FUTO Voice Input. \nGboard relies on its own voice typing system and does not appear to integrate with standard Android APIs for voice input at this time. You will need to use a different keyboard if you want to use FUTO Voice Input with your keyboard. \nPlease visit the Help page in settings for more information.</string>
+    <string name="i_understand_gboard_is_incompatible">I understand Gboard is incompatible</string>
+    <string name="typewise_incompatible_details">You appear to be using Typewise. This keyboard does not have a voice input button at this time, so you will need to use a different keyboard if you want to use FUTO Voice Input with your keyboard.</string>
+    <string name="i_understand_typewise_is_incompatible">I understand Typewise is incompatible</string>
+    <string name="intent_result_is_null_or_empty">Intent result is null or empty</string>
+    <string name="intent_was_cancelled">Intent was cancelled</string>
+    <string name="unknown_intent_result">Unknown intent result</string>
+    <string name="model_picker">Model Picker</string>
+    <string name="parameter_count_tip">Tip: The number is the model\'s parameter count in millions. More parameters = slower and more accurate</string>
+    <string name="english_model">English Model</string>
+    <string name="multilingual_model">Multilingual Model</string>
+    <string name="payment_text_1">You\'ve been using FUTO Voice Input for <xliff:g name="days" example="30">%d</xliff:g> days. If you find this app useful, please consider paying to support future development of FUTO software.</string>
+    <string name="payment_text_2">FUTO is dedicated to making good software that doesn\'t abuse you. This app will never serve you ads or collect your personal data.</string>
+    <string name="thank_you_for_purchasing_voice_input">Thank you for purchasing Voice Input!</string>
+    <string name="your_payment_is_still_pending_but_it_should_clear_soon">Your payment is still pending, but it should clear soon.</string>
+    <string name="your_purchase_will_help_continued_development_of_voice_input_and_other_futo_projects">Your purchase will help continued development of Voice Input, and other FUTO projects.</string>
+    <string name="thank_you">Thank you</string>
+    <string name="payment_pending">Payment Pending</string>
+    <string name="unfortunately_your_payment_has_failed_for_one_reason_or_another_please_contact_us_or_google_play_if_you_need_help">Unfortunately, your payment has failed for one reason or another. Please contact us or Google Play if you need help.</string>
+    <string name="continue_">Continue</string>
+    <string name="pay_via_x">Pay via <xliff:g name="paymentMethod" example="Play Store">%s</xliff:g></string>
+    <string name="i_already_paid">I already paid</string>
+    <string name="remind_me_in_x">"Remind me in "</string>
+    <string name="in_x_days">" days"</string>
+    <string name="you_are_on_the_developer_release_so_you_are_seeing_all_payment_methods">You are on the Developer release, so you are seeing all payment methods</string>
+    <string name="download_required">Download Required</string>
+    <string name="download_required_body">To continue, one or more speech recognition model resources need to be downloaded. This may incur data fees if you\'re using mobile data instead of Wi-Fi</string>
+    <string name="download_failed">One or more files have failed to download. This may be due to a network error. Please try again later.</string>
+    <string name="download_in_progress">Downloading model resources…</string>
+    <string name="update_available">Update Available</string>
+    <string name="an_update_is_available_s_s_tap_to_download">An update is available (<xliff:g name="versionDiff" example="v1 -> v2">%s</xliff:g>). Tap to download</string>
+    <string name="pay_now">Pay Now</string>
+    <string name="unpaid_indicator">Unpaid</string>
+    <string name="download_progress">Download Progress</string>
+    <string name="advanced_settings">Advanced Settings</string>
+    <string name="languages_title">Languages</string>
+    <string name="language_tip_1">The model will automatically detect which language you\'re speaking.</string>
+    <string name="language_tip_2">Some languages may work better than others, depending on the amount of training data.</string>
+    <string name="language_tip_3">Voice Input may be slower if you enable more than English.</string>
+    <string name="always_on_enabling_others_will_increase_english_latency">Always on. Enabling others will increase English latency</string>
+    <string name="english">English</string>
+    <string name="may_be_low_accuracy_x_hours">May be low accuracy (<xliff:g name="hourCount" example="1">%d</xliff:g>h)</string>
+    <string name="trained_on_x_hours">Trained on <xliff:g name="hourCount" example="1">%d</xliff:g> hours</string>
+    <string name="input_testing">Input testing</string>
+    <string name="payment_error">Payment Error</string>
+    <string name="help_title">Help</string>
+    <string name="credits_title">Credits</string>
+    <string name="payment_title">Payment</string>
+    <string name="dependencies">Dependencies</string>
 </resources>

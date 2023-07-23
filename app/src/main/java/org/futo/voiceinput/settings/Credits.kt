@@ -16,12 +16,14 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import org.futo.voiceinput.R
 import org.futo.voiceinput.Screen
 import org.futo.voiceinput.ui.theme.Sky200
 import org.futo.voiceinput.ui.theme.Typography
@@ -38,7 +40,7 @@ fun CreditItem(name: String, thanksFor: String, link: String, license: String, c
     ) {
         ClickableText(text = buildAnnotatedString {
             val fullString =
-                "$name - Thanks for $thanksFor. $name is licensed under $license. $copyright."
+                "$name - $thanksFor\n$license - $copyright"
 
             addStyle(
                 style = SpanStyle(
@@ -81,11 +83,11 @@ fun CreditItem(name: String, thanksFor: String, link: String, license: String, c
 @Composable
 @Preview
 fun CreditsScreen(openDependencies: () -> Unit = {}) {
-    Screen("Credits") {
+    Screen(stringResource(R.string.credits_title)) {
         ScrollableList {
             CreditItem(
                 name = "OpenAI Whisper",
-                thanksFor = "the voice recognition model",
+                thanksFor = stringResource(R.string.thanks_for_the_voice_recognition_model),
                 link = "https://github.com/openai/whisper",
                 license = "MIT",
                 copyright = "Copyright (c) 2022 OpenAI"
@@ -93,7 +95,7 @@ fun CreditsScreen(openDependencies: () -> Unit = {}) {
 
             CreditItem(
                 name = "TensorFlow Lite",
-                thanksFor = "machine learning inference",
+                thanksFor = stringResource(R.string.thanks_for_the_machine_learning_inference_library),
                 link = "https://mvnrepository.com/artifact/org.tensorflow/tensorflow-lite",
                 license = "Apache-2.0",
                 copyright = "Copyright (c) 2023 TensorFlow Authors"
@@ -101,7 +103,7 @@ fun CreditsScreen(openDependencies: () -> Unit = {}) {
 
             CreditItem(
                 name = "PocketFFT",
-                thanksFor = "FFT to convert audio to model input",
+                thanksFor = stringResource(R.string.thanks_for_the_fft_library_used_to_convert_audio_to_model_input),
                 link = "https://gitlab.mpcdf.mpg.de/mtr/pocketfft/-/blob/master/LICENSE.md",
                 license = "BSD-3-Clause",
                 copyright = "Copyright (c) 2010-2019 Max-Planck-Society"
@@ -109,7 +111,7 @@ fun CreditsScreen(openDependencies: () -> Unit = {}) {
 
             CreditItem(
                 name = "WebRTC",
-                thanksFor = "voice activity detection to stop recognition on silence",
+                thanksFor = stringResource(R.string.thanks_for_the_voice_activity_detection_to_stop_recognition_on_silence),
                 link = "https://webrtc.org/",
                 license = "BSD-3-Clause",
                 copyright = "Copyright (c) 2011, The WebRTC project authors"
@@ -117,7 +119,7 @@ fun CreditsScreen(openDependencies: () -> Unit = {}) {
 
             CreditItem(
                 name = "android-vad",
-                thanksFor = "Android bindings to WebRTC voice activity detection",
+                thanksFor = stringResource(R.string.thanks_for_the_android_bindings_to_webrtc_voice_activity_detection),
                 link = "https://github.com/gkonovalov/android-vad",
                 license = "MIT",
                 copyright = "Copyright (c) 2023 Georgiy Konovalov"
@@ -125,7 +127,7 @@ fun CreditsScreen(openDependencies: () -> Unit = {}) {
 
             CreditItem(
                 name = "OkHttp",
-                thanksFor = "HTTP client, used for downloading models",
+                thanksFor = stringResource(R.string.thanks_for_the_http_client_used_for_downloading_models),
                 link = "https://square.github.io/okhttp/",
                 license = "Apache-2.0",
                 copyright = "Copyright (c) 2023 Square, Inc"
@@ -136,10 +138,10 @@ fun CreditsScreen(openDependencies: () -> Unit = {}) {
                     .fillMaxWidth()
                     .padding(8.dp)
             ) {
-                Text("View Other Dependencies")
+                Text(stringResource(R.string.view_other_dependencies))
             }
             Text(
-                "The authors, contributors or copyright holders listed above are not affiliated with this product and do not endorse or promote this product. Reference to the authors, contributors or copyright holders is solely for attribution purposes. Mention of their names does not imply approval or endorsement.",
+                stringResource(R.string.the_authors_contributors_or_copyright_holders_listed_above_are_not_affiliated_with_this_product_and_do_not_endorse_or_promote_this_product_reference_to_the_authors_contributors_or_copyright_holders_is_solely_for_attribution_purposes_mention_of_their_names_does_not_imply_approval_or_endorsement),
                 style = Typography.bodyMedium,
                 modifier = Modifier.padding(8.dp)
             )
@@ -150,7 +152,7 @@ fun CreditsScreen(openDependencies: () -> Unit = {}) {
 
 @Composable
 fun DependenciesScreen() {
-    Screen("Dependencies") {
+    Screen(stringResource(R.string.dependencies)) {
         AndroidView(factory = {
             WebView(it).apply {
                 layoutParams = ViewGroup.LayoutParams(

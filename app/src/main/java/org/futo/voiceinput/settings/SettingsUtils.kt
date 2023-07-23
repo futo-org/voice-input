@@ -24,10 +24,12 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.datastore.preferences.core.Preferences
@@ -44,13 +46,14 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import org.futo.voiceinput.HAS_SEEN_PAID_NOTICE
 import org.futo.voiceinput.IS_ALREADY_PAID
+import org.futo.voiceinput.R
 import org.futo.voiceinput.Status
 import org.futo.voiceinput.payments.BillingManager
 import org.futo.voiceinput.ui.theme.Typography
 
 
 data class SettingsUiState(
-    val intentResultText: String = "Result goes here",
+    val intentResultText: String = "...",
     val numberOfResumes: Int = 0
 )
 
@@ -236,18 +239,21 @@ fun SettingsMain(
 
     val isAlreadyPaid = useDataStore(IS_ALREADY_PAID, default = false)
     val hasSeenNotice = useDataStore(HAS_SEEN_PAID_NOTICE, default = false)
-    val paymentDest = if(!isAlreadyPaid.value && hasSeenNotice.value) {
+    val paymentDest = if (!isAlreadyPaid.value && hasSeenNotice.value) {
         "error"
-    } else if(isAlreadyPaid.value && !hasSeenNotice.value) {
+    } else if (isAlreadyPaid.value && !hasSeenNotice.value) {
         "paid"
     } else {
         "pleasePay"
     }
 
     LaunchedEffect(paymentDest) {
-        if(paymentDest != "pleasePay") {
+        if (paymentDest != "pleasePay") {
             navController.popBackStack("home", false)
-            navController.navigate(paymentDest, NavOptions.Builder().setLaunchSingleTop(true).build())
+            navController.navigate(
+                paymentDest,
+                NavOptions.Builder().setLaunchSingleTop(true).build()
+            )
         }
     }
 
@@ -283,7 +289,12 @@ fun SettingsMain(
         }
 
         composable("pleasePay") {
-            PaymentScreen(settingsViewModel, navController, { navController.popBackStack() }, billing!!)
+            PaymentScreen(
+                settingsViewModel,
+                navController,
+                { navController.popBackStack() },
+                billing!!
+            )
         }
 
         composable("paid") {
@@ -296,26 +307,25 @@ fun SettingsMain(
     }
 }
 
-data class BlacklistedInputMethod(val packageName: String, val name: String, val reason: String)
+data class BlacklistedInputMethod(val packageName: String, val details: String, val dismiss: String)
 
-val BLACKLISTED_KEYBOARDS = listOf(
-    BlacklistedInputMethod(
-        "com.google.android.inputmethod.latin/com.android.inputmethod.latin.LatinIME",
-        "Gboard",
-        "This keyboard is incompatible with FUTO Voice Input. " +
-                "\nGboard relies on its own voice typing system and does not appear to integrate with standard Android APIs for voice input at this time. " +
-                "You will need to use a different keyboard if you want to use FUTO Voice Input with your keyboard. " +
-                "\nPlease visit the Help page in settings for more information."
-    ),
-    BlacklistedInputMethod(
-        "ch.icoaching.typewise/ch.icoaching.wrio.Wrio",
-        "Typewise",
-        "This keyboard does not have a voice input button at this time."
-    )
-)
 
 @Composable
 fun SetupOrMain(settingsViewModel: SettingsViewModel = viewModel(), billing: BillingManager) {
+    val blacklistedMethods =
+        listOf(
+            BlacklistedInputMethod(
+                "com.google.android.inputmethod.latin/com.android.inputmethod.latin.LatinIME",
+                details = stringResource(R.string.gboard_incompatible_details),
+                dismiss = stringResource(R.string.i_understand_gboard_is_incompatible)
+            ),
+            BlacklistedInputMethod(
+                "ch.icoaching.typewise/ch.icoaching.wrio.Wrio",
+                details = stringResource(R.string.typewise_incompatible_details),
+                dismiss = stringResource(R.string.i_understand_typewise_is_incompatible)
+            )
+        )
+
     val settingsUiState by settingsViewModel.uiState.collectAsState()
 
     val inputMethodEnabled = useIsInputMethodEnabled(settingsUiState.numberOfResumes)
@@ -324,7 +334,7 @@ fun SetupOrMain(settingsViewModel: SettingsViewModel = viewModel(), billing: Bil
 
     val acknowledgedBlacklistedWarning = rememberSaveable { mutableStateOf(false) }
     val blacklistedKeyboardInfo =
-        BLACKLISTED_KEYBOARDS.firstOrNull { it.packageName == defaultIME.value }
+        blacklistedMethods.firstOrNull { it.packageName == defaultIME.value }
 
     if (blacklistedKeyboardInfo != null && !acknowledgedBlacklistedWarning.value) {
         SetupBlacklistedKeyboardWarning(

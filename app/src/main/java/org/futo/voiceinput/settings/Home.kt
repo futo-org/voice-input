@@ -36,7 +36,7 @@ fun ShareFeedbackOption() {
     SettingItem(title = "Send Feedback", onClick = {
         context.openURI(mailUri)
     }) {
-        Icon(Icons.Default.Send, contentDescription = "Go")
+        Icon(Icons.Default.Send, contentDescription = stringResource(R.string.go))
     }
 
 }
@@ -51,7 +51,7 @@ fun HomeScreen(
 
     val (multilingual, _) = useDataStore(key = ENABLE_MULTILINGUAL, default = false)
     val multilingualSubtitle = if (multilingual) {
-        "Multilingual enabled, English will be slower"
+        stringResource(R.string.multilingual_enabled_english_will_be_slower)
     } else {
         null
     }
@@ -72,66 +72,86 @@ fun HomeScreen(
 
     val totalDiff =
         (englishIdx - ENGLISH_MODEL_INDEX_DEFAULT) + (multilingualIdx - MULTILINGUAL_MODEL_INDEX_DEFAULT)
-    val modelPlural =
-        if ((englishIdx != ENGLISH_MODEL_INDEX_DEFAULT) && (multilingualIdx != MULTILINGUAL_MODEL_INDEX_DEFAULT)) {
-            "models"
-        } else {
-            "model"
-        }
+    val usePlural =
+        ((englishIdx != ENGLISH_MODEL_INDEX_DEFAULT) && (multilingualIdx != MULTILINGUAL_MODEL_INDEX_DEFAULT))
     val modelSubtitle = if (totalDiff < 0) {
-        "Using smaller $modelPlural, accuracy may be worse"
+        if (usePlural) {
+            stringResource(R.string.using_smaller_models_accuracy_may_be_worse)
+        } else {
+            stringResource(R.string.using_smaller_model_accuracy_may_be_worse)
+        }
     } else if (totalDiff > 0) {
-        "Using larger $modelPlural, speed may be slower"
+        if (usePlural) {
+            stringResource(R.string.using_larger_models_speed_may_be_slower)
+        } else {
+            stringResource(R.string.using_larger_model_speed_may_be_slower)
+        }
     } else if ((englishIdx != ENGLISH_MODEL_INDEX_DEFAULT) || (multilingualIdx != MULTILINGUAL_MODEL_INDEX_DEFAULT)) {
-        "Using non-default $modelPlural"
+        if (usePlural) {
+            stringResource(R.string.using_non_default_models)
+        } else {
+            stringResource(R.string.using_non_default_model)
+        }
     } else {
         null
     }
 
-    Screen("${stringResource(R.string.app_name)} Settings") {
+    Screen(stringResource(R.string.futo_voice_input_settings)) {
         ScrollableList {
             ConditionalUnpaidNoticeWithNav(navController)
             ConditionalUpdate()
-            SettingItem(title = "Help", onClick = { navController.navigate("help") }) {
-                Icon(Icons.Default.ArrowForward, contentDescription = "Go")
+            SettingItem(
+                title = stringResource(R.string.help),
+                onClick = { navController.navigate("help") }) {
+                Icon(Icons.Default.ArrowForward, contentDescription = stringResource(R.string.go))
             }
             SettingItem(
-                title = "Languages",
+                title = stringResource(R.string.languages),
                 onClick = { navController.navigate("languages") },
                 subtitle = multilingualSubtitle
             ) {
-                Icon(Icons.Default.ArrowForward, contentDescription = "Go")
+                Icon(Icons.Default.ArrowForward, contentDescription = stringResource(R.string.go))
             }
             SettingItem(
-                title = "Models",
+                title = stringResource(R.string.models),
                 onClick = { navController.navigate("models") },
                 subtitle = modelSubtitle
             ) {
-                Icon(Icons.Default.ArrowForward, contentDescription = "Go")
+                Icon(Icons.Default.ArrowForward, contentDescription = stringResource(R.string.go))
             }
             SettingToggle(
-                "Sounds",
+                stringResource(R.string.sounds),
                 ENABLE_SOUND,
                 default = true,
-                subtitle = "Will play a sound when started / cancelled",
-                disabledSubtitle = "Will not play sounds when started / cancelled"
+                subtitle = stringResource(R.string.will_play_a_sound_when_started_cancelled),
+                disabledSubtitle = stringResource(R.string.will_not_play_sounds_when_started_cancelled)
             )
             SettingItem(title = "Advanced", onClick = { navController.navigate("advanced") }) {
-                Icon(Icons.Default.ArrowForward, contentDescription = "Go")
+                Icon(Icons.Default.ArrowForward, contentDescription = stringResource(R.string.go))
             }
             UnpaidNoticeCondition(showOnlyIfReminder = true) {
                 SettingItem(
-                    title = "Payment",
+                    title = stringResource(R.string.payment),
                     onClick = { navController.navigate("pleasePay") }) {
-                    Icon(Icons.Default.ArrowForward, contentDescription = "Go")
+                    Icon(
+                        Icons.Default.ArrowForward,
+                        contentDescription = stringResource(R.string.go)
+                    )
                 }
             }
-            SettingItem(title = "Credits", onClick = { navController.navigate("credits") }) {
-                Icon(Icons.Default.ArrowForward, contentDescription = "Go")
+            SettingItem(
+                title = stringResource(R.string.credits),
+                onClick = { navController.navigate("credits") }) {
+                Icon(Icons.Default.ArrowForward, contentDescription = stringResource(R.string.go))
             }
             ShareFeedbackOption()
-            if(isAlreadyPaid.value) {
-                Text("Thank you for using the paid version of FUTO Voice Input!", style = Typography.bodyMedium, modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center)
+            if (isAlreadyPaid.value) {
+                Text(
+                    stringResource(R.string.thank_you_for_using_the_paid_version_of_futo_voice_input),
+                    style = Typography.bodyMedium,
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.Center
+                )
             }
         }
     }

@@ -16,6 +16,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import kotlinx.coroutines.launch
+import org.futo.voiceinput.R
 import org.futo.voiceinput.payments.BillingManager
 import org.futo.voiceinput.ui.theme.WhisperVoiceInputTheme
 import org.futo.voiceinput.updates.scheduleUpdateCheckingJob
@@ -51,14 +52,14 @@ class SettingsActivity : ComponentActivity() {
                         val result =
                             it.data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
                         if (result.isNullOrEmpty()) {
-                            "Intent result is null or empty"
+                            getString(R.string.intent_result_is_null_or_empty)
                         } else {
                             result[0]
                         }
                     }
 
-                    RESULT_CANCELED -> "Intent was cancelled"
-                    else -> "Unknown intent result"
+                    RESULT_CANCELED -> getString(R.string.intent_was_cancelled)
+                    else -> getString(R.string.unknown_intent_result)
                 }
             )
         }

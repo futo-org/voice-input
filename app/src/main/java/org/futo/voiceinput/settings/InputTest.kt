@@ -15,6 +15,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -22,6 +23,7 @@ import androidx.datastore.preferences.core.edit
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import org.futo.voiceinput.FORCE_SHOW_NOTICE
+import org.futo.voiceinput.R
 import org.futo.voiceinput.Screen
 import org.futo.voiceinput.dataStore
 
@@ -37,7 +39,7 @@ fun TestScreen(
 
 
     LaunchedEffect(voiceIntentResult) {
-        if ((text != voiceIntentResult) && (voiceIntentResult != "Result goes here")) {
+        if ((text != voiceIntentResult) && (voiceIntentResult != "...")) {
             text = voiceIntentResult
         }
     }
@@ -51,11 +53,11 @@ fun TestScreen(
         }
     }
 
-    Screen("Input testing") {
+    Screen(stringResource(R.string.input_testing)) {
         TextField(
             value = text,
             onValueChange = { text = it },
-            placeholder = { Text("Input test field") },
+            placeholder = { Text(stringResource(R.string.input_test_field)) },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp)
@@ -70,14 +72,13 @@ fun TestScreen(
                 onClick = { (context as SettingsActivity).launchVoiceIntent() },
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Trigger voice input intent")
+                Text(stringResource(R.string.trigger_voice_input_intent))
             }
             Text(
                 voiceIntentResult,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth()
             )
-
         }
     }
 }

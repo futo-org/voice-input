@@ -29,6 +29,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -48,6 +49,7 @@ import org.futo.voiceinput.HAS_SEEN_PAID_NOTICE
 import org.futo.voiceinput.IS_ALREADY_PAID
 import org.futo.voiceinput.IS_PAYMENT_PENDING
 import org.futo.voiceinput.NOTICE_REMINDER_TIME
+import org.futo.voiceinput.R
 import org.futo.voiceinput.Screen
 import org.futo.voiceinput.dataStore
 import org.futo.voiceinput.payments.BillingManager
@@ -71,8 +73,8 @@ fun ParagraphText(it: String) {
 fun PaymentText() {
     val numDaysInstalled = useNumberOfDaysInstalled()
 
-    ParagraphText("You've been using FUTO Voice Input for ${numDaysInstalled.value} days. If you find this app useful, please consider paying to support future development of FUTO software.")
-    ParagraphText("FUTO is dedicated to making good software that doesn't abuse you. This app will never serve you ads or collect your personal data.")
+    ParagraphText(stringResource(R.string.payment_text_1, numDaysInstalled.value))
+    ParagraphText(stringResource(R.string.payment_text_2))
 }
 
 suspend fun pushNoticeReminderTime(context: Context, days: Float) {
@@ -130,7 +132,7 @@ fun ConditionalUnpaidNoticeInVoiceInputWindow(onClose: (() -> Unit)? = null) {
             context.startAppActivity(PaymentActivity::class.java)
             if (onClose != null) onClose()
         }) {
-            Text("Unpaid", color = Slate200)
+            Text(stringResource(R.string.unpaid_indicator), color = Slate200)
         }
     }
 }
@@ -161,8 +163,8 @@ fun UnpaidNotice(onPay: () -> Unit = { }, onAlreadyPaid: () -> Unit = { }) {
             ) {
 
                 Box(modifier = Modifier.weight(1.0f)) {
-                    Button(onClick = onPay, modifier = Modifier.align(Alignment.Center)) {
-                        Text("Pay Now")
+                    Button(onClick = onPay, modifier = Modifier.align(Center)) {
+                        Text(stringResource(R.string.pay_now))
                     }
                 }
 
@@ -171,9 +173,9 @@ fun UnpaidNotice(onPay: () -> Unit = { }, onAlreadyPaid: () -> Unit = { }) {
                         onClick = onAlreadyPaid, colors = ButtonDefaults.buttonColors(
                             containerColor = MaterialTheme.colorScheme.secondary,
                             contentColor = MaterialTheme.colorScheme.onSecondary
-                        ), modifier = Modifier.align(Alignment.Center)
+                        ), modifier = Modifier.align(Center)
                     ) {
-                        Text("I already paid")
+                        Text(stringResource(R.string.i_already_paid))
                     }
                 }
             }
@@ -204,17 +206,17 @@ fun PaymentThankYouScreen(onExit: () -> Unit = { }) {
 
     Screen(
         if (isPending.value) {
-            "Payment Pending"
+            stringResource(R.string.payment_pending)
         } else {
-            "Thank you"
+            stringResource(R.string.thank_you)
         }
     ) {
         ScrollableList {
-            ParagraphText("Thank you for purchasing Voice Input!")
+            ParagraphText(stringResource(R.string.thank_you_for_purchasing_voice_input))
             if (isPending.value) {
-                ParagraphText("Your payment is still pending, but it should clear soon.")
+                ParagraphText(stringResource(R.string.your_payment_is_still_pending_but_it_should_clear_soon))
             }
-            ParagraphText("Your purchase will help continued development of Voice Input, and other FUTO projects.")
+            ParagraphText(stringResource(R.string.your_purchase_will_help_continued_development_of_voice_input_and_other_futo_projects))
 
             Box(modifier = Modifier.fillMaxWidth()) {
                 Button(
@@ -224,7 +226,7 @@ fun PaymentThankYouScreen(onExit: () -> Unit = { }) {
                     },
                     modifier = Modifier.align(Center)
                 ) {
-                    Text("Continue")
+                    Text(stringResource(R.string.continue_))
                 }
             }
         }
@@ -238,9 +240,9 @@ fun PaymentFailedScreen(onExit: () -> Unit = { }) {
 
     val context = LocalContext.current
 
-    Screen("Payment Error") {
+    Screen(stringResource(R.string.payment_error)) {
         ScrollableList {
-            ParagraphText("Unfortunately, your payment has failed for one reason or another. Please contact us or Google Play if you need help.")
+            ParagraphText(stringResource(R.string.unfortunately_your_payment_has_failed_for_one_reason_or_another_please_contact_us_or_google_play_if_you_need_help))
             Box(modifier = Modifier.fillMaxWidth()) {
                 val coroutineScope = rememberCoroutineScope()
                 Button(
@@ -255,7 +257,7 @@ fun PaymentFailedScreen(onExit: () -> Unit = { }) {
                     },
                     modifier = Modifier.align(Center)
                 ) {
-                    Text("Continue")
+                    Text(stringResource(R.string.continue_))
                 }
             }
         }
@@ -282,12 +284,12 @@ fun PaymentScreen(
     }
 
     LaunchedEffect(Unit) {
-        if(BuildConfig.FLAVOR != "dev") {
+        if (BuildConfig.FLAVOR != "dev") {
             billing.checkAlreadyOwnsProduct()
         }
     }
 
-    Screen("Payment") {
+    Screen(stringResource(R.string.payment_title)) {
         ScrollableList {
             PaymentText()
 
@@ -306,7 +308,7 @@ fun PaymentScreen(
                                 .padding(8.dp)
                                 .align(CenterHorizontally)
                         ) {
-                            Text("Pay via ${it.getName()}")
+                            Text(stringResource(R.string.pay_via_x, it.getName()))
                         }
                     }
                 }
@@ -318,7 +320,7 @@ fun PaymentScreen(
                             contentColor = MaterialTheme.colorScheme.onSecondary
                         ), modifier = Modifier.align(CenterHorizontally)
                     ) {
-                        Text("I already paid")
+                        Text(stringResource(R.string.i_already_paid))
                     }
                 }
 
@@ -342,7 +344,7 @@ fun PaymentScreen(
                                 contentColor = MaterialTheme.colorScheme.onSecondary
                             )
                         ) {
-                            Text("Remind me in ")
+                            Text(stringResource(R.string.remind_me_in_x))
                             Surface(color = MaterialTheme.colorScheme.surface) {
                                 BasicTextField(
                                     value = remindDays.value,
@@ -359,7 +361,7 @@ fun PaymentScreen(
                                     keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number)
                                 )
                             }
-                            Text(" days")
+                            Text(stringResource(R.string.in_x_days))
                         }
                     }
                 }
@@ -367,7 +369,7 @@ fun PaymentScreen(
                 @Suppress("KotlinConstantConditions")
                 if (BuildConfig.FLAVOR == "dev") {
                     Text(
-                        "You are on the Developer release, so you are seeing all payment methods",
+                        stringResource(R.string.you_are_on_the_developer_release_so_you_are_seeing_all_payment_methods),
                         style = Typography.labelSmall,
                         modifier = Modifier.padding(8.dp)
                     )
@@ -388,17 +390,20 @@ fun PaymentScreenSwitch(
 ) {
     val isAlreadyPaid = useDataStore(IS_ALREADY_PAID, default = false)
     val hasSeenNotice = useDataStore(HAS_SEEN_PAID_NOTICE, default = false)
-    val paymentDest = if(!isAlreadyPaid.value && hasSeenNotice.value) {
+    val paymentDest = if (!isAlreadyPaid.value && hasSeenNotice.value) {
         "error"
-    } else if(isAlreadyPaid.value && !hasSeenNotice.value) {
+    } else if (isAlreadyPaid.value && !hasSeenNotice.value) {
         "paid"
     } else {
         "pleasePay"
     }
 
     LaunchedEffect(paymentDest) {
-        if(paymentDest != "pleasePay") {
-            navController.navigate(paymentDest, NavOptions.Builder().setLaunchSingleTop(true).build())
+        if (paymentDest != "pleasePay") {
+            navController.navigate(
+                paymentDest,
+                NavOptions.Builder().setLaunchSingleTop(true).build()
+            )
         }
     }
 

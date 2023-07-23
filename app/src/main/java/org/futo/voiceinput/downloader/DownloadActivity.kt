@@ -25,6 +25,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.lifecycleScope
@@ -36,6 +37,7 @@ import okhttp3.Callback
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
+import org.futo.voiceinput.R
 import org.futo.voiceinput.Screen
 import org.futo.voiceinput.fileNeedsDownloading
 import org.futo.voiceinput.ui.theme.Typography
@@ -57,14 +59,14 @@ val EXAMPLE_MODELS = listOf(
     ModelInfo(
         name = "tiny-encoder-xatn.tflite",
         url = "example.com",
-        size = 56L*1024L*1024L,
+        size = 56L * 1024L * 1024L,
         progress = 0.5f,
         error = true
     ),
     ModelInfo(
         name = "tiny-decoder.tflite",
         url = "example.com",
-        size = 73L*1024L*1024L,
+        size = 73L * 1024L * 1024L,
         progress = 0.3f,
         error = false
     ),
@@ -73,19 +75,23 @@ val EXAMPLE_MODELS = listOf(
 @Composable
 fun ModelItem(model: ModelInfo, showProgress: Boolean) {
     Column(modifier = Modifier.padding(4.dp)) {
-        val color = if(model.error) {
+        val color = if (model.error) {
             MaterialTheme.colorScheme.errorContainer
         } else {
             MaterialTheme.colorScheme.primaryContainer
         }
         Surface(modifier = Modifier, color = color, shape = RoundedCornerShape(4.dp)) {
-            Row(modifier = Modifier
-                .fillMaxWidth()
-                .padding(8.dp)) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp)
+            ) {
                 if (model.error) {
-                    Icon(Icons.Default.Warning, contentDescription = "Failed", modifier = Modifier
-                        .align(CenterVertically)
-                        .padding(4.dp))
+                    Icon(
+                        Icons.Default.Warning, contentDescription = "Failed", modifier = Modifier
+                            .align(CenterVertically)
+                            .padding(4.dp)
+                    )
                 }
 
                 val size = if (model.size != null) {
@@ -96,12 +102,18 @@ fun ModelItem(model: ModelInfo, showProgress: Boolean) {
 
                 Column {
                     Text(model.name, style = Typography.bodyLarge)
-                    Text("$size MB", style = Typography.bodySmall, color = MaterialTheme.colorScheme.outline)
+                    Text(
+                        "$size MB",
+                        style = Typography.bodySmall,
+                        color = MaterialTheme.colorScheme.outline
+                    )
                     if (showProgress && !model.error) {
-                        LinearProgressIndicator(progress = model.progress, modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(0.dp, 8.dp),
-                        color = MaterialTheme.colorScheme.onPrimary)
+                        LinearProgressIndicator(
+                            progress = model.progress, modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(0.dp, 8.dp),
+                            color = MaterialTheme.colorScheme.onPrimary
+                        )
                     }
                 }
 
@@ -112,12 +124,16 @@ fun ModelItem(model: ModelInfo, showProgress: Boolean) {
 
 @Composable
 @Preview
-fun DownloadPrompt(onContinue: () -> Unit = {}, onCancel: () -> Unit = {}, models: List<ModelInfo> = EXAMPLE_MODELS) {
-    Screen("Download Required") {
+fun DownloadPrompt(
+    onContinue: () -> Unit = {},
+    onCancel: () -> Unit = {},
+    models: List<ModelInfo> = EXAMPLE_MODELS
+) {
+    Screen(stringResource(R.string.download_required)) {
         LazyColumn {
             item {
                 Text(
-                    "To continue, one or more speech recognition model resources need to be downloaded. This may incur data fees if you're using mobile data instead of Wi-Fi",
+                    stringResource(R.string.download_required_body),
                     style = Typography.bodyMedium
                 )
 
@@ -139,14 +155,14 @@ fun DownloadPrompt(onContinue: () -> Unit = {}, onCancel: () -> Unit = {}, model
                             .padding(8.dp)
                             .weight(1.0f)
                     ) {
-                        Text("Cancel")
+                        Text(stringResource(R.string.cancel))
                     }
                     Button(
                         onClick = onContinue, modifier = Modifier
                             .padding(8.dp)
                             .weight(1.5f)
                     ) {
-                        Text("Continue")
+                        Text(stringResource(R.string.continue_))
                     }
                 }
             }
@@ -157,16 +173,19 @@ fun DownloadPrompt(onContinue: () -> Unit = {}, onCancel: () -> Unit = {}, model
 @Composable
 @Preview
 fun DownloadScreen(models: List<ModelInfo> = EXAMPLE_MODELS) {
-    Screen("Download Progress") {
+    Screen(stringResource(R.string.download_progress)) {
         LazyColumn {
             item {
                 if (models.any { it.error }) {
                     Text(
-                        "One or more files have failed to download. This may be due to a network error. Please try again later.",
+                        stringResource(R.string.download_failed),
                         style = Typography.bodyMedium
                     )
                 } else {
-                    Text("Downloading model resources...", style = Typography.bodyMedium)
+                    Text(
+                        stringResource(R.string.download_in_progress),
+                        style = Typography.bodyMedium
+                    )
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -188,8 +207,11 @@ class DownloadActivity : ComponentActivity() {
         setContent {
             WhisperVoiceInputTheme {
                 // A surface container using the 'background' color from the theme
-                Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-                    if(isDownloading) {
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background
+                ) {
+                    if (isDownloading) {
                         DownloadScreen(models = modelsToDownload)
                     } else {
                         DownloadPrompt(
@@ -221,27 +243,30 @@ class DownloadActivity : ComponentActivity() {
 
                         try {
                             it.size = response.headers["content-length"]!!.toLong()
-                        } catch(e: Exception) {
+                        } catch (e: Exception) {
                             println("url failed ${it.url}")
                             println(response.headers)
                             e.printStackTrace()
                         }
 
                         val fileName = it.name + ".download"
-                        val file = File.createTempFile(fileName, null, this@DownloadActivity.cacheDir)
+                        val file =
+                            File.createTempFile(fileName, null, this@DownloadActivity.cacheDir)
                         val os = file.outputStream()
 
                         val buffer = ByteArray(128 * 1024)
                         var downloaded = 0
                         while (true) {
                             val read = source.read(buffer)
-                            if (read == -1) { break }
+                            if (read == -1) {
+                                break
+                            }
 
                             os.write(buffer.sliceArray(0 until read))
 
                             downloaded += read
 
-                            if(it.size != null) {
+                            if (it.size != null) {
                                 it.progress = downloaded.toFloat() / it.size!!.toFloat()
                             }
 
@@ -259,7 +284,7 @@ class DownloadActivity : ComponentActivity() {
 
                         assert(file.renameTo(File(this@DownloadActivity.filesDir, it.name)))
 
-                        if(modelsToDownload.all { a -> a.finished}) {
+                        if (modelsToDownload.all { a -> a.finished }) {
                             downloadsFinished()
                         }
                     }
@@ -282,7 +307,9 @@ class DownloadActivity : ComponentActivity() {
 
     private fun obtainModelSizes() {
         modelsToDownload.forEach {
-            val request = Request.Builder().method("HEAD", null).header("accept-encoding", "identity").url(it.url).build()
+            val request =
+                Request.Builder().method("HEAD", null).header("accept-encoding", "identity")
+                    .url(it.url).build()
 
             httpClient.newCall(request).enqueue(object : Callback {
                 override fun onFailure(call: Call, e: IOException) {
@@ -293,14 +320,14 @@ class DownloadActivity : ComponentActivity() {
                 override fun onResponse(call: Call, response: Response) {
                     try {
                         it.size = response.headers["content-length"]!!.toLong()
-                    } catch(e: Exception) {
+                    } catch (e: Exception) {
                         println("url failed ${it.url}")
                         println(response.headers)
                         e.printStackTrace()
                         it.error = true
                     }
 
-                    if(response.code != 200) {
+                    if (response.code != 200) {
                         println("Bad response code ${response.code}")
                         it.error = true
                     }
@@ -325,7 +352,9 @@ class DownloadActivity : ComponentActivity() {
             )
         }
 
-        if(modelsToDownload.isEmpty()) { cancel() }
+        if (modelsToDownload.isEmpty()) {
+            cancel()
+        }
 
         isDownloading = false
         updateContent()

@@ -35,29 +35,30 @@ fun HelpScreen() {
     }
 
     val context = LocalContext.current
+    val antiConfusionText = stringResource(R.string.just_a_demonstration)
     val showAntiConfusionToast = {
         val toast = Toast.makeText(
             context,
-            "This is just a demonstration of how Voice Input looks",
+            antiConfusionText,
             Toast.LENGTH_SHORT
         )
         toast.show()
     }
 
-    Screen("Help") {
+    Screen(stringResource(R.string.help_title)) {
         ScrollableList {
-            textItem("You have installed Voice Input and enabled the Voice input method. You should now be able to use Voice Input within supported apps and keyboards.")
-            textItem("When you open Voice Input, it will look something like this:")
+            textItem(stringResource(R.string.help_paragraph_1))
+            textItem(stringResource(R.string.help_paragraph_2))
             Column(modifier = Modifier.fillMaxWidth()) {
                 Box(modifier = Modifier.align(CenterHorizontally)) {
                     RecognizeWindow(onClose = showAntiConfusionToast, forceNoUnpaidNotice = true) {
                         Text(
-                            "Voice Input will look like this",
+                            stringResource(R.string.voice_input_will_look_like_this),
                             modifier = Modifier.align(CenterHorizontally),
                             textAlign = TextAlign.Center
                         )
                         Text(
-                            "Look for the big off-center FUTO logo in the background!",
+                            stringResource(R.string.look_for_the_big_off_center_futo_logo_in_the_background),
                             style = Typography.bodyMedium,
                             modifier = Modifier
                                 .padding(2.dp, 4.dp)
@@ -79,14 +80,14 @@ fun HelpScreen() {
                         ) {
                             Icon(
                                 painter = painterResource(R.drawable.mic_2_),
-                                contentDescription = "Stop Recording",
+                                contentDescription = stringResource(R.string.stop_recording),
                                 modifier = Modifier.size(48.dp),
                                 tint = MaterialTheme.colorScheme.onSecondary
                             )
                         }
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            "Once you're done talking, you can hit the microphone button to stop",
+                            stringResource(R.string.once_you_re_done_talking_you_can_hit_the_microphone_button_to_stop),
                             style = Typography.bodyMedium,
                             modifier = Modifier
                                 .padding(2.dp, 4.dp)
@@ -98,49 +99,43 @@ fun HelpScreen() {
             }
             Spacer(modifier = Modifier.height(16.dp))
 
-            textItem("You can use one of the following open-source keyboards that are tested to work:")
+            textItem(stringResource(R.string.help_paragraph_3))
             Column(modifier = Modifier.padding(16.dp, 0.dp)) {
-                textItem("• AOSP Keyboard, included in AOSP-based ROMs")
-                textItem("• OpenBoard, available on F-Droid")
-                textItem("• AnySoftKeyboard, available on F-Droid and Google Play")
+                textItem(stringResource(R.string.aosp_keyboard_included_in_aosp_based_roms))
+                textItem(stringResource(R.string.openboard_available_on_f_droid))
+                textItem(stringResource(R.string.anysoftkeyboard_available_on_f_droid_and_google_play))
             }
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            Tip("Everything you type is seen by your keyboard app, and proprietary commercial keyboards often have lengthy and complicated privacy policies. Choose carefully!")
+            Tip(stringResource(R.string.help_paragraph_5))
 
             Spacer(modifier = Modifier.height(4.dp))
 
-            textItem("The following proprietary keyboards may also work, but they are not recommended as they may not respect your privacy:")
+            textItem(stringResource(R.string.help_paragraph_6))
             Column(modifier = Modifier.padding(16.dp, 0.dp)) {
-                textItem("• Grammarly Keyboard")
-                textItem("• Microsoft SwiftKey")
+                textItem(stringResource(R.string.grammarly_keyboard))
+                textItem(stringResource(R.string.microsoft_swiftkey))
             }
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            Tip("Note: Not all keyboards are compatible with Voice Input. You need to make sure you're using a compatible keyboard.")
+            Tip(stringResource(R.string.help_paragraph_7))
 
             Spacer(modifier = Modifier.height(4.dp))
-            textItem("Some keyboards are simply incompatible, as they do not integrate with Android APIs for voice input. If your keyboard is listed here, you will need to use a different one as it is NOT compatible:")
+            textItem(stringResource(R.string.help_paragraph_8))
             Column(modifier = Modifier.padding(16.dp, 0.dp)) {
-                textItem("• Gboard")
-                textItem("• TypeWise")
-                textItem("• Simple Keyboard")
-                textItem("• FlorisBoard")
-                textItem("• Unexpected Keyboard")
+                textItem(stringResource(R.string.gboard))
+                textItem(stringResource(R.string.typewise))
+                textItem(stringResource(R.string.simple_keyboard))
+                textItem(stringResource(R.string.florisboard))
+                textItem(stringResource(R.string.unexpected_keyboard))
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            Tip("Some non-keyboard apps also support voice input! Look for a voice button in Firefox, Organic Maps, etc.")
-            textItem(
-                "This app is still in development. Please report any issues or suggestions to ${
-                    stringResource(
-                        R.string.support_email
-                    )
-                }"
-            )
+            Tip(stringResource(R.string.help_paragraph_9))
+            textItem(stringResource(R.string.help_with_email))
 
             Spacer(modifier = Modifier.height(100.dp))
         }

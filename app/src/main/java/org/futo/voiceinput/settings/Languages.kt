@@ -3,6 +3,7 @@ package org.futo.voiceinput.settings
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -14,6 +15,7 @@ import org.futo.voiceinput.LANGUAGE_TOGGLES
 import org.futo.voiceinput.MULTILINGUAL_MODELS
 import org.futo.voiceinput.MULTILINGUAL_MODEL_INDEX
 import org.futo.voiceinput.MULTILINGUAL_MODEL_INDEX_DEFAULT
+import org.futo.voiceinput.R
 import org.futo.voiceinput.Screen
 import org.futo.voiceinput.startModelDownloadActivity
 
@@ -66,20 +68,20 @@ fun LanguagesScreen(
         if (multilingual != newMultilingual) setMultilingual(newMultilingual)
     }
 
-    Screen("Languages") {
+    Screen(stringResource(R.string.languages_title)) {
         SettingListLazy {
             item {
-                Tip("The model will automatically detect which language you're speaking.")
-                Tip("Some languages may work better than others, depending on the amount of training data.")
-                Tip("Voice Input may be slower if you enable more than English.")
+                Tip(stringResource(R.string.language_tip_1))
+                Tip(stringResource(R.string.language_tip_2))
+                Tip(stringResource(R.string.language_tip_3))
             }
             item {
                 SettingToggleRaw(
-                    "English",
+                    stringResource(R.string.english),
                     true,
                     {},
                     disabled = true,
-                    subtitle = "Always on. Enabling others will increase English latency"
+                    subtitle = stringResource(R.string.always_on_enabling_others_will_increase_english_latency)
                 )
             }
 
@@ -87,9 +89,9 @@ fun LanguagesScreen(
                 val language = LANGUAGE_LIST[it]
 
                 val subtitle = if (language.trainedHourCount < 500) {
-                    "May be low accuracy (${language.trainedHourCount}h)"
+                    stringResource(R.string.may_be_low_accuracy_x_hours, language.trainedHourCount)
                 } else {
-                    "Trained on ${language.trainedHourCount} hours"
+                    stringResource(R.string.trained_on_x_hours, language.trainedHourCount)
                 }
 
                 // Only show languages trained with over 1000 hours for now, as anything lower

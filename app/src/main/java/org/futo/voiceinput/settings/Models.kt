@@ -21,6 +21,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.datastore.preferences.core.Preferences
@@ -35,13 +36,14 @@ import org.futo.voiceinput.MULTILINGUAL_MODELS
 import org.futo.voiceinput.MULTILINGUAL_MODEL_INDEX
 import org.futo.voiceinput.MULTILINGUAL_MODEL_INDEX_DEFAULT
 import org.futo.voiceinput.ModelData
+import org.futo.voiceinput.R
 import org.futo.voiceinput.Screen
 import org.futo.voiceinput.startModelDownloadActivity
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ModelSizeItem(name: String, options: List<ModelData>, key: Preferences.Key<Int>, default: Int) {
+fun ModelSizeItem(label: String, options: List<ModelData>, key: Preferences.Key<Int>, default: Int) {
     val (modelIndex, setModelIndex) = useDataStore(key = key, default = default)
 
     var expanded by remember { mutableStateOf(false) }
@@ -61,7 +63,7 @@ fun ModelSizeItem(name: String, options: List<ModelData>, key: Preferences.Key<I
                 readOnly = true,
                 value = options[modelIndex].name,
                 onValueChange = { },
-                label = { Text("$name Model") },
+                label = { Text(label) },
                 trailingIcon = {
                     ExposedDropdownMenuDefaults.TrailingIcon(
                         expanded = expanded
@@ -133,12 +135,12 @@ fun ModelsScreen(
         }
     }
 
-    Screen("Model Picker") {
+    Screen(stringResource(R.string.model_picker)) {
         ScrollableList {
-            Tip("Tip: The number is the model's parameter count in millions. More parameters = slower and more accurate")
+            Tip(stringResource(R.string.parameter_count_tip))
             Spacer(modifier = Modifier.height(16.dp))
             ModelSizeItem(
-                "English",
+                stringResource(R.string.english_model),
                 ENGLISH_MODELS,
                 ENGLISH_MODEL_INDEX,
                 ENGLISH_MODEL_INDEX_DEFAULT
@@ -147,7 +149,7 @@ fun ModelsScreen(
             if (useMultilingual) {
                 Spacer(modifier = Modifier.height(16.dp))
                 ModelSizeItem(
-                    "Multilingual",
+                    stringResource(R.string.multilingual_model),
                     MULTILINGUAL_MODELS,
                     MULTILINGUAL_MODEL_INDEX,
                     MULTILINGUAL_MODEL_INDEX_DEFAULT
