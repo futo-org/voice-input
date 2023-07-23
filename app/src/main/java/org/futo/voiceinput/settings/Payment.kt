@@ -23,6 +23,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Alignment.Companion.Center
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.SolidColor
@@ -35,11 +36,17 @@ import androidx.datastore.preferences.core.edit
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
+import androidx.navigation.NavOptions
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import org.futo.voiceinput.BuildConfig
 import org.futo.voiceinput.FORCE_SHOW_NOTICE
+import org.futo.voiceinput.HAS_SEEN_PAID_NOTICE
 import org.futo.voiceinput.IS_ALREADY_PAID
+import org.futo.voiceinput.IS_PAYMENT_PENDING
 import org.futo.voiceinput.NOTICE_REMINDER_TIME
 import org.futo.voiceinput.Screen
 import org.futo.voiceinput.dataStore
@@ -47,36 +54,51 @@ import org.futo.voiceinput.payments.BillingManager
 import org.futo.voiceinput.startAppActivity
 import org.futo.voiceinput.ui.theme.Slate200
 import org.futo.voiceinput.ui.theme.Typography
+import kotlin.coroutines.coroutineContext
 import kotlin.math.absoluteValue
+
+@Composable
+fun ParagraphText(it: String) {
+    Text(
+        it,
+        modifier = Modifier.padding(8.dp),
+        style = Typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onBackground
+    )
+}
 
 @Composable
 fun PaymentText() {
     val numDaysInstalled = useNumberOfDaysInstalled()
-    val localText = @Composable { it: String -> Text(it, modifier = Modifier.padding(8.dp), style = Typography.bodyMedium, color = MaterialTheme.colorScheme.onBackground)}
 
-    localText("You've been using FUTO Voice Input for ${numDaysInstalled.value} days. If you find this app useful, please consider paying to support future development of FUTO software.")
-    localText("FUTO is dedicated to making good software that doesn't abuse you. This app will never serve you ads or collect your personal data.")
+    ParagraphText("You've been using FUTO Voice Input for ${numDaysInstalled.value} days. If you find this app useful, please consider paying to support future development of FUTO software.")
+    ParagraphText("FUTO is dedicated to making good software that doesn't abuse you. This app will never serve you ads or collect your personal data.")
 }
 
 suspend fun pushNoticeReminderTime(context: Context, days: Float) {
     // If the user types in a crazy high number, the long can't store such a large value and it won't suppress the reminder
     // 21x the age of the universe ought to be enough for a payment notice reminder
     // Also take the absolute value in the case of a negative number
-    val clampedDays = if(days.absoluteValue >= 1.06751991E14f) {
+    val clampedDays = if (days.absoluteValue >= 1.06751991E14f) {
         1.06751991E14f
-    }else {
+    } else {
         days.absoluteValue
     }
 
     context.dataStore.edit { preferences ->
-        preferences[NOTICE_REMINDER_TIME] = System.currentTimeMillis() / 1000L + (clampedDays * 60.0 * 60.0 * 24.0).toLong()
+        preferences[NOTICE_REMINDER_TIME] =
+            System.currentTimeMillis() / 1000L + (clampedDays * 60.0 * 60.0 * 24.0).toLong()
     }
 }
 
 const val TRIAL_PERIOD_DAYS = 30
 
 @Composable
-fun UnpaidNoticeCondition(force: Boolean = LocalInspectionMode.current, showOnlyIfReminder: Boolean = false, inner: @Composable () -> Unit) {
+fun UnpaidNoticeCondition(
+    force: Boolean = LocalInspectionMode.current,
+    showOnlyIfReminder: Boolean = false,
+    inner: @Composable () -> Unit
+) {
     val numDaysInstalled = useNumberOfDaysInstalled()
     val forceShowNotice = useDataStore(FORCE_SHOW_NOTICE, default = false)
     val isAlreadyPaid = useDataStore(IS_ALREADY_PAID, default = false)
@@ -93,7 +115,7 @@ fun UnpaidNoticeCondition(force: Boolean = LocalInspectionMode.current, showOnly
                 // and we have not already paid
                 && (!isAlreadyPaid.value)
 
-    if(force || displayCondition) {
+    if (force || displayCondition) {
         inner()
     }
 }
@@ -106,7 +128,7 @@ fun ConditionalUnpaidNoticeInVoiceInputWindow(onClose: (() -> Unit)? = null) {
     UnpaidNoticeCondition {
         TextButton(onClick = {
             context.startAppActivity(PaymentActivity::class.java)
-            if(onClose != null) onClose()
+            if (onClose != null) onClose()
         }) {
             Text("Unpaid", color = Slate200)
         }
@@ -117,9 +139,10 @@ fun ConditionalUnpaidNoticeInVoiceInputWindow(onClose: (() -> Unit)? = null) {
 @Composable
 @Preview
 fun UnpaidNotice(onPay: () -> Unit = { }, onAlreadyPaid: () -> Unit = { }) {
-    Surface(color = MaterialTheme.colorScheme.surfaceVariant, modifier = Modifier
-        .fillMaxWidth()
-        .padding(8.dp), shape = RoundedCornerShape(4.dp)
+    Surface(
+        color = MaterialTheme.colorScheme.surfaceVariant, modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp), shape = RoundedCornerShape(4.dp)
     ) {
         Column(modifier = Modifier.padding(8.dp, 0.dp)) {
             Text(
@@ -131,9 +154,11 @@ fun UnpaidNotice(onPay: () -> Unit = { }, onAlreadyPaid: () -> Unit = { }) {
 
             PaymentText()
 
-            Row(modifier = Modifier
-                .padding(8.dp)
-                .align(CenterHorizontally)) {
+            Row(
+                modifier = Modifier
+                    .padding(8.dp)
+                    .align(CenterHorizontally)
+            ) {
 
                 Box(modifier = Modifier.weight(1.0f)) {
                     Button(onClick = onPay, modifier = Modifier.align(Alignment.Center)) {
@@ -164,16 +189,86 @@ fun ConditionalUnpaidNoticeWithNav(navController: NavController = rememberNavCon
 
     UnpaidNoticeCondition {
         UnpaidNotice(onPay = {
-            navController.navigate("payment")
+            navController.navigate("pleasePay")
         }, onAlreadyPaid = {
             isAlreadyPaid.setValue(true)
         })
     }
 }
 
+@Composable
+@Preview
+fun PaymentThankYouScreen(onExit: () -> Unit = { }) {
+    val hasSeenPaidNotice = useDataStore(HAS_SEEN_PAID_NOTICE, default = false)
+    val isPending = useDataStore(IS_PAYMENT_PENDING, default = false)
+
+    Screen(
+        if (isPending.value) {
+            "Payment Pending"
+        } else {
+            "Thank you"
+        }
+    ) {
+        ScrollableList {
+            ParagraphText("Thank you for purchasing Voice Input!")
+            if (isPending.value) {
+                ParagraphText("Your payment is still pending, but it should clear soon.")
+            }
+            ParagraphText("Your purchase will help continued development of Voice Input, and other FUTO projects.")
+
+            Box(modifier = Modifier.fillMaxWidth()) {
+                Button(
+                    onClick = {
+                        hasSeenPaidNotice.setValue(true)
+                        onExit()
+                    },
+                    modifier = Modifier.align(Center)
+                ) {
+                    Text("Continue")
+                }
+            }
+        }
+    }
+}
 
 @Composable
-fun PaymentScreen(settingsViewModel: SettingsViewModel = viewModel(), navController: NavHostController = rememberNavController(), onExit: () -> Unit = { }, billing: BillingManager) {
+@Preview
+fun PaymentFailedScreen(onExit: () -> Unit = { }) {
+    val hasSeenPaidNotice = useDataStore(HAS_SEEN_PAID_NOTICE, default = true)
+
+    val context = LocalContext.current
+
+    Screen("Payment Error") {
+        ScrollableList {
+            ParagraphText("Unfortunately, your payment has failed for one reason or another. Please contact us or Google Play if you need help.")
+            Box(modifier = Modifier.fillMaxWidth()) {
+                val coroutineScope = rememberCoroutineScope()
+                Button(
+                    onClick = {
+                        // It would be rude to immediately annoy the user again about paying, so delay the notice forever
+                        coroutineScope.launch {
+                            pushNoticeReminderTime(context, Float.MAX_VALUE)
+                        }
+
+                        hasSeenPaidNotice.setValue(false)
+                        onExit()
+                    },
+                    modifier = Modifier.align(Center)
+                ) {
+                    Text("Continue")
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun PaymentScreen(
+    settingsViewModel: SettingsViewModel = viewModel(),
+    navController: NavHostController = rememberNavController(),
+    onExit: () -> Unit = { },
+    billing: BillingManager
+) {
     val isAlreadyPaid = useDataStore(IS_ALREADY_PAID, default = false)
     val pushReminderTime = useDataStore(NOTICE_REMINDER_TIME, default = 0L)
     val currentTime = System.currentTimeMillis() / 1000L
@@ -182,11 +277,13 @@ fun PaymentScreen(settingsViewModel: SettingsViewModel = viewModel(), navControl
 
     val onAlreadyPaid = {
         isAlreadyPaid.setValue(true)
+        navController.popBackStack()
+        navController.navigate("paid", NavOptions.Builder().setLaunchSingleTop(true).build())
     }
 
-    LaunchedEffect(isAlreadyPaid.value) {
-        if(isAlreadyPaid.value) {
-            onExit()
+    LaunchedEffect(Unit) {
+        if(BuildConfig.FLAVOR != "dev") {
+            billing.checkAlreadyOwnsProduct()
         }
     }
 
@@ -196,15 +293,19 @@ fun PaymentScreen(settingsViewModel: SettingsViewModel = viewModel(), navControl
 
             val context = LocalContext.current
             Column(modifier = Modifier.fillMaxWidth()) {
-                Column(modifier = Modifier
-                    .padding(8.dp)
-                    .align(CenterHorizontally)) {
+                Column(
+                    modifier = Modifier
+                        .padding(8.dp)
+                        .align(CenterHorizontally)
+                ) {
                     billing.getBillings().forEach {
-                        Button(onClick = {
-                            it.launchBillingFlow()
-                        }, modifier = Modifier
-                            .padding(8.dp)
-                            .align(CenterHorizontally)) {
+                        Button(
+                            onClick = {
+                                it.launchBillingFlow()
+                            }, modifier = Modifier
+                                .padding(8.dp)
+                                .align(CenterHorizontally)
+                        ) {
                             Text("Pay via ${it.getName()}")
                         }
                     }
@@ -221,7 +322,7 @@ fun PaymentScreen(settingsViewModel: SettingsViewModel = viewModel(), navControl
                     }
                 }
 
-                if(reminderTimeIsUp) {
+                if (reminderTimeIsUp) {
                     val lastValidRemindValue = remember { mutableStateOf(5.0f) }
                     val remindDays = remember { mutableStateOf("5") }
                     Row(
@@ -272,6 +373,49 @@ fun PaymentScreen(settingsViewModel: SettingsViewModel = viewModel(), navControl
                     )
                 }
             }
+        }
+    }
+}
+
+
+@Composable
+fun PaymentScreenSwitch(
+    settingsViewModel: SettingsViewModel = viewModel(),
+    navController: NavHostController = rememberNavController(),
+    onExit: () -> Unit = { },
+    billing: BillingManager,
+    startDestination: String = "pleasePay"
+) {
+    val isAlreadyPaid = useDataStore(IS_ALREADY_PAID, default = false)
+    val hasSeenNotice = useDataStore(HAS_SEEN_PAID_NOTICE, default = false)
+    val paymentDest = if(!isAlreadyPaid.value && hasSeenNotice.value) {
+        "error"
+    } else if(isAlreadyPaid.value && !hasSeenNotice.value) {
+        "paid"
+    } else {
+        "pleasePay"
+    }
+
+    LaunchedEffect(paymentDest) {
+        if(paymentDest != "pleasePay") {
+            navController.navigate(paymentDest, NavOptions.Builder().setLaunchSingleTop(true).build())
+        }
+    }
+
+    NavHost(
+        navController = navController,
+        startDestination = startDestination
+    ) {
+        composable("pleasePay") {
+            PaymentScreen(settingsViewModel, navController, onExit, billing)
+        }
+
+        composable("paid") {
+            PaymentThankYouScreen(onExit)
+        }
+
+        composable("error") {
+            PaymentFailedScreen(onExit)
         }
     }
 }

@@ -32,7 +32,8 @@ fun useIsInputMethodEnabled(i: Int): MutableState<Status> {
     val context = LocalContext.current
     LaunchedEffect(i) {
         val packageName = context.packageName
-        val imm = context.getSystemService(ComponentActivity.INPUT_METHOD_SERVICE) as InputMethodManager
+        val imm =
+            context.getSystemService(ComponentActivity.INPUT_METHOD_SERVICE) as InputMethodManager
 
         var found = false
         for (imi in imm.enabledInputMethodList) {
@@ -68,7 +69,8 @@ fun useDefaultIME(i: Int): MutableState<String> {
 
     val context = LocalContext.current
     LaunchedEffect(i) {
-        val value = Settings.Secure.getString(context.contentResolver, Settings.Secure.DEFAULT_INPUT_METHOD)
+        val value =
+            Settings.Secure.getString(context.contentResolver, Settings.Secure.DEFAULT_INPUT_METHOD)
         defaultIME.value = value
         println("The default IME is $value")
     }
@@ -78,8 +80,8 @@ fun useDefaultIME(i: Int): MutableState<String> {
 
 
 @Composable
-fun useNumberOfDaysInstalled() : MutableState<Int> {
-    if(LocalInspectionMode.current) {
+fun useNumberOfDaysInstalled(): MutableState<Int> {
+    if (LocalInspectionMode.current) {
         return remember { mutableStateOf(55) }
     }
 
@@ -102,16 +104,16 @@ fun useNumberOfDaysInstalled() : MutableState<Int> {
 }
 
 
-
 data class DataStoreItem<T>(val value: T, val setValue: (T) -> Job)
+
 @Composable
 fun <T> useDataStore(key: Preferences.Key<T>, default: T): DataStoreItem<T> {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
 
     val enableSoundFlow: Flow<T> = remember {
-        context.dataStore.data.map {
-                preferences -> preferences[key] ?: default
+        context.dataStore.data.map { preferences ->
+            preferences[key] ?: default
         }
     }
 

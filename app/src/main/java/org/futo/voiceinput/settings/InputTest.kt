@@ -29,12 +29,15 @@ import org.futo.voiceinput.dataStore
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 @Preview
-fun TestScreen(voiceIntentResult: String = "Voice Intent Result", navController: NavHostController = rememberNavController()) {
+fun TestScreen(
+    voiceIntentResult: String = "Voice Intent Result",
+    navController: NavHostController = rememberNavController()
+) {
     var text by remember { mutableStateOf("") }
 
 
     LaunchedEffect(voiceIntentResult) {
-        if((text != voiceIntentResult) && (voiceIntentResult != "Result goes here")) {
+        if ((text != voiceIntentResult) && (voiceIntentResult != "Result goes here")) {
             text = voiceIntentResult
         }
     }
@@ -42,7 +45,7 @@ fun TestScreen(voiceIntentResult: String = "Voice Intent Result", navController:
     val context = LocalContext.current
 
     LaunchedEffect(text) {
-        if(text.lowercase().trim() == "@force30days") {
+        if (text.lowercase().trim() == "@force30days") {
             context.dataStore.edit { it[FORCE_SHOW_NOTICE] = true }
             navController.popBackStack("home", false, false)
         }
@@ -58,13 +61,22 @@ fun TestScreen(voiceIntentResult: String = "Voice Intent Result", navController:
                 .padding(16.dp)
         )
 
-        Column(modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp)){
-            Button(onClick = { (context as SettingsActivity).launchVoiceIntent() }, modifier = Modifier.fillMaxWidth()) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            Button(
+                onClick = { (context as SettingsActivity).launchVoiceIntent() },
+                modifier = Modifier.fillMaxWidth()
+            ) {
                 Text("Trigger voice input intent")
             }
-            Text(voiceIntentResult, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
+            Text(
+                voiceIntentResult,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
+            )
 
         }
     }

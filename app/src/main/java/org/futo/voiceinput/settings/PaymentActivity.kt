@@ -22,8 +22,11 @@ class PaymentActivity : ComponentActivity() {
         setContent {
             WhisperVoiceInputTheme {
                 // A surface container using the 'background' color from the theme
-                Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-                    PaymentScreen(onExit = {
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background
+                ) {
+                    PaymentScreenSwitch(onExit = {
                         finish()
                     }, billing = billing)
                 }

@@ -31,12 +31,16 @@ import org.futo.voiceinput.ui.theme.Typography
 @Preview
 fun HelpScreen() {
     val textItem: @Composable (text: String) -> Unit = { text ->
-        Text(text, style= Typography.bodyMedium, modifier = Modifier.padding(2.dp, 4.dp))
+        Text(text, style = Typography.bodyMedium, modifier = Modifier.padding(2.dp, 4.dp))
     }
 
     val context = LocalContext.current
     val showAntiConfusionToast = {
-        val toast = Toast.makeText(context, "This is just a demonstration of how Voice Input looks", Toast.LENGTH_SHORT)
+        val toast = Toast.makeText(
+            context,
+            "This is just a demonstration of how Voice Input looks",
+            Toast.LENGTH_SHORT
+        )
         toast.show()
     }
 
@@ -52,9 +56,14 @@ fun HelpScreen() {
                             modifier = Modifier.align(CenterHorizontally),
                             textAlign = TextAlign.Center
                         )
-                        Text("Look for the big off-center FUTO logo in the background!", style = Typography.bodyMedium, modifier = Modifier
-                            .padding(2.dp, 4.dp)
-                            .align(CenterHorizontally), textAlign = TextAlign.Center)
+                        Text(
+                            "Look for the big off-center FUTO logo in the background!",
+                            style = Typography.bodyMedium,
+                            modifier = Modifier
+                                .padding(2.dp, 4.dp)
+                                .align(CenterHorizontally),
+                            textAlign = TextAlign.Center
+                        )
                     }
                 }
             }
@@ -64,7 +73,10 @@ fun HelpScreen() {
             Column(modifier = Modifier.fillMaxWidth()) {
                 Box(modifier = Modifier.align(CenterHorizontally)) {
                     RecognizeWindow(onClose = showAntiConfusionToast, forceNoUnpaidNotice = true) {
-                        IconButton(onClick = showAntiConfusionToast, modifier = Modifier.align(CenterHorizontally)) {
+                        IconButton(
+                            onClick = showAntiConfusionToast,
+                            modifier = Modifier.align(CenterHorizontally)
+                        ) {
                             Icon(
                                 painter = painterResource(R.drawable.mic_2_),
                                 contentDescription = "Stop Recording",
@@ -73,9 +85,14 @@ fun HelpScreen() {
                             )
                         }
                         Spacer(modifier = Modifier.height(8.dp))
-                        Text("Once you're done talking, you can hit the microphone button to stop", style = Typography.bodyMedium, modifier = Modifier
-                            .padding(2.dp, 4.dp)
-                            .align(CenterHorizontally), textAlign = TextAlign.Center)
+                        Text(
+                            "Once you're done talking, you can hit the microphone button to stop",
+                            style = Typography.bodyMedium,
+                            modifier = Modifier
+                                .padding(2.dp, 4.dp)
+                                .align(CenterHorizontally),
+                            textAlign = TextAlign.Center
+                        )
                     }
                 }
             }
@@ -117,7 +134,13 @@ fun HelpScreen() {
             Spacer(modifier = Modifier.height(16.dp))
 
             Tip("Some non-keyboard apps also support voice input! Look for a voice button in Firefox, Organic Maps, etc.")
-            textItem("This app is still in development. Please report any issues or suggestions to ${stringResource(R.string.support_email)}")
+            textItem(
+                "This app is still in development. Please report any issues or suggestions to ${
+                    stringResource(
+                        R.string.support_email
+                    )
+                }"
+            )
 
             Spacer(modifier = Modifier.height(100.dp))
         }

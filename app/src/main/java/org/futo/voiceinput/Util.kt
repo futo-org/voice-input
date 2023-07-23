@@ -319,6 +319,8 @@ val MULTILINGUAL_MODEL_INDEX_DEFAULT = 1
 val LANGUAGE_TOGGLES = stringSetPreferencesKey("enabled_languages")
 
 val IS_ALREADY_PAID = booleanPreferencesKey("already_paid")
+val IS_PAYMENT_PENDING = booleanPreferencesKey("payment_pending")
+val HAS_SEEN_PAID_NOTICE = booleanPreferencesKey("seen_paid_notice")
 val FORCE_SHOW_NOTICE = booleanPreferencesKey("force_show_notice")
 
 // UNIX timestamp in seconds of when to next show the payment reminder

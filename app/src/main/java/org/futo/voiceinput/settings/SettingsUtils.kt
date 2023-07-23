@@ -20,6 +20,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -33,6 +34,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import androidx.navigation.NavOptions
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -40,6 +42,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import org.futo.voiceinput.HAS_SEEN_PAID_NOTICE
+import org.futo.voiceinput.IS_ALREADY_PAID
 import org.futo.voiceinput.Status
 import org.futo.voiceinput.payments.BillingManager
 import org.futo.voiceinput.ui.theme.Typography
@@ -74,30 +78,46 @@ class SettingsViewModel : ViewModel() {
 @Composable
 @Preview
 fun Tip(text: String = "This is an example tip") {
-    Surface(color = MaterialTheme.colorScheme.primaryContainer, modifier = Modifier
-        .fillMaxWidth()
-        .padding(8.dp), shape = RoundedCornerShape(4.dp)
+    Surface(
+        color = MaterialTheme.colorScheme.primaryContainer, modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp), shape = RoundedCornerShape(4.dp)
     ) {
-        Text(text, modifier = Modifier.padding(8.dp), style = Typography.bodyMedium, color = MaterialTheme.colorScheme.onPrimaryContainer)
+        Text(
+            text,
+            modifier = Modifier.padding(8.dp),
+            style = Typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onPrimaryContainer
+        )
     }
 }
 
 
 @Composable
-fun SettingItem(title: String, subtitle: String? = null, onClick: () -> Unit, icon: (@Composable () -> Unit)? = null, disabled: Boolean = false, content: @Composable () -> Unit) {
-    Row(modifier = Modifier
-        .fillMaxWidth()
-        .defaultMinSize(0.dp, 68.dp)
-        .clickable(enabled = !disabled, onClick = {
-            if (!disabled) {
-                onClick()
-            }
-        })
-        .padding(0.dp, 4.dp, 8.dp, 4.dp)
+fun SettingItem(
+    title: String,
+    subtitle: String? = null,
+    onClick: () -> Unit,
+    icon: (@Composable () -> Unit)? = null,
+    disabled: Boolean = false,
+    content: @Composable () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .defaultMinSize(0.dp, 68.dp)
+            .clickable(enabled = !disabled, onClick = {
+                if (!disabled) {
+                    onClick()
+                }
+            })
+            .padding(0.dp, 4.dp, 8.dp, 4.dp)
     ) {
-        Column(modifier = Modifier
-            .width(42.dp)
-            .align(Alignment.CenterVertically)) {
+        Column(
+            modifier = Modifier
+                .width(42.dp)
+                .align(Alignment.CenterVertically)
+        ) {
             Box(modifier = Modifier.align(Alignment.CenterHorizontally)) {
                 if (icon != null) {
                     icon()
@@ -120,7 +140,11 @@ fun SettingItem(title: String, subtitle: String? = null, onClick: () -> Unit, ic
                 Text(title, style = Typography.bodyLarge)
 
                 if (subtitle != null) {
-                    Text(subtitle, style = Typography.bodySmall, color = MaterialTheme.colorScheme.outline)
+                    Text(
+                        subtitle,
+                        style = Typography.bodySmall,
+                        color = MaterialTheme.colorScheme.outline
+                    )
                 }
             }
         }
@@ -131,22 +155,45 @@ fun SettingItem(title: String, subtitle: String? = null, onClick: () -> Unit, ic
 }
 
 @Composable
-fun SettingToggleRaw(title: String, enabled: Boolean, setValue: (Boolean) -> Unit, subtitle: String? = null, disabled: Boolean = false, icon: (@Composable () -> Unit)? = null) {
+fun SettingToggleRaw(
+    title: String,
+    enabled: Boolean,
+    setValue: (Boolean) -> Unit,
+    subtitle: String? = null,
+    disabled: Boolean = false,
+    icon: (@Composable () -> Unit)? = null
+) {
     SettingItem(
         title = title,
         subtitle = subtitle,
-        onClick = { if(!disabled) { setValue(!enabled) } },
+        onClick = {
+            if (!disabled) {
+                setValue(!enabled)
+            }
+        },
         icon = icon
     ) {
-        Switch(checked = enabled, onCheckedChange = { if(!disabled) { setValue(!enabled) } }, enabled = !disabled)
+        Switch(checked = enabled, onCheckedChange = {
+            if (!disabled) {
+                setValue(!enabled)
+            }
+        }, enabled = !disabled)
     }
 }
 
 @Composable
-fun SettingToggle(title: String, key: Preferences.Key<Boolean>, default: Boolean, subtitle: String? = null, disabledSubtitle: String? = null, disabled: Boolean = false, icon: (@Composable () -> Unit)? = null) {
+fun SettingToggle(
+    title: String,
+    key: Preferences.Key<Boolean>,
+    default: Boolean,
+    subtitle: String? = null,
+    disabledSubtitle: String? = null,
+    disabled: Boolean = false,
+    icon: (@Composable () -> Unit)? = null
+) {
     val (enabled, setValue) = useDataStore(key, default)
 
-    val subtitleValue = if(!enabled && disabledSubtitle != null) {
+    val subtitleValue = if (!enabled && disabledSubtitle != null) {
         disabledSubtitle
     } else {
         subtitle
@@ -180,8 +227,29 @@ fun SettingListLazy(content: LazyListScope.() -> Unit) {
 
 @Composable
 @Preview
-fun SettingsMain(settingsViewModel: SettingsViewModel = viewModel(), navController: NavHostController = rememberNavController(), billing: BillingManager? = null) {
+fun SettingsMain(
+    settingsViewModel: SettingsViewModel = viewModel(),
+    navController: NavHostController = rememberNavController(),
+    billing: BillingManager? = null
+) {
     val settingsUiState by settingsViewModel.uiState.collectAsState()
+
+    val isAlreadyPaid = useDataStore(IS_ALREADY_PAID, default = false)
+    val hasSeenNotice = useDataStore(HAS_SEEN_PAID_NOTICE, default = false)
+    val paymentDest = if(!isAlreadyPaid.value && hasSeenNotice.value) {
+        "error"
+    } else if(isAlreadyPaid.value && !hasSeenNotice.value) {
+        "paid"
+    } else {
+        "pleasePay"
+    }
+
+    LaunchedEffect(paymentDest) {
+        if(paymentDest != "pleasePay") {
+            navController.popBackStack("home", false)
+            navController.navigate(paymentDest, NavOptions.Builder().setLaunchSingleTop(true).build())
+        }
+    }
 
     NavHost(
         navController = navController,
@@ -213,8 +281,17 @@ fun SettingsMain(settingsViewModel: SettingsViewModel = viewModel(), navControll
         composable("models") {
             ModelsScreen(settingsViewModel, navController)
         }
-        composable("payment") {
-            PaymentScreen(settingsViewModel, navController, billing = billing!!, onExit = { navController.popBackStack() })
+
+        composable("pleasePay") {
+            PaymentScreen(settingsViewModel, navController, { navController.popBackStack() }, billing!!)
+        }
+
+        composable("paid") {
+            PaymentThankYouScreen { navController.popBackStack() }
+        }
+
+        composable("error") {
+            PaymentFailedScreen { navController.popBackStack() }
         }
     }
 }
@@ -246,19 +323,24 @@ fun SetupOrMain(settingsViewModel: SettingsViewModel = viewModel(), billing: Bil
     val defaultIME = useDefaultIME(settingsUiState.numberOfResumes)
 
     val acknowledgedBlacklistedWarning = rememberSaveable { mutableStateOf(false) }
-    val blacklistedKeyboardInfo = BLACKLISTED_KEYBOARDS.firstOrNull { it.packageName == defaultIME.value }
+    val blacklistedKeyboardInfo =
+        BLACKLISTED_KEYBOARDS.firstOrNull { it.packageName == defaultIME.value }
 
-    if(blacklistedKeyboardInfo != null && !acknowledgedBlacklistedWarning.value) {
-        SetupBlacklistedKeyboardWarning(blacklistedKeyboardInfo, { acknowledgedBlacklistedWarning.value = true })
-    }else if (inputMethodEnabled.value == Status.False) {
+    if (blacklistedKeyboardInfo != null && !acknowledgedBlacklistedWarning.value) {
+        SetupBlacklistedKeyboardWarning(
+            blacklistedKeyboardInfo,
+            { acknowledgedBlacklistedWarning.value = true })
+    } else if (inputMethodEnabled.value == Status.False) {
         SetupEnableIME()
     } else if (microphonePermitted.value == Status.False) {
         SetupEnableMic()
     } else if ((inputMethodEnabled.value == Status.Unknown) || (microphonePermitted.value == Status.Unknown)) {
         Row(modifier = Modifier.fillMaxSize()) {
-            Column(modifier = Modifier
-                .fillMaxWidth()
-                .align(Alignment.CenterVertically)) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .align(Alignment.CenterVertically)
+            ) {
                 CircularProgressIndicator(
                     modifier = Modifier.align(Alignment.CenterHorizontally),
                     color = MaterialTheme.colorScheme.onPrimary

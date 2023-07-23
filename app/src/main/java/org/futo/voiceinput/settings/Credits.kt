@@ -31,7 +31,11 @@ import org.futo.voiceinput.ui.theme.Typography
 fun CreditItem(name: String, thanksFor: String, link: String, license: String, copyright: String) {
     val uriHandler = LocalUriHandler.current
 
-    Surface(color = MaterialTheme.colorScheme.primaryContainer, modifier = Modifier.padding(8.dp), shape = RoundedCornerShape(4.dp)) {
+    Surface(
+        color = MaterialTheme.colorScheme.primaryContainer,
+        modifier = Modifier.padding(8.dp),
+        shape = RoundedCornerShape(4.dp)
+    ) {
         ClickableText(text = buildAnnotatedString {
             val fullString =
                 "$name - Thanks for $thanksFor. $name is licensed under $license. $copyright."
@@ -134,7 +138,11 @@ fun CreditsScreen(openDependencies: () -> Unit = {}) {
             ) {
                 Text("View Other Dependencies")
             }
-            Text("The authors, contributors or copyright holders listed above are not affiliated with this product and do not endorse or promote this product. Reference to the authors, contributors or copyright holders is solely for attribution purposes. Mention of their names does not imply approval or endorsement.", style = Typography.bodyMedium, modifier = Modifier.padding(8.dp))
+            Text(
+                "The authors, contributors or copyright holders listed above are not affiliated with this product and do not endorse or promote this product. Reference to the authors, contributors or copyright holders is solely for attribution purposes. Mention of their names does not imply approval or endorsement.",
+                style = Typography.bodyMedium,
+                modifier = Modifier.padding(8.dp)
+            )
         }
     }
 }

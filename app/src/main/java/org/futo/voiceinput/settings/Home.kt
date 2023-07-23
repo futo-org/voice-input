@@ -1,12 +1,16 @@
 package org.futo.voiceinput.settings
 
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -15,11 +19,14 @@ import org.futo.voiceinput.ENABLE_MULTILINGUAL
 import org.futo.voiceinput.ENABLE_SOUND
 import org.futo.voiceinput.ENGLISH_MODEL_INDEX
 import org.futo.voiceinput.ENGLISH_MODEL_INDEX_DEFAULT
+import org.futo.voiceinput.HAS_SEEN_PAID_NOTICE
+import org.futo.voiceinput.IS_ALREADY_PAID
 import org.futo.voiceinput.MULTILINGUAL_MODEL_INDEX
 import org.futo.voiceinput.MULTILINGUAL_MODEL_INDEX_DEFAULT
 import org.futo.voiceinput.R
 import org.futo.voiceinput.Screen
 import org.futo.voiceinput.openURI
+import org.futo.voiceinput.ui.theme.Typography
 
 
 @Composable
@@ -36,21 +43,32 @@ fun ShareFeedbackOption() {
 
 @Composable
 @Preview
-fun HomeScreen(settingsViewModel: SettingsViewModel = viewModel(), navController: NavHostController = rememberNavController()) {
+fun HomeScreen(
+    settingsViewModel: SettingsViewModel = viewModel(),
+    navController: NavHostController = rememberNavController()
+) {
+    val isAlreadyPaid = useDataStore(IS_ALREADY_PAID, default = false)
+
     val (multilingual, _) = useDataStore(key = ENABLE_MULTILINGUAL, default = false)
-    val multilingualSubtitle = if(multilingual) {
+    val multilingualSubtitle = if (multilingual) {
         "Multilingual enabled, English will be slower"
     } else {
         null
     }
 
-
-    val (englishIdx, _) = useDataStore(key = ENGLISH_MODEL_INDEX, default = ENGLISH_MODEL_INDEX_DEFAULT)
-    val (multilingualIdxActual, _) = useDataStore(key = MULTILINGUAL_MODEL_INDEX, default = MULTILINGUAL_MODEL_INDEX_DEFAULT)
+    val (englishIdx, _) = useDataStore(
+        key = ENGLISH_MODEL_INDEX,
+        default = ENGLISH_MODEL_INDEX_DEFAULT
+    )
+    val (multilingualIdxActual, _) = useDataStore(
+        key = MULTILINGUAL_MODEL_INDEX,
+        default = MULTILINGUAL_MODEL_INDEX_DEFAULT
+    )
 
     // It doesn't matter what the multilingual model is set to if multilingual is disabled, the model
     // isn't used anyway. So suppress any text about its value by pretending it's default
-    val multilingualIdx = if(multilingual) multilingualIdxActual else MULTILINGUAL_MODEL_INDEX_DEFAULT
+    val multilingualIdx =
+        if (multilingual) multilingualIdxActual else MULTILINGUAL_MODEL_INDEX_DEFAULT
 
     val totalDiff =
         (englishIdx - ENGLISH_MODEL_INDEX_DEFAULT) + (multilingualIdx - MULTILINGUAL_MODEL_INDEX_DEFAULT)
@@ -77,10 +95,18 @@ fun HomeScreen(settingsViewModel: SettingsViewModel = viewModel(), navController
             SettingItem(title = "Help", onClick = { navController.navigate("help") }) {
                 Icon(Icons.Default.ArrowForward, contentDescription = "Go")
             }
-            SettingItem(title = "Languages", onClick = { navController.navigate("languages") }, subtitle = multilingualSubtitle) {
+            SettingItem(
+                title = "Languages",
+                onClick = { navController.navigate("languages") },
+                subtitle = multilingualSubtitle
+            ) {
                 Icon(Icons.Default.ArrowForward, contentDescription = "Go")
             }
-            SettingItem(title = "Models", onClick = { navController.navigate("models") }, subtitle = modelSubtitle) {
+            SettingItem(
+                title = "Models",
+                onClick = { navController.navigate("models") },
+                subtitle = modelSubtitle
+            ) {
                 Icon(Icons.Default.ArrowForward, contentDescription = "Go")
             }
             SettingToggle(
@@ -94,7 +120,9 @@ fun HomeScreen(settingsViewModel: SettingsViewModel = viewModel(), navController
                 Icon(Icons.Default.ArrowForward, contentDescription = "Go")
             }
             UnpaidNoticeCondition(showOnlyIfReminder = true) {
-                SettingItem(title = "Payment", onClick = { navController.navigate("payment") }) {
+                SettingItem(
+                    title = "Payment",
+                    onClick = { navController.navigate("pleasePay") }) {
                     Icon(Icons.Default.ArrowForward, contentDescription = "Go")
                 }
             }
@@ -102,6 +130,9 @@ fun HomeScreen(settingsViewModel: SettingsViewModel = viewModel(), navController
                 Icon(Icons.Default.ArrowForward, contentDescription = "Go")
             }
             ShareFeedbackOption()
+            if(isAlreadyPaid.value) {
+                Text("Thank you for using the paid version of FUTO Voice Input!", style = Typography.bodyMedium, modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center)
+            }
         }
     }
 }

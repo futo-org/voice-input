@@ -19,33 +19,51 @@ import org.futo.voiceinput.startModelDownloadActivity
 
 
 @Composable
-fun LanguageToggle(id: String, name: String, languages: Set<String>, setLanguages: (Set<String>) -> Job, subtitle: String?) {
+fun LanguageToggle(
+    id: String,
+    name: String,
+    languages: Set<String>,
+    setLanguages: (Set<String>) -> Job,
+    subtitle: String?
+) {
     SettingToggleRaw(
         name,
         languages.contains(id),
-        { setLanguages( (languages.filter{ it != id} + if(it) { listOf(id) } else { listOf() } ).toSet() ) },
+        {
+            setLanguages((languages.filter { it != id } + if (it) {
+                listOf(id)
+            } else {
+                listOf()
+            }).toSet())
+        },
         subtitle = subtitle
     )
 }
 
 @Composable
 @Preview
-fun LanguagesScreen(settingsViewModel: SettingsViewModel = viewModel(), navController: NavHostController = rememberNavController()) {
+fun LanguagesScreen(
+    settingsViewModel: SettingsViewModel = viewModel(),
+    navController: NavHostController = rememberNavController()
+) {
     val (multilingual, setMultilingual) = useDataStore(key = ENABLE_MULTILINGUAL, default = false)
-    val (multilingualModelIndex, _) = useDataStore(key = MULTILINGUAL_MODEL_INDEX, default = MULTILINGUAL_MODEL_INDEX_DEFAULT)
+    val (multilingualModelIndex, _) = useDataStore(
+        key = MULTILINGUAL_MODEL_INDEX,
+        default = MULTILINGUAL_MODEL_INDEX_DEFAULT
+    )
     val (languages, setLanguages) = useDataStore(key = LANGUAGE_TOGGLES, default = setOf("en"))
     val context = LocalContext.current
 
 
     LaunchedEffect(listOf(multilingualModelIndex, multilingual)) {
-        if(multilingual) {
+        if (multilingual) {
             context.startModelDownloadActivity(listOf(MULTILINGUAL_MODELS[multilingualModelIndex]))
         }
     }
 
     LaunchedEffect(languages) {
         val newMultilingual = languages.count { it != "en" } > 0
-        if(multilingual != newMultilingual) setMultilingual(newMultilingual)
+        if (multilingual != newMultilingual) setMultilingual(newMultilingual)
     }
 
     Screen("Languages") {
@@ -68,7 +86,7 @@ fun LanguagesScreen(settingsViewModel: SettingsViewModel = viewModel(), navContr
             items(LANGUAGE_LIST.size) {
                 val language = LANGUAGE_LIST[it]
 
-                val subtitle = if(language.trainedHourCount < 500) {
+                val subtitle = if (language.trainedHourCount < 500) {
                     "May be low accuracy (${language.trainedHourCount}h)"
                 } else {
                     "Trained on ${language.trainedHourCount} hours"
@@ -76,7 +94,7 @@ fun LanguagesScreen(settingsViewModel: SettingsViewModel = viewModel(), navContr
 
                 // Only show languages trained with over 1000 hours for now, as anything lower
                 // can be laughably bad on the tiny model
-                if(language.trainedHourCount > 1000) {
+                if (language.trainedHourCount > 1000) {
                     LanguageToggle(language.id, language.name, languages, setLanguages, subtitle)
                 }
             }

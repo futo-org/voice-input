@@ -97,6 +97,9 @@ android {
             // Include only the payments directories, not the dummy directories, to compile both billing methods
             java.srcDir 'src/playStoreBilling/java/org/futo/voiceinput/payments'
             java.srcDir 'src/payPalBilling/java/org/futo/voiceinput/payments'
+
+            // Include dev code
+            java.srcDir 'src/dev/java'
         }
 
         playStore {
@@ -105,6 +108,9 @@ android {
 
             // Include only Play Store billing
             java.srcDir 'src/playStoreBilling/java'
+
+            // Include non-dev code
+            java.srcDir 'src/nonDev/java'
         }
 
         fDroid {
@@ -113,6 +119,9 @@ android {
 
             // Include only PayPal billing, do not depend on Play Store billing
             java.srcDir 'src/payPalBilling/java'
+
+            // Include non-dev code
+            java.srcDir 'src/nonDev/java'
         }
 
         standalone {
@@ -121,6 +130,9 @@ android {
 
             // Include only PayPal billing, do not depend on Play Store billing
             java.srcDir 'src/payPalBilling/java'
+
+            // Include non-dev code
+            java.srcDir 'src/nonDev/java'
         }
     }
 }

@@ -45,9 +45,11 @@ fun ModelSizeItem(name: String, options: List<ModelData>, key: Preferences.Key<I
     val (modelIndex, setModelIndex) = useDataStore(key = key, default = default)
 
     var expanded by remember { mutableStateOf(false) }
-    Box(modifier = Modifier
-        .fillMaxWidth()
-        .padding(8.dp)) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp)
+    ) {
         ExposedDropdownMenuBox(
             expanded = expanded,
             onExpandedChange = {
@@ -97,14 +99,29 @@ fun ModelSizeItem(name: String, options: List<ModelData>, key: Preferences.Key<I
 
 @Composable
 @Preview
-fun ModelsScreen(settingsViewModel: SettingsViewModel = viewModel(), navController: NavHostController = rememberNavController()) {
+fun ModelsScreen(
+    settingsViewModel: SettingsViewModel = viewModel(),
+    navController: NavHostController = rememberNavController()
+) {
     val (useMultilingual, _) = useDataStore(key = ENABLE_MULTILINGUAL, default = false)
 
-    val (englishModelIndex, _) = useDataStore(key = ENGLISH_MODEL_INDEX, default = ENGLISH_MODEL_INDEX_DEFAULT)
-    val (multilingualModelIndex, _) = useDataStore(key = MULTILINGUAL_MODEL_INDEX, default = MULTILINGUAL_MODEL_INDEX_DEFAULT)
+    val (englishModelIndex, _) = useDataStore(
+        key = ENGLISH_MODEL_INDEX,
+        default = ENGLISH_MODEL_INDEX_DEFAULT
+    )
+    val (multilingualModelIndex, _) = useDataStore(
+        key = MULTILINGUAL_MODEL_INDEX,
+        default = MULTILINGUAL_MODEL_INDEX_DEFAULT
+    )
     val context = LocalContext.current
-    LaunchedEffect(listOf(if(useMultilingual) 1 else 0, englishModelIndex, multilingualModelIndex)) {
-        if(useMultilingual) {
+    LaunchedEffect(
+        listOf(
+            if (useMultilingual) 1 else 0,
+            englishModelIndex,
+            multilingualModelIndex
+        )
+    ) {
+        if (useMultilingual) {
             context.startModelDownloadActivity(
                 listOf(
                     ENGLISH_MODELS[englishModelIndex],
@@ -120,9 +137,14 @@ fun ModelsScreen(settingsViewModel: SettingsViewModel = viewModel(), navControll
         ScrollableList {
             Tip("Tip: The number is the model's parameter count in millions. More parameters = slower and more accurate")
             Spacer(modifier = Modifier.height(16.dp))
-            ModelSizeItem("English", ENGLISH_MODELS, ENGLISH_MODEL_INDEX, ENGLISH_MODEL_INDEX_DEFAULT)
+            ModelSizeItem(
+                "English",
+                ENGLISH_MODELS,
+                ENGLISH_MODEL_INDEX,
+                ENGLISH_MODEL_INDEX_DEFAULT
+            )
 
-            if(useMultilingual) {
+            if (useMultilingual) {
                 Spacer(modifier = Modifier.height(16.dp))
                 ModelSizeItem(
                     "Multilingual",

@@ -21,42 +21,52 @@ import org.futo.voiceinput.ui.theme.WhisperVoiceInputTheme
 import org.futo.voiceinput.updates.scheduleUpdateCheckingJob
 
 class SettingsActivity : ComponentActivity() {
-    lateinit var billing: BillingManager
+    internal lateinit var billing: BillingManager
     private fun updateContent() {
         setContent {
             WhisperVoiceInputTheme {
                 // A surface container using the 'background' color from the theme
-                Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background
+                ) {
                     SetupOrMain(billing = billing)
                 }
             }
         }
     }
 
-    private val permission = registerForActivityResult(ActivityResultContracts.RequestPermission()) {
-        viewModel.onResume()
-    }
+    private val permission =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) {
+            viewModel.onResume()
+        }
 
 
     private val voiceIntent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
-    private val runVoiceIntent = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-        viewModel.onIntentResult(when(it.resultCode){
-            RESULT_OK -> {
-                val result = it.data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
-                if(result.isNullOrEmpty()) {
-                    "Intent result is null or empty"
-                } else {
-                    result[0]
+    private val runVoiceIntent =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            viewModel.onIntentResult(
+                when (it.resultCode) {
+                    RESULT_OK -> {
+                        val result =
+                            it.data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
+                        if (result.isNullOrEmpty()) {
+                            "Intent result is null or empty"
+                        } else {
+                            result[0]
+                        }
+                    }
+
+                    RESULT_CANCELED -> "Intent was cancelled"
+                    else -> "Unknown intent result"
                 }
-            }
-            RESULT_CANCELED -> "Intent was cancelled"
-            else -> "Unknown intent result"
-        })
-    }
+            )
+        }
 
     internal fun requestPermission() {
         permission.launch(Manifest.permission.RECORD_AUDIO)
     }
+
     internal fun launchVoiceIntent() {
         runVoiceIntent.launch(voiceIntent)
     }

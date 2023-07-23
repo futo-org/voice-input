@@ -10,6 +10,7 @@ import com.android.billingclient.api.BillingClientStateListener
 import com.android.billingclient.api.BillingFlowParams
 import com.android.billingclient.api.BillingResult
 import com.android.billingclient.api.Purchase
+import com.android.billingclient.api.Purchase.PurchaseState
 import com.android.billingclient.api.PurchasesUpdatedListener
 import com.android.billingclient.api.QueryProductDetailsParams
 import com.android.billingclient.api.QueryPurchaseHistoryParams
@@ -21,6 +22,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.futo.voiceinput.IS_ALREADY_PAID
+import org.futo.voiceinput.IS_PAYMENT_PENDING
+import org.futo.voiceinput.ValueFromSettings
 import org.futo.voiceinput.dataStore
 
 const val PRODUCT_ID = "one_time_license"
@@ -32,61 +35,67 @@ class PlayBilling(private val context: Context, private val coroutine: Coroutine
     }
 
     private val purchasesUpdatedListener =
-        PurchasesUpdatedListener { billingResult, purchases ->
-            if (billingResult.responseCode == BillingClient.BillingResponseCode.OK && purchases != null) {
-                for (purchase in purchases) {
-                    if(purchase.products.contains(PRODUCT_ID)) {
-                        handlePurchasedLicense(purchase)
-                    }
-                }
-            } else {
-                // Handle any other error codes.
-            }
+        PurchasesUpdatedListener { _, _ ->
+            checkAlreadyOwnsProduct()
         }
 
-    private var billingClient = BillingClient.newBuilder(context)
+    internal var billingClient = BillingClient.newBuilder(context)
         .setListener(purchasesUpdatedListener)
         .enablePendingPurchases()
         .build()
 
-
     private fun handlePurchasedLicense(purchase: Purchase) {
+        if(purchase.isAcknowledged) return;
+
         val params = AcknowledgePurchaseParams.newBuilder().setPurchaseToken(purchase.purchaseToken).build()
         billingClient.acknowledgePurchase(params) {
-            if(it.responseCode == BillingClient.BillingResponseCode.OK) {
-                coroutine.launch {
-                    context.dataStore.edit { it[IS_ALREADY_PAID] = true }
-                }
-            } else {
-                Toast.makeText(context, "PlayBilling - Failed to acknowledge purchase", Toast.LENGTH_SHORT).show()
+            if(it.responseCode != BillingClient.BillingResponseCode.OK) {
+                Toast.makeText(context, "PlayBilling - Failed to acknowledge purchase, will try again later", Toast.LENGTH_SHORT).show()
                 // Handle error
             }
-        }
-
-        coroutine.launch {
-            context.dataStore.edit { it[IS_ALREADY_PAID] = true }
         }
     }
 
     override fun checkAlreadyOwnsProduct() {
         if(billingClient.connectionState != BillingClient.ConnectionState.CONNECTED) {
-            Toast.makeText(context, "PlayBilling - Not connected to Billing", Toast.LENGTH_SHORT).show()
             return startConnection { checkAlreadyOwnsProduct() }
         }
 
-        coroutine.launch {
-            val purchaseHistoryParams = QueryPurchaseHistoryParams.newBuilder()
-                .setProductType(BillingClient.ProductType.INAPP).build()
-            val purchaseHistory = withContext(Dispatchers.IO) {
-                billingClient.queryPurchaseHistory(purchaseHistoryParams)
-            }
+        val params = QueryPurchasesParams.newBuilder()
+            .setProductType(BillingClient.ProductType.INAPP)
+            .build()
+        billingClient.queryPurchasesAsync(params) { result, purchases ->
+            if (result.responseCode == BillingClient.BillingResponseCode.OK) {
+                val purchasesOnlyContainingLicense = purchases.filter { it.products.contains(PRODUCT_ID) }
 
-            val ownsProduct = purchaseHistory.purchaseHistoryRecordList?.any {
-                it.products.contains(PRODUCT_ID)
-            } ?: false
+                val lastSuccessfulPurchase = purchasesOnlyContainingLicense.lastOrNull {
+                    it.purchaseState == PurchaseState.PURCHASED
+                }
 
-            if (ownsProduct) {
-                context.dataStore.edit { it[IS_ALREADY_PAID] = true }
+                val lastPendingPurchase = purchasesOnlyContainingLicense.lastOrNull {
+                    it.purchaseState == PurchaseState.PENDING
+                }
+
+                val isPaid = lastSuccessfulPurchase != null || lastPendingPurchase != null
+                val isPending = lastSuccessfulPurchase == null && lastPendingPurchase != null
+
+                coroutine.launch {
+                    val isPaidSetting = ValueFromSettings(IS_ALREADY_PAID, false).get(context)
+                    val isPendingSettings = ValueFromSettings(IS_PAYMENT_PENDING, false).get(context)
+
+                    if(isPaid != isPaidSetting
+                        && (isPaid || isPendingSettings) // For now, only allow going paid -> unpaid if the payment was pending
+                    ) {
+                        context.dataStore.edit { it[IS_ALREADY_PAID] = isPaid }
+                    }
+
+                    if(isPendingSettings != isPending)
+                        context.dataStore.edit { it[IS_PAYMENT_PENDING] = isPending }
+                }
+
+                purchasesOnlyContainingLicense.filter { !it.isAcknowledged }.forEach { handlePurchasedLicense(it) }
+            } else {
+                // Handle any other error codes.
             }
         }
     }
@@ -99,7 +108,7 @@ class PlayBilling(private val context: Context, private val coroutine: Coroutine
                 }
             }
             override fun onBillingServiceDisconnected() {
-                Toast.makeText(context, "PlayBilling - Disconnected from billing service", Toast.LENGTH_SHORT).show()
+                //Toast.makeText(context, "PlayBilling - Disconnected from billing service", Toast.LENGTH_SHORT).show()
                 // Try to restart the connection on the next request to
                 // Google Play by calling the startConnection() method.
             }
@@ -107,31 +116,6 @@ class PlayBilling(private val context: Context, private val coroutine: Coroutine
     }
 
     override fun onResume() {
-        if(billingClient.connectionState != BillingClient.ConnectionState.CONNECTED) {
-            //Toast.makeText(context, "PlayBilling - Not connected to Billing", Toast.LENGTH_SHORT).show()
-            return startConnection { onResume() }
-        }
-
-        val params = QueryPurchasesParams.newBuilder()
-            .setProductType(BillingClient.ProductType.INAPP)
-            .build()
-        billingClient.queryPurchasesAsync(params) { result, purchases ->
-            if (result.responseCode == BillingClient.BillingResponseCode.OK) {
-                for (purchase in purchases) {
-                    if (purchase.products.contains(PRODUCT_ID)) {
-                        handlePurchasedLicense(purchase)
-                    }
-                }
-            } else {
-                Toast.makeText(
-                    context,
-                    "PlayBilling - Query purchases responded with non-OK",
-                    Toast.LENGTH_SHORT
-                ).show()
-                // Handle any other error codes.
-            }
-        }
-
         checkAlreadyOwnsProduct()
     }
 
@@ -141,8 +125,6 @@ class PlayBilling(private val context: Context, private val coroutine: Coroutine
             Toast.makeText(context, "PlayBilling - Not connected to Billing", Toast.LENGTH_SHORT).show()
             return startConnection { launchBillingFlow() }
         }
-
-        println("lunaching coroutine scope")
 
         coroutine.launch {
             val productList = ArrayList<QueryProductDetailsParams.Product>()

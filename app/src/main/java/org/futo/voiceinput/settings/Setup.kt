@@ -46,7 +46,10 @@ fun SetupContainer(inner: @Composable () -> Unit) {
                 painter = painterResource(id = R.drawable.futo_logo),
                 contentDescription = "FUTO Logo",
                 modifier = Modifier
-                    .size(LocalConfiguration.current.screenWidthDp.dp * 0.75f, LocalConfiguration.current.screenHeightDp.dp * 0.2f)
+                    .size(
+                        LocalConfiguration.current.screenWidthDp.dp * 0.75f,
+                        LocalConfiguration.current.screenHeightDp.dp * 0.2f
+                    )
                     .align(CenterHorizontally),
                 tint = Slate300
             )
@@ -54,7 +57,12 @@ fun SetupContainer(inner: @Composable () -> Unit) {
             Box(modifier = Modifier.align(CenterHorizontally)) {
                 // If the system font size is way big, the content may be big enough to overlap
                 // with the FUTO logo, so just block the logo with a surface to keep text readable
-                Surface(color = MaterialTheme.colorScheme.background, modifier = Modifier.padding(16.dp).fillMaxSize()) {
+                Surface(
+                    color = MaterialTheme.colorScheme.background,
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .fillMaxSize()
+                ) {
                     Column {
                         inner()
                     }
@@ -160,7 +168,13 @@ fun SetupEnableMic(onClick: () -> Unit = { }) {
 
 @Composable
 @Preview
-fun SetupBlacklistedKeyboardWarning(info: BlacklistedInputMethod = BlacklistedInputMethod("sample", "Example Keyboard", "This keyboard is incompatible because xyz.."), onClick: () -> Unit = { }) {
+fun SetupBlacklistedKeyboardWarning(
+    info: BlacklistedInputMethod = BlacklistedInputMethod(
+        "sample",
+        "Example Keyboard",
+        "This keyboard is incompatible because xyz.."
+    ), onClick: () -> Unit = { }
+) {
 
     SetupContainer {
         Text(
