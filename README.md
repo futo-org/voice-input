@@ -18,7 +18,6 @@ Incompatible keyboards:
 * Gboard - has its own thing
 * Simple Keyboard by Raimondas Rimkus - no voice button
 * Simple Keyboard by Simple Mobile Tools - no voice button
-* FlorisBoard - no voice button
 * Unexpected Keyboard - no voice button
 * TypeWise - no voice button [but suggestion filed in 2019](https://suggestions.typewise.app/suggestions/65517/voice-to-text-dictation)
 

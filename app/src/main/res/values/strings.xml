@@ -35,7 +35,6 @@
     <string name="gboard" translatable="false">• Gboard</string>
     <string name="typewise" translatable="false">• TypeWise</string>
     <string name="simple_keyboard" translatable="false">• Simple Keyboard</string>
-    <string name="florisboard" translatable="false">• FlorisBoard</string>
     <string name="unexpected_keyboard" translatable="false">• Unexpected Keyboard</string>
     <string name="help_paragraph_9">Some non-keyboard apps also support voice input! Look for a voice button in Firefox, Organic Maps, etc.</string>
     <string name="help_with_email">This app is still in development. Please report any issues or suggestions to voiceinput@futo.org</string>

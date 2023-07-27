@@ -128,7 +128,6 @@ fun HelpScreen() {
                 textItem(stringResource(R.string.gboard))
                 textItem(stringResource(R.string.typewise))
                 textItem(stringResource(R.string.simple_keyboard))
-                textItem(stringResource(R.string.florisboard))
                 textItem(stringResource(R.string.unexpected_keyboard))
             }
 
