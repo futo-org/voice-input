@@ -109,7 +109,7 @@ fun SetupEnableIME(onClick: () -> Unit = { }) {
         Step(fraction = 0.33f, text = stringResource(R.string.step_1_of_2))
 
         Text(
-            stringResource(R.string.to_integrate_with_existing_keyboards_you_need_to_enable_the_voice_input_method),
+            stringResource(R.string.enable_ime_body),
             textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth()
         )
@@ -151,7 +151,7 @@ fun SetupEnableMic(onClick: () -> Unit = { }) {
         Step(fraction = 0.66f, text = stringResource(R.string.step_2_of_2))
         // TODO: Include some privacy statement
         Text(
-            stringResource(R.string.in_order_to_use_voice_input_you_need_to_grant_microphone_permission),
+            stringResource(R.string.grant_microphone_body),
             textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth()
         )

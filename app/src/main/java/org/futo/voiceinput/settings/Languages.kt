@@ -81,7 +81,7 @@ fun LanguagesScreen(
                     true,
                     {},
                     disabled = true,
-                    subtitle = stringResource(R.string.always_on_enabling_others_will_increase_english_latency)
+                    subtitle = stringResource(R.string.english_subtitle)
                 )
             }
 

@@ -53,7 +53,7 @@ class UpdateCheckingService : JobService() {
 
                     val notification = NotificationCompat.Builder(applicationContext, CHANNEL_ID)
                         .setContentTitle(getString(R.string.update_available))
-                        .setContentText(getString(R.string.an_update_is_available_s_s_tap_to_download,"${UpdateResult.currentVersionString()} -> ${updateResult.nextVersionString}"))
+                        .setContentText(getString(R.string.update_available_notification,"${UpdateResult.currentVersionString()} -> ${updateResult.nextVersionString}"))
                         .setSmallIcon(R.drawable.ic_launcher_foreground)
                         .setContentIntent(contentIntent)
 

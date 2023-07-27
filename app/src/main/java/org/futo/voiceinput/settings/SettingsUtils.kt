@@ -317,12 +317,12 @@ fun SetupOrMain(settingsViewModel: SettingsViewModel = viewModel(), billing: Bil
             BlacklistedInputMethod(
                 "com.google.android.inputmethod.latin/com.android.inputmethod.latin.LatinIME",
                 details = stringResource(R.string.gboard_incompatible_details),
-                dismiss = stringResource(R.string.i_understand_gboard_is_incompatible)
+                dismiss = stringResource(R.string.gboard_incompatible_accept)
             ),
             BlacklistedInputMethod(
                 "ch.icoaching.typewise/ch.icoaching.wrio.Wrio",
                 details = stringResource(R.string.typewise_incompatible_details),
-                dismiss = stringResource(R.string.i_understand_typewise_is_incompatible)
+                dismiss = stringResource(R.string.typewise_incompatible_accept)
             )
         )
 

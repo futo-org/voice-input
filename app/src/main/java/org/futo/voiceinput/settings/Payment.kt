@@ -214,9 +214,9 @@ fun PaymentThankYouScreen(onExit: () -> Unit = { }) {
         ScrollableList {
             ParagraphText(stringResource(R.string.thank_you_for_purchasing_voice_input))
             if (isPending.value) {
-                ParagraphText(stringResource(R.string.your_payment_is_still_pending_but_it_should_clear_soon))
+                ParagraphText(stringResource(R.string.payment_pending_body))
             }
-            ParagraphText(stringResource(R.string.your_purchase_will_help_continued_development_of_voice_input_and_other_futo_projects))
+            ParagraphText(stringResource(R.string.purchase_will_help_body))
 
             Box(modifier = Modifier.fillMaxWidth()) {
                 Button(
@@ -242,7 +242,7 @@ fun PaymentFailedScreen(onExit: () -> Unit = { }) {
 
     Screen(stringResource(R.string.payment_error)) {
         ScrollableList {
-            ParagraphText(stringResource(R.string.unfortunately_your_payment_has_failed_for_one_reason_or_another_please_contact_us_or_google_play_if_you_need_help))
+            ParagraphText(stringResource(R.string.payment_failed_body))
             Box(modifier = Modifier.fillMaxWidth()) {
                 val coroutineScope = rememberCoroutineScope()
                 Button(
@@ -369,7 +369,7 @@ fun PaymentScreen(
                 @Suppress("KotlinConstantConditions")
                 if (BuildConfig.FLAVOR == "dev") {
                     Text(
-                        stringResource(R.string.you_are_on_the_developer_release_so_you_are_seeing_all_payment_methods),
+                        stringResource(R.string.developer_mode_payment_methods),
                         style = Typography.labelSmall,
                         modifier = Modifier.padding(8.dp)
                     )

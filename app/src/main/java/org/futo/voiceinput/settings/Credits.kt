@@ -141,7 +141,7 @@ fun CreditsScreen(openDependencies: () -> Unit = {}) {
                 Text(stringResource(R.string.view_other_dependencies))
             }
             Text(
-                stringResource(R.string.the_authors_contributors_or_copyright_holders_listed_above_are_not_affiliated_with_this_product_and_do_not_endorse_or_promote_this_product_reference_to_the_authors_contributors_or_copyright_holders_is_solely_for_attribution_purposes_mention_of_their_names_does_not_imply_approval_or_endorsement),
+                stringResource(R.string.name_legal),
                 style = Typography.bodyMedium,
                 modifier = Modifier.padding(8.dp)
             )
