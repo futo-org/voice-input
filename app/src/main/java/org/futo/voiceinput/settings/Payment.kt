@@ -284,9 +284,7 @@ fun PaymentScreen(
     }
 
     LaunchedEffect(Unit) {
-        if (BuildConfig.FLAVOR != "dev") {
-            billing.checkAlreadyOwnsProduct()
-        }
+        billing.checkAlreadyOwnsProduct()
     }
 
     Screen(stringResource(R.string.payment_title)) {
@@ -313,15 +311,13 @@ fun PaymentScreen(
                     }
                 }
 
-                if (billing.getBillings().any { !it.supportsCheckingIfAlreadyOwnsProduct() }) {
-                    Button(
-                        onClick = { onAlreadyPaid() }, colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.secondary,
-                            contentColor = MaterialTheme.colorScheme.onSecondary
-                        ), modifier = Modifier.align(CenterHorizontally)
-                    ) {
-                        Text(stringResource(R.string.i_already_paid))
-                    }
+                Button(
+                    onClick = { onAlreadyPaid() }, colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.secondary,
+                        contentColor = MaterialTheme.colorScheme.onSecondary
+                    ), modifier = Modifier.align(CenterHorizontally)
+                ) {
+                    Text(stringResource(R.string.i_already_paid))
                 }
 
                 if (reminderTimeIsUp) {

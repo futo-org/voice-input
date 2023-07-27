@@ -85,6 +85,7 @@ class PlayBilling(private val context: Context, private val coroutine: Coroutine
 
                     if(isPaid != isPaidSetting
                         && (isPaid || isPendingSettings) // For now, only allow going paid -> unpaid if the payment was pending
+                                                         // Otherwise, this would cancel out tapping "I already paid"
                     ) {
                         context.dataStore.edit { it[IS_ALREADY_PAID] = isPaid }
                     }
