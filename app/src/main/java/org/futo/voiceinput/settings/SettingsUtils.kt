@@ -315,14 +315,28 @@ fun SetupOrMain(settingsViewModel: SettingsViewModel = viewModel(), billing: Bil
     val blacklistedMethods =
         listOf(
             BlacklistedInputMethod(
+                // No issue for this as far as I can tell
+                // Maybe file one at https://issuetracker.google.com/issues?q=gboard
                 "com.google.android.inputmethod.latin/com.android.inputmethod.latin.LatinIME",
                 details = stringResource(R.string.gboard_incompatible_details),
                 dismiss = stringResource(R.string.gboard_incompatible_accept)
             ),
-            BlacklistedInputMethod(
+            BlacklistedInputMethod( // Issue: https://suggestions.typewise.app/suggestions/65517/voice-to-text-dictation
                 "ch.icoaching.typewise/ch.icoaching.wrio.Wrio",
                 details = stringResource(R.string.typewise_incompatible_details),
                 dismiss = stringResource(R.string.typewise_incompatible_accept)
+            ),
+
+            // NOTE: These are two entirely different keyboards with the same name, both incompatible
+            BlacklistedInputMethod( // Issue: https://github.com/SimpleMobileTools/Simple-Keyboard/issues/201
+                "com.simplemobiletools.keyboard/.services.SimpleKeyboardIME",
+                details = stringResource(R.string.simplekeyboard_incompatible_details),
+                dismiss = stringResource(R.string.simplekeyboard_incompatible_accept)
+            ),
+            BlacklistedInputMethod( // Issue: https://github.com/rkkr/simple-keyboard/issues/133
+                "rkr.simplekeyboard.inputmethod/.latin.LatinIME",
+                details = stringResource(R.string.simplekeyboard_incompatible_details),
+                dismiss = stringResource(R.string.simplekeyboard_incompatible_accept)
             )
         )
 

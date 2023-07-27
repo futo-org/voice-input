@@ -126,4 +126,6 @@
     <string name="credits_title">Credits</string>
     <string name="payment_title">Payment</string>
     <string name="dependencies">Dependencies</string>
+    <string name="simplekeyboard_incompatible_details">You appear to be using Simple Keyboard. Unfortunately, this keyboard does not have a voice input button at this time. You will need to use a different keyboard if you want to trigger Voice Input from your keyboard.</string>
+    <string name="simplekeyboard_incompatible_accept">I understand Simple Keyboard is incompatible</string>
 </resources>
