@@ -166,6 +166,7 @@ fun HelpScreen() {
 
 
             textItem(stringResource(R.string.help_with_email))
+            ShareFeedbackOption()
 
             Spacer(modifier = Modifier.height(100.dp))
         }

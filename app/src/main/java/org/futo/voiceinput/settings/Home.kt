@@ -1,6 +1,8 @@
 package org.futo.voiceinput.settings
 
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.Send
@@ -12,6 +14,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
@@ -38,7 +41,12 @@ fun ShareFeedbackOption() {
     }) {
         Icon(Icons.Default.Send, contentDescription = stringResource(R.string.go))
     }
+}
 
+@Composable
+fun SettingsSeparator(text: String) {
+    Spacer(modifier = Modifier.height(16.dp))
+    Text(text, style = Typography.labelMedium)
 }
 
 @Composable
@@ -100,11 +108,8 @@ fun HomeScreen(
         ScrollableList {
             ConditionalUnpaidNoticeWithNav(navController)
             ConditionalUpdate()
-            SettingItem(
-                title = stringResource(R.string.help),
-                onClick = { navController.navigate("help") }) {
-                Icon(Icons.Default.ArrowForward, contentDescription = stringResource(R.string.go))
-            }
+
+            SettingsSeparator(stringResource(R.string.options))
             SettingItem(
                 title = stringResource(R.string.languages),
                 onClick = { navController.navigate("languages") },
@@ -126,7 +131,13 @@ fun HomeScreen(
                 subtitle = stringResource(R.string.will_play_a_sound_when_started_cancelled),
                 disabledSubtitle = stringResource(R.string.will_not_play_sounds_when_started_cancelled)
             )
-            SettingItem(title = "Advanced", onClick = { navController.navigate("advanced") }) {
+
+            SettingsSeparator(stringResource(R.string.miscellaneous))
+            SettingItem(
+                title = stringResource(R.string.testing_menu),
+                subtitle = stringResource(R.string.try_out_voice_input),
+                onClick = { navController.navigate("testing") }
+            ) {
                 Icon(Icons.Default.ArrowForward, contentDescription = stringResource(R.string.go))
             }
             UnpaidNoticeCondition(showOnlyIfReminder = true) {
@@ -139,12 +150,23 @@ fun HomeScreen(
                     )
                 }
             }
+            SettingItem(title = stringResource(R.string.advanced), onClick = { navController.navigate("advanced") }) {
+                Icon(Icons.Default.ArrowForward, contentDescription = stringResource(R.string.go))
+            }
+
+            SettingsSeparator(stringResource(R.string.about))
+            SettingItem(
+                title = stringResource(R.string.help),
+                onClick = { navController.navigate("help") }) {
+                Icon(Icons.Default.ArrowForward, contentDescription = stringResource(R.string.go))
+            }
             SettingItem(
                 title = stringResource(R.string.credits),
                 onClick = { navController.navigate("credits") }) {
                 Icon(Icons.Default.ArrowForward, contentDescription = stringResource(R.string.go))
             }
             ShareFeedbackOption()
+
             if (isAlreadyPaid.value) {
                 Text(
                     stringResource(R.string.thank_you_for_using_the_paid_version_of_futo_voice_input),

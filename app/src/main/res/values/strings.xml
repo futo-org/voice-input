@@ -131,4 +131,11 @@
     <string name="wrong_voice_input_body">If a different voice input is being opened instead of FUTO Voice Input, you may need to disable the other one from your input method settings, and set FUTO Voice Input as the default.</string>
     <string name="change_default_voice_input">Change default Voice Input</string>
     <string name="select_default_voice_input">Select default Voice Input</string>
+    <string name="try_out_voice_input">Try out Voice Input</string>
+    <string name="wrong_voice_input_text">If the wrong voice input is being used, you may need to disable the other one here.</string>
+    <string name="options">Options</string>
+    <string name="miscellaneous">Miscellaneous</string>
+    <string name="advanced">Advanced</string>
+    <string name="about">About</string>
+    <string name="having_trouble">Having trouble?</string>
 </resources>

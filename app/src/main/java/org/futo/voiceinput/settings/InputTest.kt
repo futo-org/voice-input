@@ -1,10 +1,15 @@
 package org.futo.voiceinput.settings
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -79,6 +84,22 @@ fun TestScreen(
                 textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth()
             )
+        }
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        SettingsSeparator(stringResource(R.string.having_trouble))
+        SettingItem(
+            title = stringResource(R.string.open_input_method_settings),
+            subtitle = stringResource(R.string.wrong_voice_input_text),
+            onClick = { openImeOptions(context) }
+        ) {
+            Icon(Icons.Default.ArrowForward, contentDescription = stringResource(R.string.go))
+        }
+        SettingItem(
+            title = stringResource(R.string.help),
+            onClick = { navController.navigate("help") }) {
+            Icon(Icons.Default.ArrowForward, contentDescription = stringResource(R.string.go))
         }
     }
 }

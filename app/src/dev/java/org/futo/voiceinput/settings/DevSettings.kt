@@ -25,7 +25,7 @@ import org.futo.voiceinput.ui.theme.Typography
 fun DevOnlySettings() {
     val daysInstalled = useNumberOfDaysInstalled()
 
-    Text("Payment testing [Developer Build only]", style = Typography.labelLarge)
+    SettingsSeparator("Payment testing [Developer Build only]")
     SettingToggle(
         "Show payment notice despite not being past $TRIAL_PERIOD_DAYS days",
         FORCE_SHOW_NOTICE,
