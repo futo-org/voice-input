@@ -1,5 +1,8 @@
 package org.futo.voiceinput.settings
 
+import android.app.PendingIntent
+import android.content.Intent
+import android.speech.RecognizerIntent
 import android.widget.Toast
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -8,11 +11,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -134,6 +139,32 @@ fun HelpScreen() {
             Spacer(modifier = Modifier.height(16.dp))
 
             Tip(stringResource(R.string.help_paragraph_9))
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            textItem(stringResource(R.string.wrong_voice_input_body))
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Button(
+                    onClick = { openImeOptions(context) },
+                    modifier = Modifier.align(CenterHorizontally)
+                ) {
+                    Text(stringResource(R.string.open_input_method_settings))
+                }
+
+                val selectDefaultVoiceInputText = stringResource(R.string.select_default_voice_input)
+                Button(onClick = {
+                    val targetIntent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
+                    val chooserIntent =
+                        Intent.createChooser(targetIntent, selectDefaultVoiceInputText)
+                    context.startActivity(chooserIntent)
+                }, modifier = Modifier.align(CenterHorizontally)) {
+                    Text(stringResource(R.string.change_default_voice_input))
+                }
+            }
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+
             textItem(stringResource(R.string.help_with_email))
 
             Spacer(modifier = Modifier.height(100.dp))

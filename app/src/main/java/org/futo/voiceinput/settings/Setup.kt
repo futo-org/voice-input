@@ -1,5 +1,6 @@
 package org.futo.voiceinput.settings
 
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
@@ -83,6 +84,20 @@ fun Step(fraction: Float, text: String) {
     }
 }
 
+fun openImeOptions(context: Context) {
+    // TODO: look into direct boot to get rid of direct boot warning?
+    val intent = Intent(Settings.ACTION_INPUT_METHOD_SETTINGS)
+
+    intent.flags = (Intent.FLAG_ACTIVITY_NEW_TASK
+            or Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED
+            or Intent.FLAG_ACTIVITY_NO_HISTORY
+            or Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS)
+
+    context.startActivity(intent)
+    // TODO: I believe some keyboards seem to poll repeatedly to see if it got enabled yet,
+    // to exit settings and go back to the app, not requiring the user to press back
+}
+
 // TODO: May wish to have a skip option
 @Composable
 @Preview
@@ -90,18 +105,7 @@ fun SetupEnableIME(onClick: () -> Unit = { }) {
     val context = LocalContext.current
 
     val launchImeOptions = {
-        // TODO: look into direct boot to get rid of direct boot warning?
-        val intent = Intent(Settings.ACTION_INPUT_METHOD_SETTINGS)
-
-        intent.flags = (Intent.FLAG_ACTIVITY_NEW_TASK
-                or Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED
-                or Intent.FLAG_ACTIVITY_NO_HISTORY
-                or Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS)
-
-        context.startActivity(intent)
-        // TODO: I believe some keyboards seem to poll repeatedly to see if it got enabled yet,
-        // to exit settings and go back to the app, not requiring the user to press back
-
+        openImeOptions(context)
         onClick()
     }
 

@@ -8,6 +8,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -43,9 +44,17 @@ fun AdvancedScreen(
                 VERBOSE_PROGRESS,
                 default = false
             )
+            val context = LocalContext.current
+            SettingItem(
+                title = stringResource(R.string.open_input_method_settings),
+                onClick = { openImeOptions(context) }
+            ) {
+                Icon(Icons.Default.ArrowForward, contentDescription = stringResource(R.string.go))
+            }
             SettingItem(title = stringResource(R.string.testing_menu), onClick = { navController.navigate("testing") }) {
                 Icon(Icons.Default.ArrowForward, contentDescription = stringResource(R.string.go))
             }
+
 
             DevOnlySettings()
         }

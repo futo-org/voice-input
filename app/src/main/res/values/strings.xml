@@ -128,4 +128,7 @@
     <string name="dependencies">Dependencies</string>
     <string name="simplekeyboard_incompatible_details">You appear to be using Simple Keyboard. Unfortunately, this keyboard does not have a voice input button at this time. You will need to use a different keyboard if you want to trigger Voice Input from your keyboard.</string>
     <string name="simplekeyboard_incompatible_accept">I understand Simple Keyboard is incompatible</string>
+    <string name="wrong_voice_input_body">If a different voice input is being opened instead of FUTO Voice Input, you may need to disable the other one from your input method settings, and set FUTO Voice Input as the default.</string>
+    <string name="change_default_voice_input">Change default Voice Input</string>
+    <string name="select_default_voice_input">Select default Voice Input</string>
 </resources>
