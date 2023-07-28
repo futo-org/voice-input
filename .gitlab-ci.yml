@@ -3,8 +3,8 @@ default:
 
 stages:          # List of stages for jobs, and their order of execution
   - test
-  - buildDevRelease
-  - buildPlayStoreRelease
+  - buildDev
+  - buildRelease
 
 unit-test-job:
   stage: test
@@ -15,8 +15,8 @@ unit-test-job:
       junit:
         - ./app/build/test-results/testDevDebugUnitTest/*.xml 
 
-buildDevRelease:
-  stage: buildDevRelease
+buildDev:
+  stage: buildDev
   script:
     - ./setUpKeysCI.sh
     - gradle assembleDevRelease -s
@@ -28,16 +28,19 @@ buildDevRelease:
       - ./*.apk
   when: manual
 
-buildPlayStoreRelease:
-  stage: buildPlayStoreRelease
+buildRelease:
+  stage: buildRelease
   script:
     - ./setUpKeysCI.sh
     - gradle bundlePlayStoreRelease -s
-    - mv app/build/outputs/bundle/playStoreRelease/app-playStore-release.aab .
+    - gradle assembleStandaloneRelease -s
+    - mv app/build/outputs/bundle/playStoreRelease/app-playStore-release.aab ./playStore.aab
+    - mv app/build/outputs/apk/standalone/release/app-standalone-release.apk ./standalone.apk
   artifacts:
-    name: "playStore-release-$CI_COMMIT_SHORT_SHA"
+    name: "release-$CI_COMMIT_SHORT_SHA"
     paths: 
       - ./*.aab
+      - ./*.apk
   only:
     - tags
   except:
