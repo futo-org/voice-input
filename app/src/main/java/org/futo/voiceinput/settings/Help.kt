@@ -131,6 +131,7 @@ fun HelpScreen() {
             textItem(stringResource(R.string.help_paragraph_8))
             Column(modifier = Modifier.padding(16.dp, 0.dp)) {
                 textItem(stringResource(R.string.gboard))
+                textItem(stringResource(R.string.samsung_keyboard_one_ui_5))
                 textItem(stringResource(R.string.typewise))
                 textItem(stringResource(R.string.simple_keyboard))
                 textItem(stringResource(R.string.unexpected_keyboard))
@@ -149,16 +150,6 @@ fun HelpScreen() {
                     modifier = Modifier.align(CenterHorizontally)
                 ) {
                     Text(stringResource(R.string.open_input_method_settings))
-                }
-
-                val selectDefaultVoiceInputText = stringResource(R.string.select_default_voice_input)
-                Button(onClick = {
-                    val targetIntent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
-                    val chooserIntent =
-                        Intent.createChooser(targetIntent, selectDefaultVoiceInputText)
-                    context.startActivity(chooserIntent)
-                }, modifier = Modifier.align(CenterHorizontally)) {
-                    Text(stringResource(R.string.change_default_voice_input))
                 }
             }
 

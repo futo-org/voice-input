@@ -1,8 +1,11 @@
 package org.futo.voiceinput.settings
 
 import android.Manifest
+import android.content.ComponentName
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.provider.Settings
+import android.speech.RecognizerIntent
 import android.view.inputmethod.InputMethodManager
 import androidx.activity.ComponentActivity
 import androidx.compose.runtime.Composable
@@ -128,4 +131,43 @@ fun <T> useDataStore(key: Preferences.Key<T>, default: T): DataStoreItem<T> {
     }
 
     return DataStoreItem(value, setValue)
+}
+
+
+enum class DefaultVoiceInputIntentKind {
+    NO_DEFAULT,
+    FUTO_VOICE_INPUT,
+    OTHER
+}
+
+data class DefaultVoiceInputIntent(
+    val kind: DefaultVoiceInputIntentKind,
+    val name: ComponentName?
+)
+
+@Composable
+fun useDefaultVoiceInputIntent(i: Int): MutableState<DefaultVoiceInputIntent> {
+    val default = remember { mutableStateOf(DefaultVoiceInputIntent(
+        kind = DefaultVoiceInputIntentKind.NO_DEFAULT,
+        name = null
+    )) }
+
+    val context = LocalContext.current
+    LaunchedEffect(i) {
+        val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
+        val packageManager = context.packageManager
+        val activity = intent.resolveActivity(packageManager)
+
+        val kind = if(activity.className == "com.android.internal.app.ResolverActivity") {
+            DefaultVoiceInputIntentKind.NO_DEFAULT
+        } else if(activity.className == "org.futo.voiceinput.RecognizeActivity") {
+            DefaultVoiceInputIntentKind.FUTO_VOICE_INPUT
+        } else {
+            DefaultVoiceInputIntentKind.OTHER
+        }
+
+        default.value = DefaultVoiceInputIntent(kind, activity)
+    }
+
+    return default
 }

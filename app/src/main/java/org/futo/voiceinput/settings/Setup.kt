@@ -1,11 +1,13 @@
 package org.futo.voiceinput.settings
 
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -13,6 +15,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -203,6 +206,57 @@ fun SetupBlacklistedKeyboardWarning(
                 .padding(16.dp)
         ) {
             Text(info.dismiss)
+        }
+    }
+}
+
+@Composable
+@Preview
+fun SetupWrongDefaultWarning(
+    info: DefaultVoiceInputIntent = DefaultVoiceInputIntent(
+        kind = DefaultVoiceInputIntentKind.OTHER,
+        name = ComponentName.unflattenFromString("com.google/.tts")
+    ),
+    onClick: () -> Unit = { }
+) {
+    SetupContainer {
+        Text(
+            stringResource(R.string.change_default_voice_input),
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text(
+            stringResource(R.string.wrong_default_body, info.name!!.packageName),
+            textAlign = TextAlign.Start,
+            modifier = Modifier.fillMaxWidth(),
+            style = Typography.bodyMedium
+        )
+
+        val context = LocalContext.current
+        Row {
+            Button(
+                onClick = { context.openSystemDefaultsSettings(info.name) },
+                modifier = Modifier
+                    .weight(2.0f)
+                    .padding(6.dp, 16.dp)
+            ) {
+                Text(stringResource(R.string.clear_app_s_defaults))
+            }
+            Button(
+                onClick = onClick,
+                modifier = Modifier
+                    .weight(1.5f)
+                    .padding(6.dp, 16.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.secondary,
+                    contentColor = MaterialTheme.colorScheme.onSecondary
+                )
+            ) {
+                Text(stringResource(R.string.dismiss))
+            }
         }
     }
 }

@@ -1,5 +1,12 @@
 package org.futo.voiceinput.settings
 
+import android.content.ActivityNotFoundException
+import android.content.ComponentName
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
+import android.os.Build
+import android.provider.Settings
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -50,6 +57,7 @@ import org.futo.voiceinput.R
 import org.futo.voiceinput.Status
 import org.futo.voiceinput.payments.BillingManager
 import org.futo.voiceinput.ui.theme.Typography
+import java.lang.Exception
 
 
 data class SettingsUiState(
@@ -77,6 +85,35 @@ class SettingsViewModel : ViewModel() {
         }
     }
 }
+
+fun Context.openSystemDefaultsSettings(component: ComponentName) {
+    val uri = Uri.fromParts("package", component.packageName, null)
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+        // Try the new intent, otherwise fall back to application details settings
+        try {
+            startActivity(
+                Intent(Settings.ACTION_APP_OPEN_BY_DEFAULT_SETTINGS).apply {
+                    data = uri
+                }
+            )
+
+            return
+        } catch(e: ActivityNotFoundException) {
+            // pass
+            println("Failed to open ACTION_APP_OPEN_BY_DEFAULT_SETTINGS")
+        }
+    }
+
+    try {
+        startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+            data = uri
+        })
+    }catch(e: ActivityNotFoundException) {
+        println("Failed to open ACTION_APPLICATION_DETAILS_SETTINGS")
+    }
+}
+
 
 @Composable
 @Preview
@@ -326,6 +363,11 @@ fun SetupOrMain(settingsViewModel: SettingsViewModel = viewModel(), billing: Bil
                 details = stringResource(R.string.typewise_incompatible_details),
                 dismiss = stringResource(R.string.typewise_incompatible_accept)
             ),
+            BlacklistedInputMethod(
+                "com.samsung.android.honeyboard/.service.HoneyBoardService",
+                details = stringResource(R.string.samsung_keyboard_incompatible_details),
+                dismiss = stringResource(R.string.samsung_keyboard_incompatible_accept)
+            ),
 
             // NOTE: These are two entirely different keyboards with the same name, both incompatible
             BlacklistedInputMethod( // Issue: https://github.com/SimpleMobileTools/Simple-Keyboard/issues/201
@@ -350,10 +392,17 @@ fun SetupOrMain(settingsViewModel: SettingsViewModel = viewModel(), billing: Bil
     val blacklistedKeyboardInfo =
         blacklistedMethods.firstOrNull { it.packageName == defaultIME.value }
 
-    if (blacklistedKeyboardInfo != null && !acknowledgedBlacklistedWarning.value) {
+    val acknowledgedWrongDefaultWarning = rememberSaveable { mutableStateOf(false) }
+    val defaultVoiceInputIntent = useDefaultVoiceInputIntent(settingsUiState.numberOfResumes)
+
+    if(defaultVoiceInputIntent.value.kind == DefaultVoiceInputIntentKind.OTHER && defaultVoiceInputIntent.value.name != null && !acknowledgedWrongDefaultWarning.value) {
+        SetupWrongDefaultWarning(
+            defaultVoiceInputIntent.value
+        ) { acknowledgedWrongDefaultWarning.value = true }
+    }else if (blacklistedKeyboardInfo != null && !acknowledgedBlacklistedWarning.value) {
         SetupBlacklistedKeyboardWarning(
-            blacklistedKeyboardInfo,
-            { acknowledgedBlacklistedWarning.value = true })
+            blacklistedKeyboardInfo
+        ) { acknowledgedBlacklistedWarning.value = true }
     } else if (inputMethodEnabled.value == Status.False) {
         SetupEnableIME()
     } else if (microphonePermitted.value == Status.False) {

@@ -33,6 +33,7 @@
     <string name="help_paragraph_7">Note: Not all keyboards are compatible with Voice Input. You need to make sure you\'re using a compatible keyboard.</string>
     <string name="help_paragraph_8">Some keyboards are simply incompatible, as they do not integrate with Android APIs for voice input. If your keyboard is listed here, you will need to use a different one as it is NOT compatible:</string>
     <string name="gboard" translatable="false">• Gboard</string>
+    <string name="samsung_keyboard_one_ui_5" translatable="false">• Samsung Keyboard (One UI 5)</string>
     <string name="typewise" translatable="false">• TypeWise</string>
     <string name="simple_keyboard" translatable="false">• Simple Keyboard</string>
     <string name="unexpected_keyboard" translatable="false">• Unexpected Keyboard</string>
@@ -128,7 +129,7 @@
     <string name="dependencies">Dependencies</string>
     <string name="simplekeyboard_incompatible_details">You appear to be using Simple Keyboard. Unfortunately, this keyboard does not have a voice input button at this time. You will need to use a different keyboard if you want to trigger Voice Input from your keyboard.</string>
     <string name="simplekeyboard_incompatible_accept">I understand Simple Keyboard is incompatible</string>
-    <string name="wrong_voice_input_body">If a different voice input is being opened instead of FUTO Voice Input, you may need to disable the other one from your input method settings, and set FUTO Voice Input as the default.</string>
+    <string name="wrong_voice_input_body">If your keyboard is listed as compatible but is opening the wrong voice input, you may need to disable the other one from your input method settings.</string>
     <string name="change_default_voice_input">Change default Voice Input</string>
     <string name="select_default_voice_input">Select default Voice Input</string>
     <string name="try_out_voice_input">Try out Voice Input</string>
@@ -140,4 +141,9 @@
     <string name="having_trouble">Having trouble?</string>
     <string name="recognize_activity">Voice Input</string>
     <string name="voice_input">Voice Input</string>
+    <string name="wrong_default_body">It looks like the default voice input app is set to a different app (<xliff:g name="package" example="com.example.example">%s</xliff:g>). You may wish to change this.</string>
+    <string name="clear_app_s_defaults">Clear app\'s defaults</string>
+    <string name="dismiss">Dismiss</string>
+    <string name="samsung_keyboard_incompatible_details">You appear to be using Samsung Keyboard.\n\nUnfortunately, Samsung Keyboard is currently hardcoded to only allow the choice between Samsung Voice Input and Google Voice Input. You will need to use a different keyboard if you want to trigger FUTO Voice Input from your keyboard.\n\nPlease visit the Help page in settings for more information.</string>
+    <string name="samsung_keyboard_incompatible_accept">I understand Samsung Keyboard is incompatible</string>
 </resources>
