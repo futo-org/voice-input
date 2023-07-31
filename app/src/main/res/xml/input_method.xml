@@ -4,9 +4,9 @@
     android:settingsActivity="org.futo.voiceinput.settings.SettingsActivity"
     android:supportsSwitchingToNextInputMethod="true">
     <subtype
-        android:imeSubtypeExtraValue=""
+        android:label="@string/voice_input"
         android:imeSubtypeLocale=""
         android:imeSubtypeMode="voice"
-        android:label="Voice Input"
+        android:isAuxiliary="true"
         android:overridesImplicitlyEnabledSubtype="true" />
 </input-method>

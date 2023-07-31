@@ -21,7 +21,7 @@
         <activity
             android:name=".RecognizeActivity"
             android:exported="true"
-            android:label="Recognize Activity"
+            android:label="@string/recognize_activity"
             android:clearTaskOnLaunch="true"
             android:launchMode="singleTask"
             android:theme="@style/Theme.RecognizerInput">

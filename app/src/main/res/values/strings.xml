@@ -138,4 +138,6 @@
     <string name="advanced">Advanced</string>
     <string name="about">About</string>
     <string name="having_trouble">Having trouble?</string>
+    <string name="recognize_activity">Voice Input</string>
+    <string name="voice_input">Voice Input</string>
 </resources>
