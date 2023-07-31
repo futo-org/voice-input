@@ -19,8 +19,7 @@ import org.futo.voiceinput.ValueFromSettings
 import org.futo.voiceinput.dataStore
 import java.io.IOException
 
-// TODO: Move all of this off of sapples.net
-const val UPDATE_URL = "https://april.sapples.net/futo/voice_input_version_${BuildConfig.FLAVOR}"
+const val UPDATE_URL = "https://voiceinput.futo.org/VoiceInput/voice_input_version_${BuildConfig.FLAVOR}"
 
 suspend fun checkForUpdate(): UpdateResult? {
     return withContext(Dispatchers.IO) {

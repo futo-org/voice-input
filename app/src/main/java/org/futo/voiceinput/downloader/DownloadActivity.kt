@@ -346,7 +346,7 @@ class DownloadActivity : ComponentActivity() {
         modelsToDownload = models.filter { this.fileNeedsDownloading(it) }.map {
             ModelInfo(
                 name = it,
-                url = "https://april.sapples.net/futo/${it}",
+                url = "https://voiceinput.futo.org/VoiceInput/${it}",
                 size = null,
                 progress = 0.0f
             )
