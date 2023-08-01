@@ -101,6 +101,10 @@ fun UnpaidNoticeCondition(
     showOnlyIfReminder: Boolean = false,
     inner: @Composable () -> Unit
 ) {
+    // Payment is disabled until standalone payments can be figured out
+    @Suppress("KotlinConstantConditions")
+    if(BuildConfig.FLAVOR == "standalone") return
+
     val numDaysInstalled = useNumberOfDaysInstalled()
     val forceShowNotice = useDataStore(FORCE_SHOW_NOTICE, default = false)
     val isAlreadyPaid = useDataStore(IS_ALREADY_PAID, default = false)
