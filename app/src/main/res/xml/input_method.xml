@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <input-method xmlns:android="http://schemas.android.com/apk/res/android"
-    android:settingsActivity="org.futo.voiceinput.settings.SettingsActivity"
-    android:supportsSwitchingToNextInputMethod="true">
+    android:settingsActivity="org.futo.voiceinput.settings.SettingsActivity">
     <subtype
         android:label="@string/voice_input"
         android:imeSubtypeLocale=""

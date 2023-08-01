@@ -6,6 +6,7 @@ import android.os.Build
 import android.text.InputType
 import android.view.View
 import android.view.inputmethod.EditorInfo
+import android.view.inputmethod.InputMethodManager
 import android.view.inputmethod.InputMethodSubtype
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -156,6 +157,7 @@ class VoiceInputMethodService : InputMethodService(), LifecycleOwner, ViewModelS
         get() = mSavedStateRegistryController.savedStateRegistry
 
     private val mLifecycleRegistry = LifecycleRegistry(this)
+
     override val lifecycle
         get() = mLifecycleRegistry
 
@@ -165,6 +167,9 @@ class VoiceInputMethodService : InputMethodService(), LifecycleOwner, ViewModelS
 
     private fun handleLifecycleEvent(event: Lifecycle.Event) =
         mLifecycleRegistry.handleLifecycleEvent(event)
+
+    private val inputMethodManager: InputMethodManager
+        get() = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
 
     override fun onCreate() {
         super.onCreate()
@@ -185,7 +190,9 @@ class VoiceInputMethodService : InputMethodService(), LifecycleOwner, ViewModelS
         override fun onCancel() {
             reset()
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                switchToNextInputMethod(false)
+                switchToPreviousInputMethod()
+            } else {
+                inputMethodManager.switchToLastInputMethod(window.window!!.attributes.token)
             }
         }
 
