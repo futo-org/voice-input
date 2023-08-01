@@ -8,8 +8,6 @@ stages:          # List of stages for jobs, and their order of execution
 
 unit-test-job:
   stage: test
-  tags:
-    - docker
   script:
     - gradle testDevDebugUnitTest -s
   artifacts:
@@ -19,8 +17,6 @@ unit-test-job:
 
 buildDev:
   stage: buildDev
-  tags:
-    - docker
   script:
     - ./setUpKeysCI.sh
     - gradle assembleDevRelease -s
@@ -34,8 +30,6 @@ buildDev:
 
 buildRelease:
   stage: buildRelease
-  tags:
-    - docker
   script:
     - ./setUpKeysCI.sh
     - gradle bundlePlayStoreRelease -s
