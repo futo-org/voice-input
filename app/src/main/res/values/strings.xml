@@ -78,7 +78,7 @@
     <string name="grant_microphone_body">In order to use Voice Input, you need to grant microphone permission.</string>
     <string name="grant_microphone_permission">Grant Microphone</string>
     <string name="incompatible_keyboard">Incompatible keyboard</string>
-    <string name="gboard_incompatible_details">You appear to be using Gboard. This keyboard is incompatible with FUTO Voice Input. \nGboard relies on its own voice typing system and does not appear to integrate with standard Android APIs for voice input at this time. You will need to use a different keyboard if you want to use FUTO Voice Input with your keyboard. \nPlease visit the Help page in settings for more information.</string>
+    <string name="gboard_incompatible_details">You appear to be using Gboard. This keyboard is incompatible with FUTO Voice Input.\n\nGboard relies on its own voice typing system and does not appear to integrate with standard Android APIs for voice input at this time. You will need to use a different keyboard if you want to use FUTO Voice Input with your keyboard.\n\nPlease visit the Help page in settings for more information.</string>
     <string name="gboard_incompatible_accept">I understand Gboard is incompatible</string>
     <string name="typewise_incompatible_details">You appear to be using Typewise. This keyboard does not have a voice input button at this time, so you will need to use a different keyboard if you want to use FUTO Voice Input with your keyboard.</string>
     <string name="typewise_incompatible_accept">I understand Typewise is incompatible</string>
@@ -90,6 +90,7 @@
     <string name="english_model">English Model</string>
     <string name="multilingual_model">Multilingual Model</string>
     <string name="payment_text_1">You\'ve been using FUTO Voice Input for <xliff:g name="days" example="30">%d</xliff:g> days. If you find this app useful, please consider paying to support future development of FUTO software.</string>
+    <string name="payment_text_1_alt">Thank you for trying out FUTO Voice Input! If you find this app useful, please consider paying to support future development of FUTO software.</string>
     <string name="payment_text_2">FUTO is dedicated to making good software that doesn\'t abuse you. This app will never serve you ads or collect your personal data.</string>
     <string name="thank_you_for_purchasing_voice_input">Thank you for purchasing Voice Input!</string>
     <string name="payment_pending_body">Your payment is still pending, but it should clear soon.</string>

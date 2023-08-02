@@ -73,7 +73,13 @@ fun ParagraphText(it: String) {
 fun PaymentText() {
     val numDaysInstalled = useNumberOfDaysInstalled()
 
-    ParagraphText(stringResource(R.string.payment_text_1, numDaysInstalled.value))
+    // Doesn't make sense to say "You've been using for ... days" if it's less than seven days
+    if(numDaysInstalled.value >= 7) {
+        ParagraphText(stringResource(R.string.payment_text_1, numDaysInstalled.value))
+    } else {
+        ParagraphText(stringResource(R.string.payment_text_1_alt))
+    }
+
     ParagraphText(stringResource(R.string.payment_text_2))
 }
 
@@ -113,14 +119,17 @@ fun UnpaidNoticeCondition(
 
     val reminderTimeIsUp = (currentTime >= pushReminderTime.value)
 
-    val displayCondition =
+    val displayCondition = if(showOnlyIfReminder) {
+        // Either the reminder time is not up, or we're not past the trial period
+        (!isAlreadyPaid.value) && ((!reminderTimeIsUp) || (!forceShowNotice.value && numDaysInstalled.value < TRIAL_PERIOD_DAYS))
+    } else {
         // The trial period time is over
         (forceShowNotice.value || (numDaysInstalled.value >= TRIAL_PERIOD_DAYS))
-                // and the current time is past the reminder time (or it's not past if showOnlyIfReminder)
-                && ((!showOnlyIfReminder && reminderTimeIsUp) || (showOnlyIfReminder && !reminderTimeIsUp))
+                // and the current time is past the reminder time
+                && reminderTimeIsUp
                 // and we have not already paid
                 && (!isAlreadyPaid.value)
-
+    }
     if (force || displayCondition) {
         inner()
     }
@@ -277,9 +286,11 @@ fun PaymentScreen(
 ) {
     val isAlreadyPaid = useDataStore(IS_ALREADY_PAID, default = false)
     val pushReminderTime = useDataStore(NOTICE_REMINDER_TIME, default = 0L)
+    val numDaysInstalled = useNumberOfDaysInstalled()
+    val forceShowNotice = useDataStore(FORCE_SHOW_NOTICE, default = false)
     val currentTime = System.currentTimeMillis() / 1000L
 
-    val reminderTimeIsUp = (currentTime >= pushReminderTime.value)
+    val reminderTimeIsUp = (currentTime >= pushReminderTime.value) && ((numDaysInstalled.value >= TRIAL_PERIOD_DAYS) || forceShowNotice.value)
 
     val onAlreadyPaid = {
         isAlreadyPaid.setValue(true)
