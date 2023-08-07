@@ -1,29 +1,52 @@
-# Voice Input
+# FUTO Voice Input
 
-The initial goal is to build a polished application for doing speech to text, integrating with third party keyboards that use generic speech-to-text APIs.
+FUTO Voice Input is an application that lets you do speech-to-text on Android, integrating with third party keyboards or apps that use the generic speech-to-text APIs.
 
-To download the latest successful build, go to [CI/CD > Pipelines](https://gitlab.futo.org/alex/voiceinput/-/pipelines), find the top-most passing pipeline, click the download button, and select build-job:archive. The apk is contained within the downloaded zip archive.
+To download the application as a user, visit the [FUTO Voice Input page](https://voiceinput.futo.org/).
 
+## API support
 
-Supported keyboard list:
-* AOSP Keyboard - IME
-* OpenBoard - IME
-* AnySoftKeyboard - Intent with IME fallback
+The following APIs are supported:
+* `android.speech.action.RECOGNIZE_SPEECH` implicit intent, for apps and some keyboards
+* IME with `voice` subtype mode, for keyboards
 
-Tested working proprietary keyboards:
-* Grammarly Keyboard - IME
-* Microsoft SwiftKey - Intent
+Currently this does not support the SpeechRecognizer API, which few apps seem to use. Support for this is planned in the future.
+
+## Keyboard support
+
+Keyboard support is touched on in the Help section of the app. In short, the following keyboards are supported:
+* **AOSP Keyboard**, which uses the IME
+* **OpenBoard**, which uses the IME
+* **AnySoftKeyboard**, which uses the implicit intent. This keyboard has some voice input usability issues but this is being worked on
+
+If you're okay with using proprietary keyboards, the following are supported:
+* **Grammarly Keyboard**, which uses the IME
+* **Microsoft SwiftKey**, which uses the implicit intent
 
 Incompatible keyboards:
-* Gboard - has its own thing
-* Simple Keyboard by Raimondas Rimkus - no voice button
-* Simple Keyboard by Simple Mobile Tools - no voice button
-* Unexpected Keyboard - no voice button
-* TypeWise - no voice button [but suggestion filed in 2019](https://suggestions.typewise.app/suggestions/65517/voice-to-text-dictation)
+* **Gboard** - has its own thing
+* **Samsung Keyboard** - hardcoded to only allow either Samsung Voice Input, or Google Voice Input
+* **Simple Keyboard** by Raimondas Rimkus - [no voice button](https://github.com/rkkr/simple-keyboard/issues/133)
+* **Simple Keyboard** by Simple Mobile Tools - [no voice button](https://github.com/SimpleMobileTools/Simple-Keyboard/issues/201)
+* **Unexpected Keyboard** - no voice button
+* **TypeWise** - no voice button [but suggestion filed in 2019](https://suggestions.typewise.app/suggestions/65517/voice-to-text-dictation)
 
-----------
+## Development
 
-Open-source projects used:
+You can develop this app by opening it in Android Studio. Otherwise, you can use Gradle to build the app like so:
+```bash
+./gradlew assembleStandaloneRelease
+```
+
+There are four build flavors:
+* `dev` - for development, includes Play Store billing and all payment methods, auto-update, etc
+* `playStore` - Play Store build, does not include auto-update and only includes Play Store billing
+* `standalone` - does not include Play Store billing library, includes auto-update
+* `fDroid` - does not include Play Store billing nor auto-update
+
+## Credits
+
+Thanks to the following projects for making this possible:
 * MIT - Copyright (c) 2022 OpenAI [OpenAI Whisper](https://github.com/openai/whisper/)
 * Apache 2.0 - Copyright (c) 2023 TensorFlow Authors [TensorFlow Lite](https://mvnrepository.com/artifact/org.tensorflow/tensorflow-lite)
 * BSD-3-Clause - Copyright (C) 2010-2019 Max-Planck-Society [PocketFFT](https://gitlab.mpcdf.mpg.de/mtr/pocketfft/-/blob/master/LICENSE.md)
