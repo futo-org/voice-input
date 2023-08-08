@@ -67,13 +67,15 @@ There are four build flavors:
 * `standalone` - does not include Play Store billing library, includes auto-update
 * `fDroid` - does not include Play Store billing nor auto-update
 
+Some prebuilt binaries are included in the `libs` directory to make the build faster, there are also instructions to build them yourself.
+
 ## License
 
 This code is currently licensed under the [FUTO Temporary License](FTL_LICENSE.md)
 
 ## Credits
 
-The microphone icon was taken from [Feather Icons](https://feathericons.com/), an open-source icon pack licensed under MIT, authored by Cole Bemis.
+The microphone icon was taken from [Feather Icons](https://feathericons.com/), an open-source icon pack authored by Cole Bemis.
 
 Thanks to the following projects for making this possible:
 * OpenAI - [OpenAI Whisper](https://github.com/openai/whisper/)
