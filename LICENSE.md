@@ -1,4 +1,4 @@
-Copyright (c) 2023 FUTO
+Copyright (c) 2023 FUTO, All Rights Reserved
 
 # FUTO TEMPORARY LICENSE
 
