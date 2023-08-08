@@ -73,7 +73,7 @@ This code is currently licensed under the [FUTO Temporary License](LICENSE.md)
 
 ## Credits
 
-The microphone icon was authored by Cole Bemis and is part of [Feather Icons](https://feathericons.com/), an open-source icon pack licensed under MIT.
+The microphone icon was taken from [Feather Icons](https://feathericons.com/), an open-source icon pack licensed under MIT, authored by Cole Bemis.
 
 Thanks to the following projects for making this possible:
 * OpenAI - [OpenAI Whisper](https://github.com/openai/whisper/)
