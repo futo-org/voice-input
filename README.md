@@ -7,8 +7,8 @@ To download the application as a user, visit the [FUTO Voice Input page](https:/
 ## API support
 
 The following APIs are supported:
-* `android.speech.action.RECOGNIZE_SPEECH` implicit intent, for apps and some keyboards
-* IME with `voice` subtype mode, for keyboards
+* `android.speech.action.RECOGNIZE_SPEECH` implicit intent, for apps and some keyboards - this opens the floating window in the center of the screen
+* IME with `voice` subtype mode, for keyboards - this opens on the bottom half of the screen in place of the keyboard
 
 Currently this does not support the SpeechRecognizer API, which few apps seem to use. Support for this is planned in the future.
 
@@ -30,6 +30,29 @@ Incompatible keyboards:
 * **Simple Keyboard** by Simple Mobile Tools - [no voice button](https://github.com/SimpleMobileTools/Simple-Keyboard/issues/201)
 * **Unexpected Keyboard** - no voice button
 * **TypeWise** - no voice button [but suggestion filed in 2019](https://suggestions.typewise.app/suggestions/65517/voice-to-text-dictation)
+
+## Language support
+
+FUTO Voice Input is currently based on the OpenAI Whisper model, and could theoretically support all of the languages that OpenAI Whisper supports. However, in practice, the smaller models tend to not perform too good with languages that had fewer training hours. To avoid presenting something worse than nothing, only languages with more than 1,000 training hours are included as options in the UI:
+* English
+* Chinese (currently has some weird behavior between traditional/simplified)
+* German
+* Spanish
+* Russian
+* French
+* Portuguese
+* Korean
+* Japanese
+* Turkish
+* Polish
+* Italian
+* Swedish
+* Dutch
+* Catalan
+* Finnish
+* Indonesian
+
+Language support and accuracy may expand in the future with better optimization and fine-tuned models. Feedback is welcomed about language-related issues or general language accuracy.
 
 ## Development
 
