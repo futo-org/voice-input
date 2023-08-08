@@ -44,6 +44,10 @@ There are four build flavors:
 * `standalone` - does not include Play Store billing library, includes auto-update
 * `fDroid` - does not include Play Store billing nor auto-update
 
+## License
+
+This code is currently licensed under the [FUTO Temporary License](LICENSE.md)
+
 ## Credits
 
 Thanks to the following projects for making this possible:
