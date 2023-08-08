@@ -69,7 +69,7 @@ There are four build flavors:
 
 ## License
 
-This code is currently licensed under the [FUTO Temporary License](LICENSE.md)
+This code is currently licensed under the [FUTO Temporary License](FTL_LICENSE.md)
 
 ## Credits
 
