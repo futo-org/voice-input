@@ -1,3 +1,5 @@
+Copyright (c) 2023 FUTO
+
 # FUTO TEMPORARY LICENSE
 
 ## Preamble
