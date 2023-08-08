@@ -133,6 +133,14 @@ fun CreditsScreen(openDependencies: () -> Unit = {}) {
                 copyright = "Copyright (c) 2023 Square, Inc"
             )
 
+            CreditItem(
+                name = "Feather Icons",
+                thanksFor = stringResource(R.string.thanks_for_icon),
+                link = "https://github.com/feathericons/feather",
+                license = "MIT",
+                copyright = "Copyright (c) 2013-2017 Cole Bemis"
+            )
+
             Button(
                 onClick = openDependencies, modifier = Modifier
                     .fillMaxWidth()

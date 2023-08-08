@@ -13,6 +13,7 @@
     <string name="thanks_for_the_voice_activity_detection_to_stop_recognition_on_silence">Thanks for the voice activity detection to stop recognition on silence</string>
     <string name="thanks_for_the_android_bindings_to_webrtc_voice_activity_detection">Thanks for the Android bindings to WebRTC voice activity detection</string>
     <string name="thanks_for_the_http_client_used_for_downloading_models">Thanks for the HTTP client, used for downloading models</string>
+    <string name="thanks_for_icon">Thanks for the microphone icon</string>
     <string name="view_other_dependencies">View Other Dependencies</string>
     <string name="name_legal">The authors, contributors or copyright holders listed above are not affiliated with this product and do not endorse or promote this product. Reference to the authors, contributors or copyright holders is solely for attribution purposes. Mention of their names does not imply approval or endorsement.</string>
     <string name="just_a_demonstration">This is just a demonstration of how Voice Input looks</string>
