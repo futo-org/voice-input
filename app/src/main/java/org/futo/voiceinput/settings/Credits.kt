@@ -35,7 +35,7 @@ fun CreditItem(name: String, thanksFor: String, link: String, license: String, c
 
     Surface(
         color = MaterialTheme.colorScheme.primaryContainer,
-        modifier = Modifier.padding(8.dp),
+        modifier = Modifier.fillMaxWidth().padding(8.dp),
         shape = RoundedCornerShape(4.dp)
     ) {
         ClickableText(text = buildAnnotatedString {
