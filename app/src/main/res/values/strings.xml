@@ -148,4 +148,7 @@
     <string name="dismiss">Dismiss</string>
     <string name="samsung_keyboard_incompatible_details">You appear to be using Samsung Keyboard.\n\nUnfortunately, Samsung Keyboard is currently hardcoded to only allow the choice between Samsung Voice Input and Google Voice Input. You will need to use a different keyboard if you want to trigger FUTO Voice Input from your keyboard.\n\nPlease visit the Help page in settings for more information.</string>
     <string name="samsung_keyboard_incompatible_accept">I understand Samsung Keyboard is incompatible</string>
+    <string name="payment_complete">Payment Complete</string>
+    <string name="model_downloader">Model Downloader</string>
+    <string name="update_checking_service">Update Checking service</string>
 </resources>

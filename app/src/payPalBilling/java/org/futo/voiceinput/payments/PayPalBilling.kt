@@ -11,6 +11,7 @@ class PayPalBilling(val context: Context) : BillingImpl {
     }
 
     override fun checkAlreadyOwnsProduct() {
+        // In the future, maybe we could get a unique device ID or fingerprint and check using k-anonymity
     }
 
     override fun startConnection(onReady: () -> Unit) {

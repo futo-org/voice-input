@@ -47,7 +47,7 @@
         <activity
             android:name=".downloader.DownloadActivity"
             android:exported="false"
-            android:label="Model Downloader"
+            android:label="@string/model_downloader"
             android:clearTaskOnLaunch="true"
             android:launchMode="singleTask"
             android:theme="@style/Theme.WhisperVoiceInput" />
@@ -55,10 +55,25 @@
         <activity
             android:name=".settings.PaymentActivity"
             android:exported="false"
-            android:label="Payment"
+            android:label="@string/payment"
             android:clearTaskOnLaunch="false"
             android:launchMode="singleInstance"
             android:theme="@style/Theme.WhisperVoiceInput" />
+
+        <activity
+            android:name=".settings.PaymentCompleteActivity"
+            android:exported="true"
+            android:label="@string/payment_complete"
+            android:clearTaskOnLaunch="false"
+            android:launchMode="singleInstance"
+            android:theme="@style/Theme.WhisperVoiceInput" >
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="futo-voice-input" android:host="thank-you-for-paying" />
+            </intent-filter>
+        </activity>
 
         <service
             android:name=".VoiceInputMethodService"
@@ -74,7 +89,7 @@
 
         <service
             android:name=".updates.UpdateCheckingService"
-            android:label="Update Checking service"
+            android:label="@string/update_checking_service"
             android:permission="android.permission.BIND_JOB_SERVICE" >
         </service>
     </application>
