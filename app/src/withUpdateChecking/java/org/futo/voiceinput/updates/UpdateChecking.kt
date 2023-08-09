@@ -17,7 +17,7 @@ import org.futo.voiceinput.BuildConfig
 import org.futo.voiceinput.LAST_UPDATE_CHECK_RESULT
 import org.futo.voiceinput.ValueFromSettings
 import org.futo.voiceinput.dataStore
-import java.io.IOException
+import java.lang.Exception
 
 const val UPDATE_URL = "https://voiceinput.futo.org/VoiceInput/voice_input_version_${BuildConfig.FLAVOR}"
 
@@ -57,7 +57,7 @@ suspend fun checkForUpdate(): UpdateResult? {
             response.closeQuietly()
 
             result
-        } catch (e: IOException) {
+        } catch (e: Exception) {
             null
         }
     }

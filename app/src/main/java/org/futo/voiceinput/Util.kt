@@ -146,11 +146,16 @@ fun Context.startModelDownloadActivity(models: List<ModelData>) {
     startActivity(intent)
 }
 
-fun <T> Context.startAppActivity(activity: Class<T>) {
+fun <T> Context.startAppActivity(activity: Class<T>, clearTop: Boolean = false) {
     val intent = Intent(this, activity)
 
     if(this !is Activity) {
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    }
+
+    if(clearTop) {
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
     }
 
     startActivity(intent)

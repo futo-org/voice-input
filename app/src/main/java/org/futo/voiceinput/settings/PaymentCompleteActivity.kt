@@ -29,7 +29,7 @@ class PaymentCompleteActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     PaymentThankYouScreen(onExit = {
-                        startAppActivity(SettingsActivity::class.java)
+                        startAppActivity(SettingsActivity::class.java, clearTop = true)
                         finish()
                     })
                 }

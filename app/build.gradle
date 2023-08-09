@@ -88,10 +88,27 @@ android {
             versionNameSuffix "-dev"
             applicationIdSuffix ".dev"
         }
+
+        devSameId {
+            dimension "version"
+            versionNameSuffix "-devSameId"
+        }
     }
 
     sourceSets {
         dev {
+            // Include update checking for testing
+            java.srcDir 'src/withUpdateChecking/java'
+
+            // Include only the payments directories, not the dummy directories, to compile both billing methods
+            java.srcDir 'src/playStoreBilling/java/org/futo/voiceinput/payments'
+            java.srcDir 'src/payPalBilling/java/org/futo/voiceinput/payments'
+
+            // Include dev code
+            java.srcDir 'src/dev/java'
+        }
+
+        devSameId {
             // Include update checking for testing
             java.srcDir 'src/withUpdateChecking/java'
 
@@ -181,4 +198,6 @@ dependencies {
     playStoreImplementation "com.android.billingclient:billing-ktx:$billing_version"
     devImplementation "com.android.billingclient:billing:$billing_version"
     devImplementation "com.android.billingclient:billing-ktx:$billing_version"
+    devSameIdImplementation "com.android.billingclient:billing:$billing_version"
+    devSameIdImplementation "com.android.billingclient:billing-ktx:$billing_version"
 }
