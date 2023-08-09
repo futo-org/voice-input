@@ -321,7 +321,14 @@ fun PaymentScreen(
                                 .padding(8.dp)
                                 .align(CenterHorizontally)
                         ) {
-                            Text(stringResource(R.string.pay_via_x, it.getName()))
+                            val name = it.getName()
+                            val text = if(name.isEmpty()) {
+                                stringResource(R.string.pay)
+                            } else {
+                                stringResource(R.string.pay_via_x, name)
+                            }
+
+                            Text(text)
                         }
                     }
                 }

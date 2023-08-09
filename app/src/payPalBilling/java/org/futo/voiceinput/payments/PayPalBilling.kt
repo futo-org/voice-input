@@ -21,7 +21,7 @@ class PayPalBilling(val context: Context) : BillingImpl {
     }
 
     override fun launchBillingFlow() {
-        context.openURI("https://example.com", true) // TODO: Link to actual PayPal page
+        context.openURI("https://voiceinput.futo.org/voiceinput-checkout", true)
     }
 
     override fun supportsCheckingIfAlreadyOwnsProduct(): Boolean {
@@ -29,6 +29,6 @@ class PayPalBilling(val context: Context) : BillingImpl {
     }
 
     override fun getName(): String {
-        return "PayPal"
+        return ""
     }
 }
