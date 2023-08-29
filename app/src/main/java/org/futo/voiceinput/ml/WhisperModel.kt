@@ -104,14 +104,8 @@ class WhisperModel(context: Context, model: ModelData, private val suppressNonSp
     init {
         val cpuOption = Model.Options.Builder().setDevice(Model.Device.CPU).build()
 
-        val nnApiOption = if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            Model.Options.Builder().setDevice(Model.Device.NNAPI).build()
-        } else {
-            cpuOption
-        }
-
         val (encoderModel, decoderModel, tokenizer) = try {
-            initModelsWithOptions(context, model, nnApiOption, cpuOption)
+            initModelsWithOptions(context, model, cpuOption, cpuOption)
         } catch (e: Exception) {
             e.printStackTrace()
             initModelsWithOptions(context, model, cpuOption, cpuOption)
