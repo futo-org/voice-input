@@ -1,0 +1,3 @@
+[submodule "dep/futopay"]
+	path = dep/futopay
+	url = ../futopayclientlibraries.git

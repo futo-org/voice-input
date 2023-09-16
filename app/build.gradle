@@ -125,6 +125,7 @@ android {
             // Include only the payments directories, not the dummy directories, to compile both billing methods
             java.srcDir 'src/playStoreBilling/java/org/futo/voiceinput/payments'
             java.srcDir 'src/payPalBilling/java/org/futo/voiceinput/payments'
+            res.srcDir 'src/payPalBilling/res'
 
             // Include dev code
             java.srcDir 'src/dev/java'
@@ -137,6 +138,7 @@ android {
             // Include only the payments directories, not the dummy directories, to compile both billing methods
             java.srcDir 'src/playStoreBilling/java/org/futo/voiceinput/payments'
             java.srcDir 'src/payPalBilling/java/org/futo/voiceinput/payments'
+            res.srcDir 'src/payPalBilling/res'
 
             // Include dev code
             java.srcDir 'src/dev/java'
@@ -159,6 +161,7 @@ android {
 
             // Include only PayPal billing, do not depend on Play Store billing
             java.srcDir 'src/payPalBilling/java'
+            res.srcDir 'src/payPalBilling/res'
 
             // Include non-dev code
             java.srcDir 'src/nonDev/java'
@@ -170,6 +173,7 @@ android {
 
             // Include only PayPal billing, do not depend on Play Store billing
             java.srcDir 'src/payPalBilling/java'
+            res.srcDir 'src/payPalBilling/res'
 
             // Include non-dev code
             java.srcDir 'src/nonDev/java'
@@ -217,6 +221,13 @@ dependencies {
 
     implementation 'ch.acra:acra-http:5.11.1'
     implementation 'ch.acra:acra-dialog:5.11.1'
+
+    // TODO: Is there an easier way of doing this
+    devImplementation        project(":dep:futopay:android:app")
+    devSameIdImplementation  project(":dep:futopay:android:app")
+    fDroidImplementation     project(":dep:futopay:android:app")
+    standaloneImplementation project(":dep:futopay:android:app")
+
 
     def billing_version = "6.0.1"
     playStoreImplementation "com.android.billingclient:billing:$billing_version"

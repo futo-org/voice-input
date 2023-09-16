@@ -2,6 +2,9 @@ package org.futo.voiceinput.payments
 
 import android.content.Context
 
+class BillingActivity : AppCompatActivity() {
+
+}
 
 class PayPalBilling(private val context: Context) : BillingImpl {
     companion object {

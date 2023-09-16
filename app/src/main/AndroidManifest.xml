@@ -62,6 +62,14 @@
             android:theme="@style/Theme.WhisperVoiceInput" />
 
         <activity
+            android:name=".payments.BillingActivity"
+            android:exported="false"
+            android:label="External Billing"
+            android:clearTaskOnLaunch="false"
+            android:launchMode="singleInstance"
+            android:theme="@style/Theme.BillingDialog" />
+
+        <activity
             android:name=".settings.PaymentCompleteActivity"
             android:exported="true"
             android:label="@string/payment_complete"
