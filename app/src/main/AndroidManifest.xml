@@ -80,7 +80,7 @@
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="futo-voice-input" android:host="thank-you-for-paying" />
+                <data android:scheme="futo-voice-input" />
             </intent-filter>
         </activity>
 
