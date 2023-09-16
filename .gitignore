@@ -51,3 +51,4 @@ google-services.json
 app/release/*.apk
 app/release/*.zip
 keystore.properties
+crashreporting.properties
