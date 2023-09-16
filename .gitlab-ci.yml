@@ -22,10 +22,10 @@ buildDev:
   tags:
     - docker
   script:
-    - ./setUpKeysCI.sh
+    - ./setUpPropertiesCI.sh
     - gradle assembleDevRelease -s
     - mv app/build/outputs/apk/dev/release/app-dev-release.apk ./app-release-$CI_COMMIT_SHORT_SHA.apk
-    - ./sendZulipMessage.sh "New dev build - https://gitlab.futo.org/alex/voiceinput/-/jobs/$CI_JOB_ID/artifacts/raw/app-release-$CI_COMMIT_SHORT_SHA.apk"
+    - ./sendZulipMessage.sh "New Voice Input dev build - https://gitlab.futo.org/alex/voiceinput/-/jobs/$CI_JOB_ID/artifacts/raw/app-release-$CI_COMMIT_SHORT_SHA.apk"
   artifacts:
     name: "app-release-$CI_COMMIT_SHORT_SHA"
     paths: 
@@ -37,7 +37,7 @@ buildRelease:
   tags:
     - docker
   script:
-    - ./setUpKeysCI.sh
+    - ./setUpPropertiesCI.sh
     - gradle bundlePlayStoreRelease -s
     - gradle assembleStandaloneRelease -s
     - mv app/build/outputs/bundle/playStoreRelease/app-playStore-release.aab ./playStore.aab
