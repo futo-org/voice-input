@@ -55,4 +55,11 @@ class FeatureExtractorTestAndroid {
 
         assertTrue(extractedFeatures.toDoubleArray().toTypedArray().isEqualApprox(targetFeatures.toDoubleArray().toTypedArray()))
     }
+
+    // Must finish without throwing an exception
+    @Test fun featureExtractor_CanHandleEmpty() {
+        val extractor = WhisperModel.extractor
+
+        extractor.melSpectrogram(doubleArrayOf())
+    }
 }
