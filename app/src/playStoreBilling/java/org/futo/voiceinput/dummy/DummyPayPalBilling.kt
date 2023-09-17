@@ -1,9 +1,20 @@
 package org.futo.voiceinput.payments
 
 import android.content.Context
+import androidx.appcompat.app.AppCompatActivity
 
 class BillingActivity : AppCompatActivity() {
 
+}
+
+class StatePayment {
+    public fun setPaymentLicenseUrl(license: String): Boolean {
+        return false
+    }
+
+    companion object {
+        val instance = StatePayment()
+    }
 }
 
 class PayPalBilling(private val context: Context) : BillingImpl {
