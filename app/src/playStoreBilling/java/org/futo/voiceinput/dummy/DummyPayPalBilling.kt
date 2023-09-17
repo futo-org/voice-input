@@ -9,7 +9,9 @@ class BillingActivity : AppCompatActivity() {
 
 class StatePayment {
     public fun setPaymentLicenseUrl(license: String): Boolean {
-        return false
+        // On the Play Store version, if someone opens a license, let's just assume it's valid
+        // TODO?: Verify
+        return true
     }
 
     companion object {
