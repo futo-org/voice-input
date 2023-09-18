@@ -333,5 +333,6 @@ val FORCE_SHOW_NOTICE = booleanPreferencesKey("force_show_notice")
 // UNIX timestamp in seconds of when to next show the payment reminder
 val NOTICE_REMINDER_TIME = longPreferencesKey("notice_reminder_time")
 
-
 val LAST_UPDATE_CHECK_RESULT = stringPreferencesKey("last_update_check_result_${BuildConfig.FLAVOR}")
+
+val EXT_LICENSE_KEY = stringPreferencesKey("license_key")

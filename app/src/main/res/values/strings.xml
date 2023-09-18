@@ -152,4 +152,5 @@
     <string name="payment_complete">Payment Complete</string>
     <string name="model_downloader">Model Downloader</string>
     <string name="update_checking_service">Update Checking service</string>
+    <string name="license_check_failed">Failed to verify license. If you believe this to be an error, please contact us.</string>
 </resources>
