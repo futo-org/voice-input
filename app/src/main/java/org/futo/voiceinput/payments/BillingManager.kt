@@ -12,7 +12,7 @@ class BillingManager(val context: Context, val coroutineScope: CoroutineScope) {
         }
 
         if(PayPalBilling.isAllowed()) {
-            billings.add(PayPalBilling(context))
+            billings.add(PayPalBilling(context, coroutineScope))
         }
     }
 

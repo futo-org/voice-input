@@ -7,12 +7,20 @@ import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import androidx.appcompat.app.AppCompatActivity
+import androidx.datastore.preferences.core.edit
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.futo.futopay.PaymentManager
 import com.futo.futopay.PaymentStatusListener
 import com.futo.futopay.UIDialogs
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import org.futo.voiceinput.EXT_PENDING_PURCHASE_ID
+import org.futo.voiceinput.EXT_PENDING_PURCHASE_LAST_CHECK
+import org.futo.voiceinput.IS_ALREADY_PAID
+import org.futo.voiceinput.IS_PAYMENT_PENDING
 import org.futo.voiceinput.R
+import org.futo.voiceinput.dataStore
 
 const val GJ_PRODUCT_ID_VOICE_INPUT = "voiceinput"
 
@@ -44,8 +52,21 @@ class BuyFragment : Fragment() {
         private val _paymentManager: PaymentManager;
 
         private val _listener: PaymentStatusListener = object : PaymentStatusListener {
-            override fun onSuccess() {
-                UIDialogs.showDialog(context, R.drawable.ic_check, "Payment succeeded", "Thanks for your purchase, a key will be sent to your email after your payment has been received!", 0, UIDialogs.Action("Ok", {}, UIDialogs.ActionStyle.PRIMARY));
+            override fun onSuccess(purchaseId: String?) {
+                if(purchaseId != null) {
+                    fragment.lifecycleScope.launch {
+                        context.dataStore.edit {
+                            it[IS_ALREADY_PAID] = true
+                            it[IS_PAYMENT_PENDING] = true
+                            it[EXT_PENDING_PURCHASE_ID] = purchaseId
+                            it[EXT_PENDING_PURCHASE_LAST_CHECK] = System.currentTimeMillis() / 1000L
+                        }
+
+                        fragment.onCancel()
+                    }
+                } else {
+                    UIDialogs.showDialog(context, R.drawable.ic_check, "Payment succeeded", "Thanks for your purchase, a key will be sent to your email after your payment has been received!", 0, UIDialogs.Action("Ok", {}, UIDialogs.ActionStyle.PRIMARY));
+                }
             }
 
             override fun onCancel() {

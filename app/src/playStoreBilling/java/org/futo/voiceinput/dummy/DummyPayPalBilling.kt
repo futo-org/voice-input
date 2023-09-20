@@ -2,6 +2,7 @@ package org.futo.voiceinput.payments
 
 import android.content.Context
 import androidx.appcompat.app.AppCompatActivity
+import kotlinx.coroutines.CoroutineScope
 
 class BillingActivity : AppCompatActivity() {
 
@@ -19,7 +20,7 @@ class StatePayment {
     }
 }
 
-class PayPalBilling(private val context: Context) : BillingImpl {
+class PayPalBilling(private val context: Context, private val coroutineScope: CoroutineScope) : BillingImpl {
     companion object {
         fun isAllowed(): Boolean {
             return false
