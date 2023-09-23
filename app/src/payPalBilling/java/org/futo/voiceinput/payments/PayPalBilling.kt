@@ -7,6 +7,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.futo.voiceinput.BuildConfig
 import org.futo.voiceinput.EXT_LICENSE_KEY
 import org.futo.voiceinput.EXT_PENDING_PURCHASE_ID
 import org.futo.voiceinput.EXT_PENDING_PURCHASE_LAST_CHECK
@@ -15,7 +16,8 @@ import org.futo.voiceinput.IS_PAYMENT_PENDING
 import org.futo.voiceinput.ValueFromSettings
 import org.futo.voiceinput.startAppActivity
 
-const val TEST_MODE: Boolean = true
+@Suppress("KotlinConstantConditions")
+const val TEST_MODE: Boolean = BuildConfig.FLAVOR == "dev"
 
 const val PROD_KEY = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA3JuRj4dv1mzB9mnTrGXdM/DlbDbNkrKvyEvR27Gy9ZEb3p3WhNk/BMPkA8L0ebrhq55N1o0IgF0qi/vFE0wnHuFcAIUIZEz6ZGLCgDaILursXpfKFVdj+ZidXCFrFgNW232EXhhXYF8pvSyLtEsjaYas2C/X68wL7nLt9Iw/0YC3ZmyislaV3BCdmSnZapdzmoRRHNV1hvhhBdF35pt9Mn0Tv3KP9/0+bM5CCv7kK2LI7NFmsSjXrTKZLDol1cOED9IC6SxUh32Dl67pyspdbMrZNa5GRWRuV+IM/w4FaE8W5aa45znvScJmngwzAq5W/8TsAlEDSbd5zQIvFQok0wIDAQAB"
 const val TEST_KEY = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA5ljP3KJGUSp+G7uEwzDJwjlqxtjDqTbm20+2TDE293yKjQ8ZlUDcjrtk763PTIylzQUkTpAY/A+n6Uf6JRuIWU9vVrxZpHQ+EVrUxTQaF8kL7Yb+pTFsnCJf/rwuxApQ2mYmoCrxKN0DumSGzm+2oE/ZtIWn4orLzHcTOaDoP/Kls2d0a2h3659P1Ycl49jwydFoVOLx8hb7tZX7VNR+DjjJV3B65S+mjvE1F3CjyColM9IRYPRUASc2VVra2DEhe64a+JmYJcM4tpu0oVuQqIuto3aqTrgYTpzFjJD3Nyo+TXJozfcnQRXL0/DCGCdhopx0GYeUc7AvEJoLXDrP4wIDAQAB"
