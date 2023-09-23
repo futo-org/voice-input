@@ -1,9 +1,26 @@
 package org.futo.voiceinput.payments
 
 import android.content.Context
+import androidx.appcompat.app.AppCompatActivity
+import kotlinx.coroutines.CoroutineScope
 
+class BillingActivity : AppCompatActivity() {
 
-class PayPalBilling(private val context: Context) : BillingImpl {
+}
+
+class StatePayment {
+    public fun setPaymentLicenseUrl(license: String): Boolean {
+        // On the Play Store version, if someone opens a license, let's just assume it's valid
+        // TODO?: Verify
+        return true
+    }
+
+    companion object {
+        val instance = StatePayment()
+    }
+}
+
+class PayPalBilling(private val context: Context, private val coroutineScope: CoroutineScope) : BillingImpl {
     companion object {
         fun isAllowed(): Boolean {
             return false

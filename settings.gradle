@@ -17,5 +17,7 @@ dependencyResolutionManagement {
     }
 }
 
+include ":dep:futopay:android:app"
+
 rootProject.name = "VoiceInput"
 include ':app'

@@ -16,6 +16,7 @@ import androidx.compose.ui.unit.dp
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
@@ -60,6 +61,12 @@ class ValueFromSettings<T>(val key: Preferences.Key<T>, val default: T) {
             if(onResult != null) {
                 onResult(it)
             }
+        }
+    }
+
+    suspend fun set(context: Context, newValue: T) {
+        context.dataStore.edit {
+            it[key] = newValue
         }
     }
 
@@ -333,5 +340,8 @@ val FORCE_SHOW_NOTICE = booleanPreferencesKey("force_show_notice")
 // UNIX timestamp in seconds of when to next show the payment reminder
 val NOTICE_REMINDER_TIME = longPreferencesKey("notice_reminder_time")
 
-
 val LAST_UPDATE_CHECK_RESULT = stringPreferencesKey("last_update_check_result_${BuildConfig.FLAVOR}")
+
+val EXT_LICENSE_KEY = stringPreferencesKey("license_key")
+val EXT_PENDING_PURCHASE_ID = stringPreferencesKey("purchase_id")
+val EXT_PENDING_PURCHASE_LAST_CHECK = longPreferencesKey("purchase_status_last_check")
