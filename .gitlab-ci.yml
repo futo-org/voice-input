@@ -44,8 +44,10 @@ buildRelease:
     - ./setUpPropertiesCI.sh
     - gradle bundlePlayStoreRelease -s
     - gradle assembleStandaloneRelease -s
+    - gradle assembleFDroidRelease -s
     - mv app/build/outputs/bundle/playStoreRelease/app-playStore-release.aab ./playStore.aab
     - mv app/build/outputs/apk/standalone/release/app-standalone-release.apk ./standalone.apk
+    - mv app/build/outputs/apk/fDroid/release/app-fDroid-release.apk ./fdroid.apk
   artifacts:
     name: "release-$CI_COMMIT_SHORT_SHA"
     paths: 
