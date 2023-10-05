@@ -21,6 +21,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.futo.voiceinput.BuildConfig
 import org.futo.voiceinput.IS_ALREADY_PAID
 import org.futo.voiceinput.IS_PAYMENT_PENDING
 import org.futo.voiceinput.ValueFromSettings
@@ -57,6 +58,9 @@ class PlayBilling(private val context: Context, private val coroutine: Coroutine
     }
 
     override fun checkAlreadyOwnsProduct() {
+        @Suppress("KotlinConstantConditions")
+        if(BuildConfig.FLAVOR == "dev") return
+
         if(billingClient.connectionState != BillingClient.ConnectionState.CONNECTED) {
             return startConnection { checkAlreadyOwnsProduct() }
         }

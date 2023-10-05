@@ -98,7 +98,8 @@
     <string name="purchase_will_help_body">Your purchase will help continued development of Voice Input, and other FUTO projects.</string>
     <string name="thank_you">Thank you</string>
     <string name="payment_pending">Payment Pending</string>
-    <string name="payment_failed_body">Unfortunately, your payment has failed for one reason or another. Please contact us if you need help. You can reach us at voiceinput@futo.org or hit the Send Feedback button.</string>
+    <string name="payment_failed_body">Unfortunately, your payment has failed for one reason or another. Please contact us if you need help. You can reach us at voiceinput@futo.org, with the button below, or with Send Feedback at the main screen.</string>
+    <string name="payment_failed_body_ex">There may have been a problem with your payment. If it did go through, you should receive an email with a license key. Please contact us if you need help. You can reach us at voiceinput@futo.org, with the button below, or with Share Feedback at the main screen.</string>
     <string name="continue_">Continue</string>
     <string name="pay_via_x">Pay via <xliff:g name="paymentMethod" example="Play Store">%s</xliff:g></string>
     <string name="pay">Pay</string>
@@ -153,4 +154,6 @@
     <string name="model_downloader">Model Downloader</string>
     <string name="update_checking_service">Update Checking service</string>
     <string name="license_check_failed">Failed to verify license. If you believe this to be an error, please contact us.</string>
+    <string name="send_feedback">Send Feedback</string>
+    <string name="contact_support">Contact Support</string>
 </resources>

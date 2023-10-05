@@ -251,7 +251,14 @@ fun PaymentFailedScreen(onExit: () -> Unit = { }) {
 
     Screen(stringResource(R.string.payment_error)) {
         ScrollableList {
-            ParagraphText(stringResource(R.string.payment_failed_body))
+            @Suppress("KotlinConstantConditions")
+            ParagraphText( when(BuildConfig.FLAVOR) {
+                "fDroid" -> stringResource(R.string.payment_failed_body_ex)
+                "dev" -> stringResource(R.string.payment_failed_body_ex)
+                "standalone" -> stringResource(R.string.payment_failed_body_ex)
+                else -> stringResource(R.string.payment_failed_body)
+            })
+            ShareFeedbackOption(title = stringResource(R.string.contact_support))
             Box(modifier = Modifier.fillMaxWidth()) {
                 val coroutineScope = rememberCoroutineScope()
                 Button(

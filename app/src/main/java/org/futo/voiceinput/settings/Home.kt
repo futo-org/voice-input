@@ -33,10 +33,10 @@ import org.futo.voiceinput.ui.theme.Typography
 
 
 @Composable
-fun ShareFeedbackOption() {
+fun ShareFeedbackOption(title: String = stringResource(R.string.send_feedback)) {
     val context = LocalContext.current
     val mailUri = "mailto:${stringResource(R.string.support_email)}"
-    SettingItem(title = "Send Feedback", onClick = {
+    SettingItem(title = title, onClick = {
         context.openURI(mailUri)
     }) {
         Icon(Icons.Default.Send, contentDescription = stringResource(R.string.go))
