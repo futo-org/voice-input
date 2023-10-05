@@ -104,6 +104,7 @@
     <string name="pay_via_x">Pay via <xliff:g name="paymentMethod" example="Play Store">%s</xliff:g></string>
     <string name="pay">Pay</string>
     <string name="i_already_paid">I already paid</string>
+    <string name="i_already_paid_2">I already paid (tap again)</string>
     <string name="remind_me_in_x">"Remind me in "</string>
     <string name="in_x_days">" days"</string>
     <string name="developer_mode_payment_methods">You are on the Developer release, so you are seeing all payment methods</string>

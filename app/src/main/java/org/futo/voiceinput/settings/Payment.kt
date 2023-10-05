@@ -5,7 +5,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -336,13 +338,26 @@ fun PaymentScreen(
                     }
                 }
 
+                Spacer(modifier = Modifier.height(64.dp))
+
+                val counter = remember { mutableStateOf(0) }
                 Button(
-                    onClick = { onAlreadyPaid() }, colors = ButtonDefaults.buttonColors(
+                    onClick = {
+                        counter.value += 1
+                        if(counter.value == 2) {
+                            onAlreadyPaid()
+                        }
+                    }, colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.secondary,
                         contentColor = MaterialTheme.colorScheme.onSecondary
                     ), modifier = Modifier.align(CenterHorizontally)
                 ) {
-                    Text(stringResource(R.string.i_already_paid))
+                    Text(stringResource(
+                        when(counter.value) {
+                            0 -> R.string.i_already_paid
+                            else -> R.string.i_already_paid_2
+                        })
+                    )
                 }
 
                 if (reminderTimeIsUp) {
