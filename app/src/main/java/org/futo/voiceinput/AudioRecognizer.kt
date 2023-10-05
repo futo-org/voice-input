@@ -5,7 +5,9 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.hardware.SensorPrivacyManager
+import android.media.AudioFocusRequest
 import android.media.AudioFormat
+import android.media.AudioManager
 import android.media.AudioRecord
 import android.media.MediaRecorder
 import android.media.MicrophoneDirection
@@ -25,6 +27,7 @@ import kotlinx.coroutines.withContext
 import org.futo.voiceinput.ml.RunState
 import org.futo.voiceinput.ml.WhisperModelWrapper
 import java.io.IOException
+import java.lang.Exception
 import java.nio.FloatBuffer
 import java.nio.ShortBuffer
 import kotlin.math.min
@@ -68,7 +71,7 @@ abstract class AudioRecognizer {
     protected abstract fun processing()
 
     fun finishRecognizerIfRecording() {
-        if(isRecording) {
+        if (isRecording) {
             finishRecognizer()
         }
     }
@@ -90,6 +93,8 @@ abstract class AudioRecognizer {
         recorderJob?.cancel()
         modelJob?.cancel()
         isRecording = false
+
+        unfocusAudio()
     }
 
     protected fun openPermissionSettings() {
@@ -106,11 +111,35 @@ abstract class AudioRecognizer {
         cancelRecognizer()
     }
 
+    private var focusRequest: AudioFocusRequest? = null
+    private fun focusAudio() {
+        unfocusAudio()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+            focusRequest =
+                AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_EXCLUSIVE)
+                    .build()
+            audioManager.requestAudioFocus(focusRequest!!)
+        }
+    }
+    private fun unfocusAudio() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+            if (focusRequest != null) {
+                audioManager.abandonAudioFocusRequest(focusRequest!!)
+            }
+            focusRequest = null
+        }
+    }
+
     private val languages = ValueFromSettings(LANGUAGE_TOGGLES, setOf("en"))
     private val useMultilingualModel = ValueFromSettings(ENABLE_MULTILINGUAL, false)
     private val suppressNonSpeech = ValueFromSettings(DISALLOW_SYMBOLS, true)
-    private val englishModelIndex = ValueFromSettings(ENGLISH_MODEL_INDEX, ENGLISH_MODEL_INDEX_DEFAULT)
-    private val multilingualModelIndex = ValueFromSettings(MULTILINGUAL_MODEL_INDEX, MULTILINGUAL_MODEL_INDEX_DEFAULT)
+    private val englishModelIndex =
+        ValueFromSettings(ENGLISH_MODEL_INDEX, ENGLISH_MODEL_INDEX_DEFAULT)
+    private val multilingualModelIndex =
+        ValueFromSettings(MULTILINGUAL_MODEL_INDEX, MULTILINGUAL_MODEL_INDEX_DEFAULT)
+
     private suspend fun tryLoadModelOrCancel(primaryModel: ModelData, secondaryModel: ModelData?) {
         try {
             model = WhisperModelWrapper(
@@ -118,23 +147,24 @@ abstract class AudioRecognizer {
                 primaryModel,
                 secondaryModel,
                 suppressNonSpeech.get(context),
-                if(secondaryModel != null) languages.get(context) else null
+                if (secondaryModel != null) languages.get(context) else null
             )
         } catch (e: IOException) {
             context.startModelDownloadActivity(
                 listOf(primaryModel).let {
-                    if(secondaryModel != null) it + secondaryModel
+                    if (secondaryModel != null) it + secondaryModel
                     else it
                 }
             )
             cancelRecognizer()
         }
     }
+
     private fun loadModel() {
-        if(model == null) {
+        if (model == null) {
             loadModelJob = lifecycleScope.launch {
                 withContext(Dispatchers.Default) {
-                    if(useMultilingualModel.get(context)) {
+                    if (useMultilingualModel.get(context)) {
                         tryLoadModelOrCancel(
                             MULTILINGUAL_MODELS[multilingualModelIndex.get(context)],
                             ENGLISH_MODELS[englishModelIndex.get(context)]
@@ -155,7 +185,7 @@ abstract class AudioRecognizer {
 
         if (context.checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
             needPermission()
-        }else{
+        } else {
             startRecording()
         }
     }
@@ -168,8 +198,8 @@ abstract class AudioRecognizer {
         permissionRejected()
     }
 
-    private fun startRecording(){
-        if(isRecording) {
+    private fun startRecording() {
+        if (isRecording) {
             throw IllegalStateException("Start recording when already recording")
         }
 
@@ -188,6 +218,7 @@ abstract class AudioRecognizer {
 
             recorder!!.startRecording()
 
+            focusAudio()
             isRecording = true
 
             val canMicBeBlocked = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -363,6 +394,7 @@ abstract class AudioRecognizer {
     }
 
     private fun onFinishRecording() {
+        unfocusAudio()
         recorderJob?.cancel()
 
         if(!isRecording) {
