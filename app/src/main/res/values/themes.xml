@@ -9,7 +9,7 @@
         <item name="android:backgroundDimEnabled">true</item>
     </style>
 
-    <style name="Theme.BillingDialog" parent="Theme.AppCompat.DayNight.Dialog">
+    <style name="Theme.BillingDialog" parent="Theme.AppCompat.Dialog">
         <item name="windowNoTitle">true</item>
 
         <item name="android:windowBackground">@null</item>
