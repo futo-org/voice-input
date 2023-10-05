@@ -155,5 +155,6 @@
     <string name="update_checking_service">Update Checking service</string>
     <string name="license_check_failed">Failed to verify license. If you believe this to be an error, please contact us.</string>
     <string name="send_feedback">Send Feedback</string>
+    <string name="issue_tracker">Public Issue Tracker</string>
     <string name="contact_support">Contact Support</string>
 </resources>

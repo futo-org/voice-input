@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -40,6 +41,17 @@ fun ShareFeedbackOption(title: String = stringResource(R.string.send_feedback)) 
         context.openURI(mailUri)
     }) {
         Icon(Icons.Default.Send, contentDescription = stringResource(R.string.go))
+    }
+}
+
+@Composable
+fun IssueTrackerOption(title: String = stringResource(R.string.issue_tracker)) {
+    val context = LocalContext.current
+    val mailUri = "https://github.com/futo-org/voice-input/issues"
+    SettingItem(title = title, onClick = {
+        context.openURI(mailUri)
+    }) {
+        Icon(Icons.Default.ArrowForward, contentDescription = stringResource(R.string.go))
     }
 }
 
@@ -166,6 +178,7 @@ fun HomeScreen(
                 Icon(Icons.Default.ArrowForward, contentDescription = stringResource(R.string.go))
             }
             ShareFeedbackOption()
+            IssueTrackerOption()
 
             if (isAlreadyPaid.value) {
                 Text(
