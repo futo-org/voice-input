@@ -114,21 +114,29 @@ abstract class AudioRecognizer {
     private var focusRequest: AudioFocusRequest? = null
     private fun focusAudio() {
         unfocusAudio()
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
-            focusRequest =
-                AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_EXCLUSIVE)
-                    .build()
-            audioManager.requestAudioFocus(focusRequest!!)
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+                focusRequest =
+                    AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_EXCLUSIVE)
+                        .build()
+                audioManager.requestAudioFocus(focusRequest!!)
+            }
+        }catch(e: Exception) {
+            e.printStackTrace()
         }
     }
     private fun unfocusAudio() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
-            if (focusRequest != null) {
-                audioManager.abandonAudioFocusRequest(focusRequest!!)
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+                if (focusRequest != null) {
+                    audioManager.abandonAudioFocusRequest(focusRequest!!)
+                }
+                focusRequest = null
             }
-            focusRequest = null
+        }catch(e: Exception) {
+            e.printStackTrace()
         }
     }
 
