@@ -43,7 +43,9 @@ class SettingsActivity : ComponentActivity() {
         }
 
 
-    private val voiceIntent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
+    private val voiceIntent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+        addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+    }
     private val runVoiceIntent =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
             viewModel.onIntentResult(

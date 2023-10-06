@@ -24,7 +24,7 @@
             android:exported="true"
             android:label="@string/recognize_activity"
             android:clearTaskOnLaunch="true"
-            android:launchMode="singleTask"
+            android:launchMode="singleInstance"
             android:theme="@style/Theme.RecognizerInput">
 
             <intent-filter>

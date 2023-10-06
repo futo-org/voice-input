@@ -177,6 +177,12 @@ class RecognizeActivity : ComponentActivity() {
         scheduleUpdateCheckingJob(applicationContext)
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+
+        recognizer.reset()
+    }
+
     private val permission = registerForActivityResult(ActivityResultContracts.RequestPermission()) {
         if(it){
             recognizer.permissionResultGranted()
