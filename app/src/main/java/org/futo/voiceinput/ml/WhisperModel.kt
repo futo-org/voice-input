@@ -3,6 +3,10 @@ package org.futo.voiceinput.ml
 import android.content.Context
 import android.os.Build
 import android.util.Log
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.newSingleThreadContext
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.yield
 import org.futo.voiceinput.AudioFeatureExtraction
 import org.futo.voiceinput.ModelData
 import org.futo.voiceinput.toDoubleArray
@@ -15,6 +19,14 @@ import java.math.BigInteger
 import java.nio.MappedByteBuffer
 import java.nio.channels.FileChannel
 import java.security.MessageDigest
+
+
+/**
+ * This is necessary to synchronize so two threads don't try to use the same tensor at once,
+ * free a model while it's in use, etc.
+ */
+@OptIn(DelicateCoroutinesApi::class)
+private val inferenceContext = newSingleThreadContext("InferenceContext")
 
 
 @Throws(IOException::class)
@@ -120,6 +132,14 @@ class WhisperModel(context: Context, private val model: ModelData, private val s
     private val endOfLanguages: Int
 
     companion object {
+        private val audioFeatures =
+            TensorBuffer.createFixedSize(intArrayOf(1, 80, 3000), DataType.FLOAT32)
+        private val seqLenTensor = TensorBuffer.createFixedSize(intArrayOf(1), DataType.FLOAT32)
+        private val inputIdTensor = TensorBuffer.createFixedSize(intArrayOf(1, 1), DataType.FLOAT32)
+
+        private val seqLenArray = FloatArray(1)
+        private val inputIdsArray = FloatArray(1)
+
         val extractor = AudioFeatureExtraction(
             chunkLength = 30,
             featureSize = 80,
@@ -228,7 +248,7 @@ class WhisperModel(context: Context, private val model: ModelData, private val s
             encoderModel.process(audioFeatures).crossAttention
         } catch(e: Exception) {
             if(taint.isNotBlank()) {
-                throw TaintedModelException("Encoder, "+taint + e.message, e)
+                throw TaintedModelException("Encoder, $taint. ${e.message}", e)
             } else {
                 throw e
             }
@@ -254,17 +274,16 @@ class WhisperModel(context: Context, private val model: ModelData, private val s
             )
         } catch(e: Exception) {
             if(taint.isNotBlank()) {
-                throw TaintedModelException("Decoder, " + taint + e.message, e)
+                throw TaintedModelException("Decoder, $taint. ${e.message}", e)
             } else {
                 throw e
             }
         }
     }
 
-    private val audioFeatures = TensorBuffer.createFixedSize(intArrayOf(1, 80, 3000), DataType.FLOAT32)
-    private val seqLenTensor = TensorBuffer.createFixedSize(intArrayOf(1), DataType.FLOAT32)
-    private val cacheTensor = TensorBuffer.createFixedSize(decoderModel.getCacheTensorShape(), DataType.FLOAT32)
-    private val inputIdTensor = TensorBuffer.createFixedSize(intArrayOf(1, 1), DataType.FLOAT32)
+    // TODO: Ideally this should be shared between model instances as well.
+    private val cacheTensor =
+        TensorBuffer.createFixedSize(decoderModel.getCacheTensorShape(), DataType.FLOAT32)
 
     init {
         val shape = cacheTensor.shape
@@ -272,20 +291,24 @@ class WhisperModel(context: Context, private val model: ModelData, private val s
         cacheTensor.loadArray(FloatArray(size) { 0f } )
     }
 
-    fun run(
+    suspend fun run(
         mel: FloatArray,
         onStatusUpdate: (RunState) -> Unit,
         onPartialDecode: (String) -> Unit,
         bailOnEnglish: Boolean
-    ): String {
+    ): String = withContext(inferenceContext) {
+        yield()
         onStatusUpdate(RunState.ProcessingEncoder)
 
+        yield()
         audioFeatures.loadArray(mel)
 
         Log.i("WhisperModel", "Running encoder for model ${model.name}")
 
+        yield()
         val xAtn = runEncoderAndGetXatn(audioFeatures)
 
+        yield()
         onStatusUpdate(RunState.StartedDecoding)
 
         val seqLenArray = FloatArray(1)
@@ -300,10 +323,15 @@ class WhisperModel(context: Context, private val model: ModelData, private val s
             seqLenArray[0] = seqLen.toFloat()
             inputIdsArray[0] = previousToken.toFloat()
 
+            yield()
             seqLenTensor.loadArray(seqLenArray)
+            yield()
             inputIdTensor.loadArray(inputIdsArray)
 
+            yield()
             val decoderOutputs = runDecoder(xAtn, seqLenTensor, cacheTensor, inputIdTensor)
+
+            yield()
             cacheTensor.loadBuffer(decoderOutputs.nextCache.buffer.duplicate())
 
             val logits = decoderOutputs.logits.floatArray
@@ -318,6 +346,7 @@ class WhisperModel(context: Context, private val model: ModelData, private val s
             if((selectedToken >= startOfLanguages) && (selectedToken <= endOfLanguages)){
                 println("Language detected: $tokenAsString")
                 if((selectedToken == englishLanguage) && bailOnEnglish) {
+                    yield()
                     onStatusUpdate(RunState.SwitchingModel)
                     throw DecodingEnglishException()
                 }
@@ -333,6 +362,7 @@ class WhisperModel(context: Context, private val model: ModelData, private val s
 
             previousToken = selectedToken
 
+            yield()
             if(fullString.isNotEmpty())
                 onPartialDecode(makeStringUnicode(fullString))
         }
@@ -344,7 +374,8 @@ class WhisperModel(context: Context, private val model: ModelData, private val s
             fullString = ""
         }
 
-        return makeStringUnicode(fullString)
+        yield()
+        return@withContext makeStringUnicode(fullString)
     }
 }
 
@@ -365,17 +396,20 @@ class WhisperModelWrapper(
         }
     }
 
-    fun run(
+    suspend fun run(
         samples: FloatArray,
         onStatusUpdate: (RunState) -> Unit,
         onPartialDecode: (String) -> Unit
     ): String {
+        yield()
         onStatusUpdate(RunState.ExtractingFeatures)
         val mel = WhisperModel.extractor.melSpectrogram(samples.toDoubleArray())
 
         return try {
+            yield()
             primary.run(mel, onStatusUpdate, onPartialDecode, fallback != null)
         } catch(e: DecodingEnglishException) {
+            yield()
             fallback!!.run(
                 mel,
                 {
