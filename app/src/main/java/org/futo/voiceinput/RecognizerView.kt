@@ -310,7 +310,7 @@ abstract class RecognizerView {
             setContent {
                 this@RecognizerView.Window(onClose = { cancelRecognizer() }) {
                     InnerRecognize(
-                        onFinish = { finishRecognizer() },
+                        onFinish = { finishRecognizerIfRecording() },
                         magnitude = magnitude,
                         state = state
                     )

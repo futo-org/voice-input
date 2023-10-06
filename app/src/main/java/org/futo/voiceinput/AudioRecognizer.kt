@@ -24,6 +24,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.yield
 import org.futo.voiceinput.ml.RunState
 import org.futo.voiceinput.ml.WhisperModelWrapper
 import java.io.IOException
@@ -259,9 +260,12 @@ abstract class AudioRecognizer {
                     val samples = FloatArray(1600)
 
                     while(isRecording && recorder!!.recordingState == AudioRecord.RECORDSTATE_RECORDING){
+                        yield()
                         val nRead = recorder!!.read(samples, 0, 1600, AudioRecord.READ_BLOCKING)
 
                         if(nRead <= 0) break
+                        yield()
+
                         if(!isRecording || recorder!!.recordingState != AudioRecord.RECORDSTATE_RECORDING) break
 
                         if(floatSamples.remaining() < 1600) {
@@ -335,13 +339,18 @@ abstract class AudioRecognizer {
                             MagnitudeState.NOT_TALKED_YET
                         }
 
+                        yield()
                         withContext(Dispatchers.Main) {
-                            updateMagnitude(magnitude, state)
+                            yield()
+                            if(isRecording) {
+                                updateMagnitude(magnitude, state)
+                            }
                         }
 
                         // Skip ahead as much as possible, in case we are behind (taking more than
                         // 100ms to process 100ms)
                         while(true){
+                            yield()
                             val nRead2 = recorder!!.read(samples, 0, 1600, AudioRecord.READ_NON_BLOCKING)
                             if(nRead2 > 0) {
                                 if(floatSamples.remaining() < nRead2){
@@ -402,15 +411,15 @@ abstract class AudioRecognizer {
     }
 
     private fun onFinishRecording() {
-        unfocusAudio()
-        recorderJob?.cancel()
-
         if(!isRecording) {
             throw IllegalStateException("Should not call onFinishRecording when not recording")
         }
 
         isRecording = false
+
+        recorderJob?.cancel()
         recorder?.stop()
+        unfocusAudio()
 
         processing()
 
