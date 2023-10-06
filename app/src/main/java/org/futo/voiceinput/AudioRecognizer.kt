@@ -95,6 +95,8 @@ abstract class AudioRecognizer {
         modelJob?.cancel()
         isRecording = false
 
+        floatSamples.clear()
+
         unfocusAudio()
     }
 
@@ -395,6 +397,7 @@ abstract class AudioRecognizer {
             decodingStatus(state)
         }
 
+        yield()
         val text = model.run(floatArray, onStatusUpdate) {
             lifecycleScope.launch {
                 withContext(Dispatchers.Main) {
