@@ -2,6 +2,7 @@ package org.futo.voiceinput.ml
 
 import android.content.Context
 import android.os.Build
+import android.util.Log
 import org.futo.voiceinput.AudioFeatureExtraction
 import org.futo.voiceinput.ModelData
 import org.futo.voiceinput.toDoubleArray
@@ -10,8 +11,10 @@ import org.tensorflow.lite.support.model.Model
 import org.tensorflow.lite.support.tensorbuffer.TensorBuffer
 import java.io.File
 import java.io.IOException
+import java.math.BigInteger
 import java.nio.MappedByteBuffer
 import java.nio.channels.FileChannel
+import java.security.MessageDigest
 
 
 @Throws(IOException::class)
@@ -25,6 +28,10 @@ private fun Context.tryOpenDownloadedModel(pathStr: String): MappedByteBuffer {
     ).load()
 }
 
+private fun ByteArray.toSHA256String(): String {
+    return BigInteger(1, this).toString(16).padStart(64, '0')
+}
+
 enum class RunState {
     ExtractingFeatures,
     ProcessingEncoder,
@@ -35,7 +42,8 @@ enum class RunState {
 data class LoadedModels(
     val encoderModel: WhisperEncoderXatn,
     val decoderModel: WhisperDecoder,
-    val tokenizer: WhisperTokenizer
+    val tokenizer: WhisperTokenizer,
+    val taint: String
 )
 
 fun initModelsWithOptions(context: Context, model: ModelData, encoderOptions: Model.Options, decoderOptions: Model.Options): LoadedModels {
@@ -44,23 +52,62 @@ fun initModelsWithOptions(context: Context, model: ModelData, encoderOptions: Mo
         val decoderModel = WhisperDecoder(context, model.decoder_file, decoderOptions)
         val tokenizer = WhisperTokenizer(context, model.vocab_raw_asset!!)
 
-        LoadedModels(encoderModel, decoderModel, tokenizer)
+        LoadedModels(encoderModel, decoderModel, tokenizer, "")
     } else {
-        val encoderModel = WhisperEncoderXatn(context.tryOpenDownloadedModel(model.encoder_xatn_file), encoderOptions)
-        val decoderModel = WhisperDecoder(context.tryOpenDownloadedModel(model.decoder_file), decoderOptions)
-        val tokenizer = WhisperTokenizer(File(context.filesDir, model.vocab_file))
+        val encoderFile = context.tryOpenDownloadedModel(model.encoder_xatn_file)
+        val decoderFile = context.tryOpenDownloadedModel(model.decoder_file)
+        val vocabFile = File(context.filesDir, model.vocab_file)
 
-        LoadedModels(encoderModel, decoderModel, tokenizer)
+
+        var taint = ""
+        try {
+            val digest = MessageDigest.getInstance("SHA-256")
+
+            digest.update(encoderFile)
+            val encoderDigest = digest.digest().toSHA256String()
+
+            digest.update(decoderFile)
+            val decoderDigest = digest.digest().toSHA256String()
+
+            digest.update(vocabFile.readBytes())
+            val vocabDigest = digest.digest().toSHA256String()
+
+            if (encoderDigest != model.digests.encoder_digest) {
+                taint += "Encoder digest mismatch for model ${model.name} - expected ${model.digests.encoder_digest}, got $encoderDigest\n"
+            }
+
+            if (decoderDigest != model.digests.decoder_digest) {
+                taint += "Decoder digest mismatch for model ${model.name} - expected ${model.digests.decoder_digest}, got $decoderDigest\n"
+            }
+
+            if (vocabDigest != model.digests.vocab_digest) {
+                taint += "Vocab digest mismatch for model ${model.name} - expected ${model.digests.vocab_digest}, got $vocabDigest\n"
+            }
+        } catch (e: Exception) {
+            Log.e("WhisperModel", "Failed to verify digests due to exception $e")
+            e.printStackTrace()
+
+            taint += "Failed to verify digests due to exception $e"
+        }
+
+        val encoderModel = WhisperEncoderXatn(encoderFile, encoderOptions)
+        val decoderModel = WhisperDecoder(decoderFile, decoderOptions)
+        val tokenizer = WhisperTokenizer(vocabFile)
+
+        LoadedModels(encoderModel, decoderModel, tokenizer, taint)
     }
 }
+
+class TaintedModelException(message: String, cause: Exception) : Exception(message, cause)
 
 class DecodingEnglishException : Throwable()
 
 
-class WhisperModel(context: Context, model: ModelData, private val suppressNonSpeech: Boolean, languages: Set<String>? = null) {
+class WhisperModel(context: Context, private val model: ModelData, private val suppressNonSpeech: Boolean, languages: Set<String>? = null) {
     private val encoderModel: WhisperEncoderXatn
     private val decoderModel: WhisperDecoder
     private val tokenizer: WhisperTokenizer
+    private val taint: String
 
     private val bannedTokens: IntArray
     private val decodeStartToken: Int
@@ -104,7 +151,7 @@ class WhisperModel(context: Context, model: ModelData, private val suppressNonSp
     init {
         val cpuOption = Model.Options.Builder().setDevice(Model.Device.CPU).build()
 
-        val (encoderModel, decoderModel, tokenizer) = try {
+        val (encoderModel, decoderModel, tokenizer, taint) = try {
             initModelsWithOptions(context, model, cpuOption, cpuOption)
         } catch (e: Exception) {
             e.printStackTrace()
@@ -114,6 +161,7 @@ class WhisperModel(context: Context, model: ModelData, private val suppressNonSp
         this.encoderModel = encoderModel
         this.decoderModel = decoderModel
         this.tokenizer = tokenizer
+        this.taint = taint
 
 
         decodeStartToken = stringToToken("<|startoftranscript|>")!!
@@ -172,7 +220,19 @@ class WhisperModel(context: Context, model: ModelData, private val suppressNonSp
     }
 
     private fun runEncoderAndGetXatn(audioFeatures: TensorBuffer): TensorBuffer {
-        return encoderModel.process(audioFeatures).crossAttention
+        if(taint.isNotBlank()) {
+            Log.w("WhisperModel", "Running encoder on tainted instance. Taint = $taint")
+        }
+
+        return try {
+            encoderModel.process(audioFeatures).crossAttention
+        } catch(e: Exception) {
+            if(taint.isNotBlank()) {
+                throw TaintedModelException("Encoder, "+taint + e.message, e)
+            } else {
+                throw e
+            }
+        }
     }
 
     private fun runDecoder(
@@ -181,7 +241,24 @@ class WhisperModel(context: Context, model: ModelData, private val suppressNonSp
         cache: TensorBuffer,
         inputId: TensorBuffer
     ): WhisperDecoder.Outputs {
-        return decoderModel.process(crossAttention = xAtn, seqLen = seqLen, cache = cache, inputIds = inputId)
+        if(taint.isNotBlank()) {
+            Log.w("WhisperModel", "Running decoder on tainted instance. Taint = $taint")
+        }
+
+        return try {
+             decoderModel.process(
+                crossAttention = xAtn,
+                seqLen = seqLen,
+                cache = cache,
+                inputIds = inputId
+            )
+        } catch(e: Exception) {
+            if(taint.isNotBlank()) {
+                throw TaintedModelException("Decoder, " + taint + e.message, e)
+            } else {
+                throw e
+            }
+        }
     }
 
     private val audioFeatures = TensorBuffer.createFixedSize(intArrayOf(1, 80, 3000), DataType.FLOAT32)
@@ -205,6 +282,8 @@ class WhisperModel(context: Context, model: ModelData, private val suppressNonSp
 
         audioFeatures.loadArray(mel)
 
+        Log.i("WhisperModel", "Running encoder for model ${model.name}")
+
         val xAtn = runEncoderAndGetXatn(audioFeatures)
 
         onStatusUpdate(RunState.StartedDecoding)
@@ -214,6 +293,9 @@ class WhisperModel(context: Context, model: ModelData, private val suppressNonSp
 
         var fullString = ""
         var previousToken = decodeStartToken
+
+        Log.i("WhisperModel", "Running decoder for model ${model.name}")
+
         for (seqLen in 0 until 256) {
             seqLenArray[0] = seqLen.toFloat()
             inputIdsArray[0] = previousToken.toFloat()
