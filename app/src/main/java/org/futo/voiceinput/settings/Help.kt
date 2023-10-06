@@ -109,6 +109,7 @@ fun HelpScreen() {
                 textItem(stringResource(R.string.aosp_keyboard_included_in_aosp_based_roms))
                 textItem(stringResource(R.string.openboard_available_on_f_droid))
                 textItem(stringResource(R.string.anysoftkeyboard_available_on_f_droid_and_google_play))
+                textItem(stringResource(R.string.unexpected_keyboard))
             }
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -134,7 +135,6 @@ fun HelpScreen() {
                 textItem(stringResource(R.string.samsung_keyboard_one_ui_5))
                 textItem(stringResource(R.string.typewise))
                 textItem(stringResource(R.string.simple_keyboard))
-                textItem(stringResource(R.string.unexpected_keyboard))
             }
 
             Spacer(modifier = Modifier.height(16.dp))

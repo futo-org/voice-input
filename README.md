@@ -18,6 +18,7 @@ Keyboard support is touched on in the Help section of the app. In short, the fol
 * **AOSP Keyboard**, which uses the IME
 * **OpenBoard**, which uses the IME
 * **AnySoftKeyboard**, which uses the implicit intent. This keyboard has some voice input usability issues but this is being worked on
+* **Unexpected Keyboard** (v1.23+), which uses the IME
 
 If you're okay with using proprietary keyboards, the following are supported:
 * **Grammarly Keyboard**, which uses the IME
@@ -28,7 +29,6 @@ Incompatible keyboards:
 * **Samsung Keyboard** - hardcoded to only allow either Samsung Voice Input, or Google Voice Input
 * **Simple Keyboard** by Raimondas Rimkus - [no voice button](https://github.com/rkkr/simple-keyboard/issues/133)
 * **Simple Keyboard** by Simple Mobile Tools - [no voice button](https://github.com/SimpleMobileTools/Simple-Keyboard/issues/201)
-* **Unexpected Keyboard** - no voice button
 * **TypeWise** - no voice button [but suggestion filed in 2019](https://suggestions.typewise.app/suggestions/65517/voice-to-text-dictation)
 
 ## Language support
