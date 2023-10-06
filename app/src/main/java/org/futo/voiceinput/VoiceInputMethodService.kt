@@ -25,6 +25,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -184,11 +186,18 @@ class VoiceInputMethodService : InputMethodService(), LifecycleOwner, ViewModelS
         override val lifecycleScope: LifecycleCoroutineScope
             get() = this@VoiceInputMethodService.lifecycle.coroutineScope
 
+        private val currentContent: MutableState<@Composable () -> Unit> = mutableStateOf( { } )
         override fun setContent(content: @Composable () -> Unit) {
+            currentContent.value = content
             composeView?.setContent { content() }
         }
 
+        fun refreshContent() {
+            composeView?.setContent { currentContent.value() }
+        }
+
         override fun onCancel() {
+            needsInitialization = true
             reset()
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                 switchToPreviousInputMethod()
@@ -320,6 +329,7 @@ class VoiceInputMethodService : InputMethodService(), LifecycleOwner, ViewModelS
             recognizer.init()
         } else {
             println("Continuing recording, likely due to landscape/portrait switch")
+            recognizer.refreshContent()
         }
         // TODO: Idle state
     }
