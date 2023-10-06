@@ -45,6 +45,10 @@ abstract class AudioRecognizer {
     private var isRecording = false
     private var recorder: AudioRecord? = null
 
+    fun isCurrentlyRecording(): Boolean {
+        return isRecording
+    }
+
     private var model: WhisperModelWrapper? = null
 
     private val floatSamples: FloatBuffer = FloatBuffer.allocate(16000 * 30)

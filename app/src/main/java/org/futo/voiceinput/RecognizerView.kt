@@ -327,6 +327,10 @@ abstract class RecognizerView {
         }
     }
 
+    fun isRecording(): Boolean {
+        return recognizer.isCurrentlyRecording()
+    }
+
     fun finishRecognizerIfRecording() {
         recognizer.finishRecognizerIfRecording()
     }

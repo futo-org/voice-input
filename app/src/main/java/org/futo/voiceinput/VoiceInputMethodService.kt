@@ -313,10 +313,13 @@ class VoiceInputMethodService : InputMethodService(), LifecycleOwner, ViewModelS
             }
         }
 
-        recognizer.reset()
-        recognizer.init()
-        // TODO: After we finish, we need to enter a sort of idle state rather than instantly
-        // switching?
+        if(!recognizer.isRecording()) {
+            recognizer.reset()
+            recognizer.init()
+        } else {
+            println("Continuing recording, likely due to landscape/portrait switch")
+        }
+        // TODO: Idle state
     }
 
     override fun onFinishInputView(finishingInput: Boolean) {
