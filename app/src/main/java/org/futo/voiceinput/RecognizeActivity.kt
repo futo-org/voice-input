@@ -199,6 +199,7 @@ class RecognizeActivity : ComponentActivity() {
 
         val results = listOf(result)
         returnIntent.putStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS, ArrayList(results))
+        returnIntent.putExtra(RecognizerIntent.EXTRA_CONFIDENCE_SCORES, floatArrayOf(1.0f))
         setResult(RESULT_OK, returnIntent)
         finish()
     }
