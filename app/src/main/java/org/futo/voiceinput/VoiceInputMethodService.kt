@@ -149,6 +149,7 @@ fun PreviewRecognizeViewNoMicIME() {
 }
 
 
+val punctuationChars = setOf('!', '?', '.', ',')
 class VoiceInputMethodService : InputMethodService(), LifecycleOwner, ViewModelStoreOwner,
     SavedStateRegistryOwner {
     private val mSavedStateRegistryController = SavedStateRegistryController.create(this)
@@ -198,20 +199,36 @@ class VoiceInputMethodService : InputMethodService(), LifecycleOwner, ViewModelS
 
         override fun sendResult(result: String) {
             this@VoiceInputMethodService.currentInputConnection.also {
+                it.setComposingText("", 1)
+
+                it.beginBatchEdit()
                 var modifiedResult = result
 
                 // Insert space automatically if ended at punctuation
                 // TODO: Could send text before cursor as whisper prompt
                 val prevText = it.getTextBeforeCursor(1, 0)
-                if(!prevText.isNullOrBlank()){
-                    val lastChar = prevText[0]
-                    val punctuationChars = setOf('!', '?', '.', ',')
-                    if(punctuationChars.contains(lastChar)) {
+                val nextText = it.getTextAfterCursor(1, 0)
+
+                if(!prevText.isNullOrBlank()) {
+                    val lastChar = prevText.last()
+
+                    if (punctuationChars.contains(lastChar)) {
                         modifiedResult = " $result"
                     }
                 }
 
+                if(!nextText.isNullOrBlank()) {
+                    val oldPunctuation = nextText.first()
+                    val newPunctuation = result.last()
+
+                    if (punctuationChars.contains(oldPunctuation) && punctuationChars.contains(newPunctuation)) {
+                        it.deleteSurroundingText(0, 1)
+                    }
+                }
+
                 it.commitText(modifiedResult, 1)
+
+                it.endBatchEdit()
             }
             onCancel()
         }
