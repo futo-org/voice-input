@@ -48,7 +48,7 @@ class UpdateCheckingService : JobService() {
                         applicationContext,
                         0,
                         Intent(Intent.ACTION_VIEW, Uri.parse(updateResult.apkUrl)),
-                        PendingIntent.FLAG_UPDATE_CURRENT
+                        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
                     )
 
                     val notification = NotificationCompat.Builder(applicationContext, CHANNEL_ID)
