@@ -59,47 +59,49 @@ fun TestScreen(
     }
 
     Screen(stringResource(R.string.input_testing)) {
-        TextField(
-            value = text,
-            onValueChange = { text = it },
-            placeholder = { Text(stringResource(R.string.input_test_field)) },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-        )
-
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-        ) {
-            Button(
-                onClick = { (context as SettingsActivity).launchVoiceIntent() },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(stringResource(R.string.trigger_voice_input_intent))
-            }
-            Text(
-                voiceIntentResult,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth()
+        ScrollableList {
+            TextField(
+                value = text,
+                onValueChange = { text = it },
+                placeholder = { Text(stringResource(R.string.input_test_field)) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
             )
-        }
 
-        Spacer(modifier = Modifier.height(32.dp))
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+            ) {
+                Button(
+                    onClick = { (context as SettingsActivity).launchVoiceIntent() },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(stringResource(R.string.trigger_voice_input_intent))
+                }
+                Text(
+                    voiceIntentResult,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
 
-        SettingsSeparator(stringResource(R.string.having_trouble))
-        SettingItem(
-            title = stringResource(R.string.open_input_method_settings),
-            subtitle = stringResource(R.string.wrong_voice_input_text),
-            onClick = { openImeOptions(context) }
-        ) {
-            Icon(Icons.Default.ArrowForward, contentDescription = stringResource(R.string.go))
-        }
-        SettingItem(
-            title = stringResource(R.string.help),
-            onClick = { navController.navigate("help") }) {
-            Icon(Icons.Default.ArrowForward, contentDescription = stringResource(R.string.go))
+            Spacer(modifier = Modifier.height(32.dp))
+
+            SettingsSeparator(stringResource(R.string.having_trouble))
+            SettingItem(
+                title = stringResource(R.string.open_input_method_settings),
+                subtitle = stringResource(R.string.wrong_voice_input_text),
+                onClick = { openImeOptions(context) }
+            ) {
+                Icon(Icons.Default.ArrowForward, contentDescription = stringResource(R.string.go))
+            }
+            SettingItem(
+                title = stringResource(R.string.help),
+                onClick = { navController.navigate("help") }) {
+                Icon(Icons.Default.ArrowForward, contentDescription = stringResource(R.string.go))
+            }
         }
     }
 }
