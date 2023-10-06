@@ -291,6 +291,7 @@ class VoiceInputMethodService : InputMethodService(), LifecycleOwner, ViewModelS
         return null
     }
 
+    private var needsInitialization = true
     override fun onStartInputView(info: EditorInfo, restarting: Boolean) {
         super.onStartInputView(info, restarting)
 
@@ -313,7 +314,8 @@ class VoiceInputMethodService : InputMethodService(), LifecycleOwner, ViewModelS
             }
         }
 
-        if(!recognizer.isRecording()) {
+        if(needsInitialization) {
+            needsInitialization = false
             recognizer.reset()
             recognizer.init()
         } else {
@@ -325,6 +327,8 @@ class VoiceInputMethodService : InputMethodService(), LifecycleOwner, ViewModelS
     override fun onFinishInputView(finishingInput: Boolean) {
         println("Finish input view")
         recognizer.reset()
+
+        needsInitialization = true
     }
 
     override fun onCurrentInputMethodSubtypeChanged(newSubtype: InputMethodSubtype) {
