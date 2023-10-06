@@ -319,6 +319,11 @@ class VoiceInputMethodService : InputMethodService(), LifecycleOwner, ViewModelS
         // switching?
     }
 
+    override fun onFinishInputView(finishingInput: Boolean) {
+        println("Finish input view")
+        recognizer.reset()
+    }
+
     override fun onCurrentInputMethodSubtypeChanged(newSubtype: InputMethodSubtype) {
         super.onCurrentInputMethodSubtypeChanged(newSubtype)
     }
