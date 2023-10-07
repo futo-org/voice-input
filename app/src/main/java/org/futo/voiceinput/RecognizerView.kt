@@ -205,6 +205,8 @@ abstract class RecognizerView {
     abstract fun sendPartialResult(result: String): Boolean
     abstract fun requestPermission()
 
+    abstract fun decodingStarted()
+
     @Composable
     abstract fun Window(onClose: () -> Unit, content: @Composable ColumnScope.() -> Unit)
 
@@ -271,6 +273,10 @@ abstract class RecognizerView {
                     RunState.StartedDecoding -> context.getString(R.string.processing)
                     RunState.SwitchingModel -> context.getString(R.string.switching_to_english_model)
                 }
+            }
+
+            if(status == RunState.StartedDecoding) {
+                this@RecognizerView.decodingStarted()
             }
 
             setContent {

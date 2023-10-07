@@ -158,6 +158,10 @@ class RecognizeActivity : ComponentActivity() {
             this@RecognizeActivity.requestPermission()
         }
 
+        override fun decodingStarted() {
+            
+        }
+
         @Composable
         override fun Window(onClose: () -> Unit, content: @Composable ColumnScope.() -> Unit) {
             RecognizeWindow(onClose = onClose, onFinish = { finishRecognizerIfRecording() }) {

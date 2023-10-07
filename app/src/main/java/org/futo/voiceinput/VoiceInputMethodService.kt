@@ -206,38 +206,42 @@ class VoiceInputMethodService : InputMethodService(), LifecycleOwner, ViewModelS
             }
         }
 
+        var prevText: CharSequence? = null
+        var nextText: CharSequence? = null
+        override fun decodingStarted() {
+            this@VoiceInputMethodService.currentInputConnection.also {
+                prevText = it.getTextBeforeCursor(1, 0)
+                nextText = it.getTextAfterCursor(1, 0)
+            }
+        }
+
         override fun sendResult(result: String) {
             this@VoiceInputMethodService.currentInputConnection.also {
-                it.setComposingText("", 1)
-
-                it.beginBatchEdit()
                 var modifiedResult = result
 
                 // Insert space automatically if ended at punctuation
                 // TODO: Could send text before cursor as whisper prompt
-                val prevText = it.getTextBeforeCursor(1, 0)
-                val nextText = it.getTextAfterCursor(1, 0)
 
                 if(!prevText.isNullOrBlank()) {
-                    val lastChar = prevText.last()
+                    val lastChar = prevText?.last()
 
                     if (punctuationChars.contains(lastChar)) {
                         modifiedResult = " $result"
                     }
                 }
 
+                /*
                 if(!nextText.isNullOrBlank()) {
-                    val oldPunctuation = nextText.first()
+                    val oldPunctuation = nextText?.first()
                     val newPunctuation = result.last()
 
                     if (punctuationChars.contains(oldPunctuation) && punctuationChars.contains(newPunctuation)) {
                         it.deleteSurroundingText(0, 1)
                     }
                 }
+                */
 
                 it.commitText(modifiedResult, 1)
-
-                it.endBatchEdit()
             }
             onCancel()
         }
