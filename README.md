@@ -4,6 +4,8 @@ FUTO Voice Input is an application that lets you do speech-to-text on Android, i
 
 To download the application, visit the [FUTO Voice Input page](https://voiceinput.futo.org/). You can also find the contact there to report issues or suggestions.
 
+If you have any feedback, issues are welcomed on the [public issue tracker](https://github.com/futo-org/voice-input/issues). Private inquiries are welcomed at the support email listed on the [website](https://voiceinput.futo.org/), or via the Send Feedback button in-app.
+
 ## API support
 
 The following APIs are supported:
