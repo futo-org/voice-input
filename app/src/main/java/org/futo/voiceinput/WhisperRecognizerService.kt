@@ -1,4 +1,4 @@
-package org.futo.voiceinput.WhisperVoiceInput
+package org.futo.voiceinput
 
 import android.app.Service
 import android.content.Intent
@@ -14,6 +14,6 @@ class WhisperRecognizerService : RecognitionService() {
     }
 
     override fun onStopListening(p0: Callback?) {
-        
+
     }
 }

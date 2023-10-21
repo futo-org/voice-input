@@ -33,6 +33,7 @@
             android:label="@string/recognize_activity"
             android:clearTaskOnLaunch="true"
             android:launchMode="singleInstance"
+            android:visibleToInstantApps="true"
             android:theme="@style/Theme.RecognizerInput">
 
             <intent-filter>
@@ -108,6 +109,21 @@
             android:name=".updates.UpdateCheckingService"
             android:label="@string/update_checking_service"
             android:permission="android.permission.BIND_JOB_SERVICE" >
+        </service>
+
+        <!-- Workaround for https://github.com/futo-org/voice-input/issues/17 -->
+        <service
+            android:name=".DummyService"
+            android:exported="true"
+            android:label="">
+            <intent-filter>
+                <action android:name="android.speech.RecognitionService" />
+                <category android:name="android.intent.category.TEST" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="com.menny.android.anysoftkeyboard.KEYBOARD" />
+                <category android:name="android.intent.category.TEST" />
+            </intent-filter>
         </service>
 
         <!--
