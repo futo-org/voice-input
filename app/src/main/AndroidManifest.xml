@@ -8,6 +8,14 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
+    <!--
+    <queries>
+        <intent>
+            <action android:name="android.speech.RecognitionService" />
+        </intent>
+    </queries>
+    -->
+
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -101,6 +109,26 @@
             android:label="@string/update_checking_service"
             android:permission="android.permission.BIND_JOB_SERVICE" >
         </service>
+
+        <!--
+        <service
+            android:name=".WhisperRecognizerService"
+            android:exported="true"
+            android:foregroundServiceType="microphone"
+            android:icon="@drawable/ic_launcher_foreground"
+            android:label="whisperrecognitionservice"
+            android:permission="android.permission.RECORD_AUDIO" >
+            <intent-filter>
+                <action android:name="android.speech.RecognitionService" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.speech"
+                android:resource="@xml/recognition_service" />
+        </service>
+        -->
     </application>
 
 </manifest>
