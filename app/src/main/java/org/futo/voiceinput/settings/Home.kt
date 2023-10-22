@@ -31,6 +31,7 @@ import org.futo.voiceinput.R
 import org.futo.voiceinput.Screen
 import org.futo.voiceinput.openURI
 import org.futo.voiceinput.ui.theme.Typography
+import org.futo.voiceinput.BuildConfig
 
 
 @Composable
@@ -118,6 +119,13 @@ fun HomeScreen(
 
     Screen(stringResource(R.string.futo_voice_input_settings)) {
         ScrollableList {
+            Text(
+                "v${BuildConfig.VERSION_NAME}",
+                style = Typography.labelSmall,
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.End
+            )
+
             ConditionalUnpaidNoticeWithNav(navController)
             ConditionalUpdate()
 
