@@ -28,6 +28,8 @@ fun LanguageToggle(
     setLanguages: (Set<String>) -> Job,
     subtitle: String?
 ) {
+    val disabled = languages.contains(id) && languages.size == 1
+
     SettingToggleRaw(
         name,
         languages.contains(id),
@@ -38,7 +40,8 @@ fun LanguageToggle(
                 listOf()
             }).toSet())
         },
-        subtitle = subtitle
+        subtitle = if(disabled) { stringResource(R.string.only_language_enabled) } else { subtitle },
+        disabled = disabled
     )
 }
 
@@ -74,15 +77,6 @@ fun LanguagesScreen(
                 Tip(stringResource(R.string.language_tip_1))
                 Tip(stringResource(R.string.language_tip_2))
                 Tip(stringResource(R.string.language_tip_3))
-            }
-            item {
-                SettingToggleRaw(
-                    stringResource(R.string.english),
-                    true,
-                    {},
-                    disabled = true,
-                    subtitle = stringResource(R.string.english_subtitle)
-                )
             }
 
             items(LANGUAGE_LIST.size) {

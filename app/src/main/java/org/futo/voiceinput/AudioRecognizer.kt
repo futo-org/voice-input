@@ -154,8 +154,11 @@ abstract class AudioRecognizer {
         ValueFromSettings(ENGLISH_MODEL_INDEX, ENGLISH_MODEL_INDEX_DEFAULT)
     private val multilingualModelIndex =
         ValueFromSettings(MULTILINGUAL_MODEL_INDEX, MULTILINGUAL_MODEL_INDEX_DEFAULT)
+    private val useVad = ValueFromSettings(IS_VAD_ENABLED, true)
+    private val useSecondary = ValueFromSettings(USE_LANGUAGE_SPECIFIC_MODELS, true)
 
-    private suspend fun tryLoadModelOrCancel(primaryModel: ModelData, secondaryModel: ModelData?) {
+    private suspend fun tryLoadModelOrCancel(primaryModel: ModelData, secondaryModelP: ModelData?) {
+        val secondaryModel = if(useSecondary.get(context)) { secondaryModelP } else { null }
         try {
             model = WhisperModelWrapper(
                 context,
@@ -179,10 +182,15 @@ abstract class AudioRecognizer {
         if (model == null) {
             loadModelJob = lifecycleScope.launch {
                 withContext(Dispatchers.Default) {
+                    val languages = languages.get(context)
                     if (useMultilingualModel.get(context)) {
                         tryLoadModelOrCancel(
                             MULTILINGUAL_MODELS[multilingualModelIndex.get(context)],
-                            ENGLISH_MODELS[englishModelIndex.get(context)]
+                            if(languages.contains("en")) {
+                                ENGLISH_MODELS[englishModelIndex.get(context)]
+                            } else {
+                                null
+                            }
                         )
                     } else {
                         tryLoadModelOrCancel(
@@ -259,6 +267,8 @@ abstract class AudioRecognizer {
                         .setSilenceDurationMs(300)
                         .build()
 
+                    val shouldUseVad = useVad.get(context)
+                    
                     val vadSampleBuffer = ShortBuffer.allocate(480)
                     var numConsecutiveNonSpeech = 0
                     var numConsecutiveSpeech = 0
@@ -280,28 +290,30 @@ abstract class AudioRecognizer {
                         }
 
                         // Run VAD
-                        var remainingSamples = nRead
-                        var offset = 0
-                        while(remainingSamples > 0) {
-                            if(!vadSampleBuffer.hasRemaining()) {
-                                val isSpeech = vad.isSpeech(vadSampleBuffer.array())
-                                vadSampleBuffer.clear()
-                                vadSampleBuffer.rewind()
+                        if(shouldUseVad) {
+                            var remainingSamples = nRead
+                            var offset = 0
+                            while(remainingSamples > 0) {
+                                if(!vadSampleBuffer.hasRemaining()) {
+                                    val isSpeech = vad.isSpeech(vadSampleBuffer.array())
+                                    vadSampleBuffer.clear()
+                                    vadSampleBuffer.rewind()
 
-                                if(!isSpeech) {
-                                    numConsecutiveNonSpeech++
-                                    numConsecutiveSpeech = 0
-                                } else {
-                                    numConsecutiveNonSpeech = 0
-                                    numConsecutiveSpeech++
+                                    if(!isSpeech) {
+                                        numConsecutiveNonSpeech++
+                                        numConsecutiveSpeech = 0
+                                    } else {
+                                        numConsecutiveNonSpeech = 0
+                                        numConsecutiveSpeech++
+                                    }
                                 }
-                            }
 
-                            val samplesToRead = min(min(remainingSamples, 480), vadSampleBuffer.remaining())
-                            for(i in 0 until samplesToRead) {
-                                vadSampleBuffer.put((samples[offset] * 32768.0).toInt().toShort())
-                                offset += 1
-                                remainingSamples -= 1
+                                val samplesToRead = min(min(remainingSamples, 480), vadSampleBuffer.remaining())
+                                for(i in 0 until samplesToRead) {
+                                    vadSampleBuffer.put((samples[offset] * 32768.0).toInt().toShort())
+                                    offset += 1
+                                    remainingSamples -= 1
+                                }
                             }
                         }
 
@@ -330,7 +342,7 @@ abstract class AudioRecognizer {
                         }
 
                         // End if VAD hasn't detected speech in a while
-                        if(hasTalked && (numConsecutiveNonSpeech > 66)) {
+                        if(shouldUseVad && hasTalked && (numConsecutiveNonSpeech > 66)) {
                             withContext(Dispatchers.Main){ finishRecognizer() }
                             break
                         }

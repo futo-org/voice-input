@@ -39,6 +39,8 @@ import org.futo.voiceinput.ModelData
 import org.futo.voiceinput.R
 import org.futo.voiceinput.Screen
 import org.futo.voiceinput.startModelDownloadActivity
+import org.futo.voiceinput.LANGUAGE_TOGGLES
+import org.futo.voiceinput.USE_LANGUAGE_SPECIFIC_MODELS
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -99,6 +101,61 @@ fun ModelSizeItem(label: String, options: List<ModelData>, key: Preferences.Key<
     }
 }
 
+
+@Composable
+fun modelsSubtitle(): String? {
+    val (languages, _) = useDataStore(key = LANGUAGE_TOGGLES, default = setOf("en"))
+    val (useLanguageSpecificModels, _) = useDataStore(key = USE_LANGUAGE_SPECIFIC_MODELS, default = true)
+
+    val (multilingual, _) = useDataStore(key = ENABLE_MULTILINGUAL, default = false)
+
+    val (englishIdxActual, _) = useDataStore(
+        key = ENGLISH_MODEL_INDEX,
+        default = ENGLISH_MODEL_INDEX_DEFAULT
+    )
+    val (multilingualIdxActual, _) = useDataStore(
+        key = MULTILINGUAL_MODEL_INDEX,
+        default = MULTILINGUAL_MODEL_INDEX_DEFAULT
+    )
+
+    // It doesn't matter what the multilingual model is set to if multilingual is disabled, the model
+    // isn't used anyway. So suppress any text about its value by pretending it's default
+    val multilingualIdx =
+        if (multilingual) multilingualIdxActual else MULTILINGUAL_MODEL_INDEX_DEFAULT
+
+    val englishIdx = if((!multilingual) || (languages.contains("en") && useLanguageSpecificModels)) {
+        englishIdxActual
+    } else {
+        ENGLISH_MODEL_INDEX_DEFAULT
+    }
+
+    val totalDiff =
+        (englishIdx - ENGLISH_MODEL_INDEX_DEFAULT) + (multilingualIdx - MULTILINGUAL_MODEL_INDEX_DEFAULT)
+    val usePlural =
+        ((englishIdx != ENGLISH_MODEL_INDEX_DEFAULT) && (multilingualIdx != MULTILINGUAL_MODEL_INDEX_DEFAULT))
+    return if (totalDiff < 0) {
+        if (usePlural) {
+            stringResource(R.string.using_smaller_models_accuracy_may_be_worse)
+        } else {
+            stringResource(R.string.using_smaller_model_accuracy_may_be_worse)
+        }
+    } else if (totalDiff > 0) {
+        if (usePlural) {
+            stringResource(R.string.using_larger_models_speed_may_be_slower)
+        } else {
+            stringResource(R.string.using_larger_model_speed_may_be_slower)
+        }
+    } else if ((englishIdx != ENGLISH_MODEL_INDEX_DEFAULT) || (multilingualIdx != MULTILINGUAL_MODEL_INDEX_DEFAULT)) {
+        if (usePlural) {
+            stringResource(R.string.using_non_default_models)
+        } else {
+            stringResource(R.string.using_non_default_model)
+        }
+    } else {
+        null
+    }
+}
+
 @Composable
 @Preview
 fun ModelsScreen(
@@ -115,6 +172,10 @@ fun ModelsScreen(
         key = MULTILINGUAL_MODEL_INDEX,
         default = MULTILINGUAL_MODEL_INDEX_DEFAULT
     )
+
+    val (languages, _) = useDataStore(key = LANGUAGE_TOGGLES, default = setOf("en"))
+    val (useLanguageSpecificModels, _) = useDataStore(key = USE_LANGUAGE_SPECIFIC_MODELS, default = true)
+
     val context = LocalContext.current
     LaunchedEffect(
         listOf(
@@ -138,13 +199,16 @@ fun ModelsScreen(
     Screen(stringResource(R.string.model_picker)) {
         ScrollableList {
             Tip(stringResource(R.string.parameter_count_tip))
-            Spacer(modifier = Modifier.height(16.dp))
-            ModelSizeItem(
-                stringResource(R.string.english_model),
-                ENGLISH_MODELS,
-                ENGLISH_MODEL_INDEX,
-                ENGLISH_MODEL_INDEX_DEFAULT
-            )
+
+            if((!useMultilingual) || (languages.contains("en") && useLanguageSpecificModels)) {
+                Spacer(modifier = Modifier.height(16.dp))
+                ModelSizeItem(
+                    stringResource(R.string.english_model),
+                    ENGLISH_MODELS,
+                    ENGLISH_MODEL_INDEX,
+                    ENGLISH_MODEL_INDEX_DEFAULT
+                )
+            }
 
             if (useMultilingual) {
                 Spacer(modifier = Modifier.height(16.dp))

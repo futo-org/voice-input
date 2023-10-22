@@ -325,6 +325,10 @@ fun SettingsMain(
             ModelsScreen(settingsViewModel, navController)
         }
 
+        composable("input") {
+            InputScreen(settingsViewModel, navController)
+        }
+
         composable("pleasePay") {
             PaymentScreen(
                 settingsViewModel,

@@ -194,6 +194,7 @@ fun Context.openURI(uri: String, newTask: Boolean = false) {
 data class LanguageEntry(val id: String, val name: String, val trainedHourCount: Int)
 val LANGUAGE_LIST = listOf(
     // TODO: These are not localized
+    LanguageEntry("en", "English", 438218),
     LanguageEntry("zh", "Chinese", 23446),
     LanguageEntry("de", "German", 13344),
     LanguageEntry("es", "Spanish", 11100),
@@ -379,3 +380,6 @@ val LAST_UPDATE_CHECK_RESULT = stringPreferencesKey("last_update_check_result_${
 val EXT_LICENSE_KEY = stringPreferencesKey("license_key")
 val EXT_PENDING_PURCHASE_ID = stringPreferencesKey("purchase_id")
 val EXT_PENDING_PURCHASE_LAST_CHECK = longPreferencesKey("purchase_status_last_check")
+
+val IS_VAD_ENABLED = booleanPreferencesKey("enable_vad")
+val USE_LANGUAGE_SPECIFIC_MODELS = booleanPreferencesKey("USE_LANGUAGE_SPECIFIC_MODELS")
