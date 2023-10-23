@@ -9,6 +9,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.Job
+import org.futo.voiceinput.ALLOW_UNDERTRAINED_LANGUAGES
 import org.futo.voiceinput.ENABLE_MULTILINGUAL
 import org.futo.voiceinput.LANGUAGE_LIST
 import org.futo.voiceinput.LANGUAGE_TOGGLES
@@ -59,6 +60,11 @@ fun LanguagesScreen(
     val (languages, setLanguages) = useDataStore(key = LANGUAGE_TOGGLES, default = setOf("en"))
     val context = LocalContext.current
 
+    val (allowUndertrainedLanguages, _) = useDataStore(
+        key = ALLOW_UNDERTRAINED_LANGUAGES,
+        default = false
+    )
+
 
     LaunchedEffect(listOf(multilingualModelIndex, multilingual)) {
         if (multilingual) {
@@ -82,7 +88,7 @@ fun LanguagesScreen(
             items(LANGUAGE_LIST.size) {
                 val language = LANGUAGE_LIST[it]
 
-                val subtitle = if (language.trainedHourCount < 500) {
+                val subtitle = if (language.trainedHourCount < 1000) {
                     stringResource(R.string.may_be_low_accuracy_x_hours, language.trainedHourCount)
                 } else {
                     stringResource(R.string.trained_on_x_hours, language.trainedHourCount)
@@ -90,7 +96,7 @@ fun LanguagesScreen(
 
                 // Only show languages trained with over 1000 hours for now, as anything lower
                 // can be laughably bad on the tiny model
-                if (language.trainedHourCount > 1000) {
+                if (allowUndertrainedLanguages || language.trainedHourCount > 1000) {
                     LanguageToggle(language.id, language.name, languages, setLanguages, subtitle)
                 }
             }

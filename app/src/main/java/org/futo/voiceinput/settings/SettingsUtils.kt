@@ -229,7 +229,8 @@ fun SettingToggle(
     subtitle: String? = null,
     disabledSubtitle: String? = null,
     disabled: Boolean = false,
-    icon: (@Composable () -> Unit)? = null
+    icon: (@Composable () -> Unit)? = null,
+    onChanged: ((Boolean) -> Unit)? = null
 ) {
     val (enabled, setValue) = useDataStore(key, default)
 
@@ -239,7 +240,10 @@ fun SettingToggle(
         subtitle
     }
 
-    SettingToggleRaw(title, enabled, { setValue(it) }, subtitleValue, disabled, icon)
+    SettingToggleRaw(title, enabled, {
+        setValue(it)
+        onChanged?.invoke(it)
+     }, subtitleValue, disabled, icon)
 }
 
 @Composable

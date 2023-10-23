@@ -383,3 +383,5 @@ val EXT_PENDING_PURCHASE_LAST_CHECK = longPreferencesKey("purchase_status_last_c
 
 val IS_VAD_ENABLED = booleanPreferencesKey("enable_vad")
 val USE_LANGUAGE_SPECIFIC_MODELS = booleanPreferencesKey("USE_LANGUAGE_SPECIFIC_MODELS")
+
+val ALLOW_UNDERTRAINED_LANGUAGES = booleanPreferencesKey("allow_undertrained_languages")

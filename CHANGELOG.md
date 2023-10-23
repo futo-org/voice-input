@@ -5,6 +5,7 @@
 * * You can now disable this switch to continue decoding English with the multilingual Whisper model, which is technically capable of decoding English. This can be significantly faster, but may reduce accuracy.
 * Fixed the issue preventing you from turning off the English language
 * Added feedback for when recording is about to stop due to silence or 30 second limit
+* Added option to try less-trained languages
 
 # v1.2.4
 * Fixed a bug where the text would disappear after finishing

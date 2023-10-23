@@ -15,10 +15,14 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import org.futo.voiceinput.ALLOW_UNDERTRAINED_LANGUAGES
 import org.futo.voiceinput.BuildConfig
 import org.futo.voiceinput.DISALLOW_SYMBOLS
 import org.futo.voiceinput.FORCE_SHOW_NOTICE
 import org.futo.voiceinput.IS_ALREADY_PAID
+import org.futo.voiceinput.MULTILINGUAL_MODELS
+import org.futo.voiceinput.MULTILINGUAL_MODEL_INDEX
+import org.futo.voiceinput.MULTILINGUAL_MODEL_INDEX_DEFAULT
 import org.futo.voiceinput.NOTICE_REMINDER_TIME
 import org.futo.voiceinput.R
 import org.futo.voiceinput.Screen
@@ -43,6 +47,25 @@ fun AdvancedScreen(
                 stringResource(R.string.verbose_mode),
                 VERBOSE_PROGRESS,
                 default = false
+            )
+
+
+            val (_, setMultilingualIdx) = useDataStore(
+                key = MULTILINGUAL_MODEL_INDEX,
+                default = MULTILINGUAL_MODEL_INDEX_DEFAULT
+            )
+
+            SettingToggle(
+                stringResource(R.string.allow_undertrained_languages),
+                ALLOW_UNDERTRAINED_LANGUAGES,
+                default = false,
+                subtitle = stringResource(R.string.allow_undertrained_languages_subtitle),
+                onChanged = {
+                    // Automatically change model to largest one
+                    if(it) {
+                        setMultilingualIdx(MULTILINGUAL_MODELS.size - 1)
+                    }
+                }
             )
             val context = LocalContext.current
             SettingItem(
