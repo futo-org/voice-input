@@ -4,6 +4,7 @@
 * * By default, as in previous versions, having multiple languages enabled will run the multilingual Whisper model at first, and if English is detected, it switches to the English Whisper model, which takes time
 * * You can now disable this switch to continue decoding English with the multilingual Whisper model, which is technically capable of decoding English. This can be significantly faster, but may reduce accuracy.
 * Fixed the issue preventing you from turning off the English language
+* Added feedback for when recording is about to stop due to silence or 30 second limit
 
 # v1.2.4
 * Fixed a bug where the text would disappear after finishing

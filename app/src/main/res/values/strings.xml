@@ -164,4 +164,6 @@
     <string name="stop_on_silence_info">If you speak with pauses, you may wish to disable the option below. You can always manually stop recording by tapping the microphone icon while it\'s listening.</string>
     <string name="use_language_specific_models">Use language-specific models</string>
     <string name="use_language_specific_models_info">Language-specific models may be more accurate, but take extra time to switch after detecting the language. Currently only has effect with English.</string>
+    <string name="ending_soon_30s">Ending soon - 30s limit</string>
+    <string name="ending_soon_vad">Silence detected</string>
 </resources>

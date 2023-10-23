@@ -38,7 +38,9 @@ import kotlin.math.sqrt
 enum class MagnitudeState {
     NOT_TALKED_YET,
     MIC_MAY_BE_BLOCKED,
-    TALKING
+    TALKING,
+    ENDING_SOON_VAD,
+    ENDING_SOON_30S
 }
 
 abstract class AudioRecognizer {
@@ -349,7 +351,11 @@ abstract class AudioRecognizer {
 
                         val magnitude = (1.0f - 0.1f.pow(24.0f * rms))
 
-                        val state = if(hasTalked) {
+                        val state = if (floatSamples.remaining() < (16000 * 5)) {
+                            MagnitudeState.ENDING_SOON_30S
+                        } else if(hasTalked && shouldUseVad && (numConsecutiveNonSpeech > 33)) {
+                            MagnitudeState.ENDING_SOON_VAD
+                        } else if(hasTalked) {
                             MagnitudeState.TALKING
                         } else if(isMicBlocked) {
                             MagnitudeState.MIC_MAY_BE_BLOCKED

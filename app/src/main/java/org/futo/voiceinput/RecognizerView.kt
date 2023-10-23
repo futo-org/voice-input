@@ -107,6 +107,8 @@ fun InnerRecognize(
         MagnitudeState.NOT_TALKED_YET -> stringResource(R.string.try_saying_something)
         MagnitudeState.MIC_MAY_BE_BLOCKED -> stringResource(R.string.no_audio_detected_is_your_microphone_blocked)
         MagnitudeState.TALKING -> stringResource(R.string.listening)
+        MagnitudeState.ENDING_SOON_30S -> stringResource(R.string.ending_soon_30s)
+        MagnitudeState.ENDING_SOON_VAD -> stringResource(R.string.ending_soon_vad)
     }
 
     Text(
@@ -116,7 +118,6 @@ fun InnerRecognize(
         color = MaterialTheme.colorScheme.onSurface
     )
 }
-
 
 @Composable
 fun ColumnScope.RecognizeLoadingCircle(text: String = "Initializing...") {
