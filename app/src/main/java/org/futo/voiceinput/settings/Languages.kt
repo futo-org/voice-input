@@ -1,10 +1,14 @@
 package org.futo.voiceinput.settings
 
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
@@ -87,6 +91,16 @@ fun LanguagesScreen(
 
             items(LANGUAGE_LIST.size) {
                 val language = LANGUAGE_LIST[it]
+
+                if(allowUndertrainedLanguages && it > 0) {
+                    if (language.trainedHourCount < 1000 && LANGUAGE_LIST[it - 1].trainedHourCount >= 1000) {
+                        Spacer(modifier = Modifier.height(48.dp))
+                        Tip(stringResource(R.string.language_unsupported_warning_1000))
+                    } else if (language.trainedHourCount < 100 && LANGUAGE_LIST[it - 1].trainedHourCount >= 100) {
+                        Spacer(modifier = Modifier.height(48.dp))
+                        Tip(stringResource(R.string.language_unsupported_warning_100))
+                    }
+                }
 
                 val subtitle = if (language.trainedHourCount < 1000) {
                     stringResource(R.string.may_be_low_accuracy_x_hours, language.trainedHourCount)

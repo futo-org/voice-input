@@ -119,7 +119,7 @@
     <string name="download_progress">Download Progress</string>
     <string name="advanced_settings">Advanced Settings</string>
     <string name="languages_title">Languages</string>
-    <string name="language_tip_1">The model will automatically detect which language you\'re speaking.</string>
+    <string name="language_tip_1">By default, the language is detected automatically. You can enable manual language selection in Input Options.</string>
     <string name="language_tip_2">Some languages may work better than others, depending on the amount of training data.</string>
     <string name="language_tip_3">You can configure multilingual model switching behavior in the Input Options section</string>
     <string name="english_subtitle">Always on. Enabling others will increase English latency</string>
@@ -168,4 +168,6 @@
     <string name="ending_soon_vad">Silence detected</string>
     <string name="allow_undertrained_languages">Allow undertrained languages</string>
     <string name="allow_undertrained_languages_subtitle">May be inaccurate. Selecting the largest multilingual model is recommended</string>
+    <string name="language_unsupported_warning_1000">Languages below are likely to not work well. You have enabled the option to see them anyway. Use at your own risk.</string>
+    <string name="language_unsupported_warning_100">Languages below are certain to not work well. You have enabled the option to see them anyway. Use at your own risk.</string>
 </resources>

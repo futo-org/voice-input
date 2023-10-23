@@ -14,13 +14,19 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonColors
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -32,9 +38,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameMillis
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.math.MathUtils.clamp
 import androidx.lifecycle.LifecycleCoroutineScope
@@ -42,6 +50,7 @@ import com.google.android.material.math.MathUtils
 import kotlinx.coroutines.launch
 import org.futo.voiceinput.ml.RunState
 import org.futo.voiceinput.ui.theme.Typography
+import kotlin.math.sqrt
 
 @Composable
 fun AnimatedRecognizeCircle(magnitude: Float = 0.5f) {
@@ -120,6 +129,26 @@ fun InnerRecognize(
 }
 
 @Composable
+fun SelectLanguage(languages: Set<String>, onSelected: (String) -> Unit) {
+    val languageItems = LANGUAGE_LIST.filter { languages.contains(it.id) }
+
+    LazyVerticalGrid(columns = GridCells.Adaptive(minSize = 140.dp), modifier = Modifier.fillMaxWidth()) {
+        items(languageItems.size) {
+            Button(onClick = {
+                onSelected(languageItems[it].id)
+            }, modifier = Modifier
+                .fillMaxSize()
+                .padding(4.dp), colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.Transparent,
+                    contentColor = MaterialTheme.colorScheme.onSurface
+                )) {
+                Text(languageItems[it].name,  modifier = Modifier.padding(0.dp, 16.dp), color = MaterialTheme.colorScheme.onSurface)
+            }
+        }
+    }
+}
+
+@Composable
 fun ColumnScope.RecognizeLoadingCircle(text: String = "Initializing...") {
     CircularProgressIndicator(
         modifier = Modifier.align(Alignment.CenterHorizontally),
@@ -185,6 +214,11 @@ abstract class RecognizerView {
     private val shouldPlaySounds: ValueFromSettings<Boolean> = ValueFromSettings(ENABLE_SOUND, true)
     private val shouldBeVerbose: ValueFromSettings<Boolean> =
         ValueFromSettings(VERBOSE_PROGRESS, false)
+    private val shouldRequestLanguage: ValueFromSettings<Boolean> = ValueFromSettings(
+        MANUALLY_SELECT_LANGUAGE, false)
+    private val languages: ValueFromSettings<Set<String>> = ValueFromSettings(
+        LANGUAGE_TOGGLES, setOf("en")
+    )
 
     private val soundPool = SoundPool.Builder().setMaxStreams(2).setAudioAttributes(
         AudioAttributes.Builder()
@@ -347,14 +381,28 @@ abstract class RecognizerView {
     }
 
     fun init() {
-        lifecycleScope.launch {
-            shouldBeVerbose.load(context)
-        }
-
         startSoundId = soundPool.load(this.context, R.raw.start, 0)
         cancelSoundId = soundPool.load(this.context, R.raw.cancel, 0)
 
-        recognizer.create()
+        lifecycleScope.launch {
+            shouldBeVerbose.load(context)
+            shouldRequestLanguage.load(context)
+            languages.load(context)
+
+            if(shouldRequestLanguage.value && (languages.value.size > 1)) {
+                setContent {
+                    this@RecognizerView.Window(onClose = { recognizer.cancelRecognizer() }) {
+                        SelectLanguage(languages = languages.value, onSelected = {
+                            recognizer.forceLanguage(it)
+                            recognizer.create()
+                        })
+                    }
+                }
+            } else {
+                recognizer.forceLanguage(null)
+                recognizer.create()
+            }
+        }
     }
 
     fun permissionResultGranted() {

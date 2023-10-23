@@ -96,6 +96,16 @@ data class ModelDigests(
     val vocab_digest: String
 )
 
+
+enum class PromptingStyle {
+    // <|startoftranscript|><|notimestamps|> Text goes here.<|endoftext|>
+    SingleLanguageOnly,
+
+    // <|startoftranscript|><|en|><|transcribe|><|notimestamps|> Text goes here.<|endoftext|>
+    LanguageTokenAndAction,
+}
+
+
 data class ModelData(
     val name: String,
 
@@ -106,7 +116,9 @@ data class ModelData(
     val vocab_file: String,
     val vocab_raw_asset: Int? = null,
 
-    val digests: ModelDigests
+    val digests: ModelDigests,
+
+    val promptingStyle: PromptingStyle
 )
 
 fun Array<DoubleArray>.transpose(): Array<DoubleArray> {
@@ -285,7 +297,9 @@ val ENGLISH_MODELS = listOf(
         vocab_file = "tinyenvocab.json",
         vocab_raw_asset = R.raw.tinyenvocab,
 
-        digests = ModelDigests("", "", "")
+        digests = ModelDigests("", "", ""),
+
+        promptingStyle = PromptingStyle.SingleLanguageOnly
     ),
     ModelData(
         name = "English-74 (slower, more accurate)",
@@ -300,7 +314,9 @@ val ENGLISH_MODELS = listOf(
             encoder_digest = "c94bcafb3cd95c193ca5ada5b94e517f1645dbf72e72986f55c6c8729d04da23",
             decoder_digest = "d6979b4a06416ff1d3e38a238997e4051684c60aa2fcab6ae7d7dbafab75494f",
             vocab_digest = "48d9307faad7c1c1a708fbfa7f4b57cb6d5936ceee4cdf354e2b7d8cdf0cf24b"
-        )
+        ),
+
+        promptingStyle = PromptingStyle.SingleLanguageOnly
     )
 )
 
@@ -318,7 +334,9 @@ val MULTILINGUAL_MODELS = listOf(
             encoder_digest = "1240660ec64f549052cd469aef7ee6ff30ecd9bf45dafcf330f2a77d20f081ee",
             decoder_digest = "1c19e4d891a9bb976023bdacefa475a9cefb522c3c1d722f2b98a1e3e08d4a2c",
             vocab_digest = "bd5b181b5ea2b5ea58b1f4ef8c48c7636e66443c212a5d9fb4dfe5bae15d6055"
-        )
+        ),
+
+        promptingStyle = PromptingStyle.LanguageTokenAndAction
     ),
     ModelData(
         name = "Multilingual-74 (default)",
@@ -333,7 +351,9 @@ val MULTILINGUAL_MODELS = listOf(
             encoder_digest = "8832248eefbc1b7a297ac12358357001c613da4183099966fbb6950079d252f8",
             decoder_digest = "3369ab7e0ec7ebf828cef7a5740a6d32e1e90502737b89812e383c76041f878b",
             vocab_digest = "bd5b181b5ea2b5ea58b1f4ef8c48c7636e66443c212a5d9fb4dfe5bae15d6055"
-        )
+        ),
+
+        promptingStyle = PromptingStyle.LanguageTokenAndAction
     ),
     ModelData(
         name = "Multilingual-244 (slow)",
@@ -348,7 +368,9 @@ val MULTILINGUAL_MODELS = listOf(
             encoder_digest = "03e141a363cbb983799dbf589e53298324bc1dc906eb8fabc8a412d40338f0d9",
             decoder_digest = "1dbdeac1c0fabede5aa57424b7e1e8061f34c6f646fa1031e8aead20a25f4e41",
             vocab_digest = "bd5b181b5ea2b5ea58b1f4ef8c48c7636e66443c212a5d9fb4dfe5bae15d6055"
-        )
+        ),
+
+        promptingStyle = PromptingStyle.LanguageTokenAndAction
     ),
 )
 
@@ -385,3 +407,4 @@ val IS_VAD_ENABLED = booleanPreferencesKey("enable_vad")
 val USE_LANGUAGE_SPECIFIC_MODELS = booleanPreferencesKey("USE_LANGUAGE_SPECIFIC_MODELS")
 
 val ALLOW_UNDERTRAINED_LANGUAGES = booleanPreferencesKey("allow_undertrained_languages")
+val MANUALLY_SELECT_LANGUAGE = booleanPreferencesKey("manually_select_language")

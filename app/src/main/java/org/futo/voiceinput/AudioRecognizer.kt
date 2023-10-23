@@ -88,7 +88,7 @@ abstract class AudioRecognizer {
         onFinishRecording()
     }
 
-    protected fun cancelRecognizer() {
+    fun cancelRecognizer() {
         println("Cancelling recognition")
         reset()
 
@@ -184,25 +184,42 @@ abstract class AudioRecognizer {
         if (model == null) {
             loadModelJob = lifecycleScope.launch {
                 withContext(Dispatchers.Default) {
-                    val languages = languages.get(context)
-                    if (useMultilingualModel.get(context)) {
+                    if(forcedLanguage != null) {
                         tryLoadModelOrCancel(
-                            MULTILINGUAL_MODELS[multilingualModelIndex.get(context)],
-                            if(languages.contains("en")) {
+                            if(forcedLanguage == "en") {
                                 ENGLISH_MODELS[englishModelIndex.get(context)]
                             } else {
-                                null
-                            }
-                        )
-                    } else {
-                        tryLoadModelOrCancel(
-                            ENGLISH_MODELS[englishModelIndex.get(context)],
+                                MULTILINGUAL_MODELS[multilingualModelIndex.get(context)]
+                            },
+
                             null
                         )
+                    } else {
+                        val languages = languages.get(context)
+                        if (useMultilingualModel.get(context)) {
+                            tryLoadModelOrCancel(
+                                MULTILINGUAL_MODELS[multilingualModelIndex.get(context)],
+                                if (languages.contains("en")) {
+                                    ENGLISH_MODELS[englishModelIndex.get(context)]
+                                } else {
+                                    null
+                                }
+                            )
+                        } else {
+                            tryLoadModelOrCancel(
+                                ENGLISH_MODELS[englishModelIndex.get(context)],
+                                null
+                            )
+                        }
                     }
                 }
             }
         }
+    }
+
+    private var forcedLanguage: String? = null
+    fun forceLanguage(language: String?) {
+        forcedLanguage = language
     }
 
     fun create() {
@@ -420,13 +437,13 @@ abstract class AudioRecognizer {
         }
 
         yield()
-        val text = model.run(floatArray, onStatusUpdate) {
+        val text = model.run(floatArray, onStatusUpdate, {
             lifecycleScope.launch {
                 withContext(Dispatchers.Main) {
                     partialResult(it)
                 }
             }
-        }
+        }, forcedLanguage)
 
         lifecycleScope.launch {
             withContext(Dispatchers.Main) {

@@ -6,6 +6,7 @@
 * Fixed the issue preventing you from turning off the English language
 * Added feedback for when recording is about to stop due to silence or 30 second limit
 * Added option to try less-trained languages
+* Added option to select language manually instead of auto-detecting
 
 # v1.2.4
 * Fixed a bug where the text would disappear after finishing

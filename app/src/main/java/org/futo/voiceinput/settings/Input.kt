@@ -30,6 +30,7 @@ import org.futo.voiceinput.IS_VAD_ENABLED
 import org.futo.voiceinput.ENABLE_SOUND
 import org.futo.voiceinput.USE_LANGUAGE_SPECIFIC_MODELS
 import org.futo.voiceinput.LANGUAGE_TOGGLES
+import org.futo.voiceinput.MANUALLY_SELECT_LANGUAGE
 
 @Composable
 @Preview
@@ -48,6 +49,11 @@ fun InputScreen(
                 subtitle = stringResource(R.string.will_play_a_sound_when_started_cancelled),
                 disabledSubtitle = stringResource(R.string.will_not_play_sounds_when_started_cancelled)
             )
+
+            if(languages.size > 1) {
+                SettingToggle("Manually select language", MANUALLY_SELECT_LANGUAGE, default = false)
+            }
+
 
             Spacer(modifier = Modifier.height(32.dp))
 

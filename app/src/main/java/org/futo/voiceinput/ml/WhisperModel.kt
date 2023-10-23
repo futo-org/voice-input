@@ -295,7 +295,8 @@ class WhisperModel(context: Context, private val model: ModelData, private val s
         mel: FloatArray,
         onStatusUpdate: (RunState) -> Unit,
         onPartialDecode: (String) -> Unit,
-        bailOnEnglish: Boolean
+        bailOnEnglish: Boolean,
+        forceLanguage: String?
     ): String = withContext(inferenceContext) {
         yield()
         onStatusUpdate(RunState.ProcessingEncoder)
@@ -338,14 +339,19 @@ class WhisperModel(context: Context, private val model: ModelData, private val s
 
             for(i in bannedTokens) logits[i] -= 1024.0f
 
-            val selectedToken = logits.withIndex().maxByOrNull { it.value }?.index!!
+            var selectedToken = logits.withIndex().maxByOrNull { it.value }?.index!!
             if(selectedToken == decodeEndToken) break
 
             val tokenAsString = tokenToString(selectedToken) ?: break
 
             if((selectedToken >= startOfLanguages) && (selectedToken <= endOfLanguages)){
                 println("Language detected: $tokenAsString")
-                if((selectedToken == englishLanguage) && bailOnEnglish) {
+
+                if(forceLanguage != null) {
+                    val permittedLanguage = stringToToken("<|$forceLanguage|>")!!
+                    println("Overriding language with $forceLanguage")
+                    selectedToken = permittedLanguage
+                }else if((selectedToken == englishLanguage) && bailOnEnglish) {
                     yield()
                     onStatusUpdate(RunState.SwitchingModel)
                     throw DecodingEnglishException()
@@ -399,7 +405,8 @@ class WhisperModelWrapper(
     suspend fun run(
         samples: FloatArray,
         onStatusUpdate: (RunState) -> Unit,
-        onPartialDecode: (String) -> Unit
+        onPartialDecode: (String) -> Unit,
+        forceLanguage: String?
     ): String {
         yield()
         onStatusUpdate(RunState.ExtractingFeatures)
@@ -407,7 +414,7 @@ class WhisperModelWrapper(
 
         return try {
             yield()
-            primary.run(mel, onStatusUpdate, onPartialDecode, fallback != null)
+            primary.run(mel, onStatusUpdate, onPartialDecode, fallback != null, forceLanguage)
         } catch(e: DecodingEnglishException) {
             yield()
             fallback!!.run(
@@ -418,7 +425,8 @@ class WhisperModelWrapper(
                     }
                 },
                 onPartialDecode,
-                false
+                false,
+                null
             )
         }
     }
