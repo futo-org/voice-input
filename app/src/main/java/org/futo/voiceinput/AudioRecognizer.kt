@@ -167,7 +167,7 @@ abstract class AudioRecognizer {
                 primaryModel,
                 secondaryModel,
                 suppressNonSpeech.get(context),
-                if (secondaryModel != null) languages.get(context) else null
+                languages.get(context)
             )
         } catch (e: IOException) {
             context.startModelDownloadActivity(

@@ -9,6 +9,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.coroutines.yield
 import org.futo.voiceinput.AudioFeatureExtraction
 import org.futo.voiceinput.ModelData
+import org.futo.voiceinput.PromptingStyle
 import org.futo.voiceinput.toDoubleArray
 import org.tensorflow.lite.DataType
 import org.tensorflow.lite.support.model.Model
@@ -213,7 +214,7 @@ class WhisperModel(context: Context, private val model: ModelData, private val s
         var bannedTokens = tokenizer.tokenToId.filterKeys { isBannedChar(it) }.values.toIntArray()
         bannedTokens += listOf(translateToken, noCaptionsToken)
 
-        if(languages != null) {
+        if(model.promptingStyle == PromptingStyle.LanguageTokenAndAction && languages != null) {
             val permittedLanguages = languages.map {
                 stringToToken("<|$it|>")!!
             }.toHashSet()
@@ -391,7 +392,7 @@ class WhisperModelWrapper(
     primaryModel: ModelData,
     fallbackEnglishModel: ModelData?,
     private val suppressNonSpeech: Boolean,
-    languages: Set<String>? = null
+    languages: Set<String>?
 ) {
     private val primary: WhisperModel = WhisperModel(context, primaryModel, suppressNonSpeech, languages)
     private val fallback: WhisperModel? = fallbackEnglishModel?.let { WhisperModel(context, it, suppressNonSpeech) }
