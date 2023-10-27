@@ -167,7 +167,7 @@
     <string name="ending_soon_30s">Ending soon - 30s limit</string>
     <string name="ending_soon_vad">Silence detected</string>
     <string name="allow_undertrained_languages">Allow undertrained languages</string>
-    <string name="allow_undertrained_languages_subtitle">May be inaccurate. Selecting the largest multilingual model is recommended</string>
+    <string name="allow_undertrained_languages_subtitle">May be less accurate, enabling will automatically select largest model</string>
     <string name="language_unsupported_warning_1000">Languages below are likely to not work well. You have enabled the option to see them anyway. Use at your own risk.</string>
     <string name="language_unsupported_warning_100">Languages below are certain to not work well. You have enabled the option to see them anyway. Use at your own risk.</string>
 </resources>
