@@ -254,8 +254,21 @@ abstract class AudioRecognizer {
                 16000 * 2 * 5
             )
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                recorder!!.setPreferredMicrophoneDirection(MicrophoneDirection.MIC_DIRECTION_TOWARDS_USER)
+            if(recorder!!.state == AudioRecord.STATE_UNINITIALIZED) {
+                recorder!!.release()
+                recorder = null
+
+                println("Failed to initialize AudioRecord, retrying")
+                return startRecording()
+            }
+
+            try {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    recorder!!.setPreferredMicrophoneDirection(MicrophoneDirection.MIC_DIRECTION_TOWARDS_USER)
+                }
+            } catch(e: Exception) {
+                println("Failed to set preferred mic direction")
+                e.printStackTrace()
             }
 
             recorder!!.startRecording()
