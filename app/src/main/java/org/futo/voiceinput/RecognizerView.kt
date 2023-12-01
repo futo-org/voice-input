@@ -392,7 +392,10 @@ abstract class RecognizerView {
                     this@RecognizerView.Window(onClose = { recognizer.cancelRecognizer() }) {
                         SelectLanguage(languages = languages.value, onSelected = {
                             recognizer.forceLanguage(it)
-                            recognizer.create()
+
+                            if(!recognizer.isCurrentlyRecording()) {
+                                recognizer.create()
+                            }
                         })
                     }
                 }

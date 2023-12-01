@@ -29,7 +29,6 @@ import kotlinx.coroutines.yield
 import org.futo.voiceinput.ml.RunState
 import org.futo.voiceinput.ml.WhisperModelWrapper
 import java.io.IOException
-import java.lang.Exception
 import java.nio.FloatBuffer
 import java.nio.ShortBuffer
 import kotlin.math.min

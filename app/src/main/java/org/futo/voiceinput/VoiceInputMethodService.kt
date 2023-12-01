@@ -5,6 +5,7 @@ import android.inputmethodservice.InputMethodService
 import android.os.Build
 import android.text.InputType
 import android.view.View
+import android.view.WindowManager
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.view.inputmethod.InputMethodSubtype
@@ -281,6 +282,8 @@ class VoiceInputMethodService : InputMethodService(), LifecycleOwner, ViewModelS
         if (decorView?.findViewTreeSavedStateRegistryOwner() == null) {
             decorView?.setViewTreeSavedStateRegistryOwner(this)
         }
+
+        window.window?.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
     }
 
     private var composeView: ComposeView? = null
