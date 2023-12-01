@@ -9,11 +9,10 @@ import java.io.File
 import java.io.IOException
 
 private fun loadTextFromResource(context: Context, resourceId: Int): String {
-    val resources = context.resources
-    try {
-        val input = resources.openRawResource(resourceId)
-
-        return input.bufferedReader().readText()
+    return try {
+        context.resources.openRawResource(resourceId).use { input ->
+            input.bufferedReader().use { it.readText() }
+        }
     } catch (e: IOException) {
         throw RuntimeException(e)
     }

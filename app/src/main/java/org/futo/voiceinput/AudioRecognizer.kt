@@ -22,6 +22,7 @@ import com.konovalov.vad.config.Model
 import com.konovalov.vad.config.SampleRate
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.yield
@@ -104,6 +105,12 @@ abstract class AudioRecognizer {
         floatSamples.clear()
 
         unfocusAudio()
+
+        lifecycleScope.launch {
+            modelJob?.join()
+            model?.close()
+            model = null
+        }
     }
 
     protected fun openPermissionSettings() {
@@ -180,38 +187,54 @@ abstract class AudioRecognizer {
         }
     }
 
+    private suspend fun loadModelInner() {
+        try {
+            if (forcedLanguage != null) {
+                tryLoadModelOrCancel(
+                    if (forcedLanguage == "en") {
+                        ENGLISH_MODELS[englishModelIndex.get(context)]
+                    } else {
+                        MULTILINGUAL_MODELS[multilingualModelIndex.get(context)]
+                    },
+
+                    null
+                )
+            } else {
+                val languages = languages.get(context)
+                if (useMultilingualModel.get(context)) {
+                    tryLoadModelOrCancel(
+                        MULTILINGUAL_MODELS[multilingualModelIndex.get(context)],
+                        if (languages.contains("en")) {
+                            ENGLISH_MODELS[englishModelIndex.get(context)]
+                        } else {
+                            null
+                        }
+                    )
+                } else {
+                    tryLoadModelOrCancel(
+                        ENGLISH_MODELS[englishModelIndex.get(context)],
+                        null
+                    )
+                }
+            }
+        } catch(e: OutOfMemoryError) {
+            decodingStatus(RunState.OOMError)
+
+            for(i in 0 until 2) {
+                System.gc()
+                System.runFinalization()
+                delay(500L)
+            }
+
+            return loadModelInner()
+        }
+    }
+
     private fun loadModel() {
         if (model == null) {
             loadModelJob = lifecycleScope.launch {
                 withContext(Dispatchers.Default) {
-                    if(forcedLanguage != null) {
-                        tryLoadModelOrCancel(
-                            if(forcedLanguage == "en") {
-                                ENGLISH_MODELS[englishModelIndex.get(context)]
-                            } else {
-                                MULTILINGUAL_MODELS[multilingualModelIndex.get(context)]
-                            },
-
-                            null
-                        )
-                    } else {
-                        val languages = languages.get(context)
-                        if (useMultilingualModel.get(context)) {
-                            tryLoadModelOrCancel(
-                                MULTILINGUAL_MODELS[multilingualModelIndex.get(context)],
-                                if (languages.contains("en")) {
-                                    ENGLISH_MODELS[englishModelIndex.get(context)]
-                                } else {
-                                    null
-                                }
-                            )
-                        } else {
-                            tryLoadModelOrCancel(
-                                ENGLISH_MODELS[englishModelIndex.get(context)],
-                                null
-                            )
-                        }
-                    }
+                    loadModelInner()
                 }
             }
         }
@@ -442,7 +465,6 @@ abstract class AudioRecognizer {
             loadModelJob!!.join()
         }
 
-        val model = model!!
         val floatArray = floatSamples.array().sliceArray(0 until floatSamples.position())
 
         val onStatusUpdate = { state: RunState ->
@@ -450,13 +472,33 @@ abstract class AudioRecognizer {
         }
 
         yield()
-        val text = model.run(floatArray, onStatusUpdate, {
-            lifecycleScope.launch {
-                withContext(Dispatchers.Main) {
-                    partialResult(it)
+        val text = try {
+            model!!.run(floatArray, onStatusUpdate, {
+                lifecycleScope.launch {
+                    withContext(Dispatchers.Main) {
+                        partialResult(it)
+                    }
                 }
+            }, forcedLanguage)
+        } catch(e: OutOfMemoryError) {
+            decodingStatus(RunState.OOMError)
+            model!!.close()
+            model = null
+            loadModelJob = null
+
+            for(i in 0 until 2) {
+                System.gc()
+                System.runFinalization()
+                delay(500L)
             }
-        }, forcedLanguage)
+
+            loadModel()
+
+            return runModel()
+        }
+
+        model!!.close()
+        model = null
 
         lifecycleScope.launch {
             withContext(Dispatchers.Main) {

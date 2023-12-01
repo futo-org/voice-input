@@ -1,9 +1,9 @@
 package org.futo.voiceinput.ml
 
 import android.content.Context
-import android.os.Build
 import android.util.Log
 import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.newSingleThreadContext
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.yield
@@ -32,13 +32,14 @@ private val inferenceContext = newSingleThreadContext("InferenceContext")
 
 @Throws(IOException::class)
 private fun Context.tryOpenDownloadedModel(pathStr: String): MappedByteBuffer {
-    val fis = File(this.filesDir, pathStr).inputStream()
-    val channel = fis.channel
-
-    return channel.map(
-        FileChannel.MapMode.READ_ONLY,
-        0, channel.size()
-    ).load()
+    return File(this.filesDir, pathStr).inputStream().use { fis ->
+        fis.channel.use { channel ->
+            channel.map(
+                FileChannel.MapMode.READ_ONLY,
+                0, channel.size()
+            ).load()
+        }
+    }
 }
 
 private fun ByteArray.toSHA256String(): String {
@@ -49,7 +50,8 @@ enum class RunState {
     ExtractingFeatures,
     ProcessingEncoder,
     StartedDecoding,
-    SwitchingModel
+    SwitchingModel,
+    OOMError
 }
 
 data class LoadedModels(
@@ -184,7 +186,6 @@ class WhisperModel(context: Context, private val model: ModelData, private val s
         this.tokenizer = tokenizer
         this.taint = taint
 
-
         decodeStartToken = stringToToken("<|startoftranscript|>")!!
         decodeEndToken = stringToToken("<|endoftext|>")!!
         translateToken = stringToToken("<|translate|>")!!
@@ -240,13 +241,13 @@ class WhisperModel(context: Context, private val model: ModelData, private val s
         return tokenizer.makeStringUnicode(string).trim()
     }
 
-    private fun runEncoderAndGetXatn(audioFeatures: TensorBuffer): TensorBuffer {
+    private fun runEncoderAndGetXatn(): TensorBuffer {
         if(taint.isNotBlank()) {
             Log.w("WhisperModel", "Running encoder on tainted instance. Taint = $taint")
         }
 
         return try {
-            encoderModel.process(audioFeatures).crossAttention
+            encoderModel.process(audioFeatures, outputs=encoderOutputs).crossAttention
         } catch(e: Exception) {
             if(taint.isNotBlank()) {
                 throw TaintedModelException("Encoder, $taint. ${e.message}", e)
@@ -257,10 +258,8 @@ class WhisperModel(context: Context, private val model: ModelData, private val s
     }
 
     private fun runDecoder(
-        xAtn: TensorBuffer,
-        seqLen: TensorBuffer,
         cache: TensorBuffer,
-        inputId: TensorBuffer
+        decoderOutputs: WhisperDecoder.Outputs
     ): WhisperDecoder.Outputs {
         if(taint.isNotBlank()) {
             Log.w("WhisperModel", "Running decoder on tainted instance. Taint = $taint")
@@ -268,10 +267,11 @@ class WhisperModel(context: Context, private val model: ModelData, private val s
 
         return try {
              decoderModel.process(
-                crossAttention = xAtn,
-                seqLen = seqLen,
-                cache = cache,
-                inputIds = inputId
+                 crossAttention = xAtnTensor,
+                 seqLen = seqLenTensor,
+                 cache = cache,
+                 inputIds = inputIdTensor,
+                 outputs = decoderOutputs
             )
         } catch(e: Exception) {
             if(taint.isNotBlank()) {
@@ -282,15 +282,26 @@ class WhisperModel(context: Context, private val model: ModelData, private val s
         }
     }
 
-    // TODO: Ideally this should be shared between model instances as well.
-    private val cacheTensor =
+    // TODO: Ideally these should be shared between model instances as well.
+    private val logitsTensor =
+        TensorBuffer.createFixedSize(decoderModel.getLogitsTensorShape(), DataType.FLOAT32)
+    private val xAtnTensor =
+        TensorBuffer.createFixedSize(encoderModel.getXatnShape(), DataType.FLOAT32)
+    private val encoderOutputs = WhisperEncoderXatn.Outputs(xAtnTensor)
+
+
+    private val cacheTensor0 =
+        TensorBuffer.createFixedSize(decoderModel.getCacheTensorShape(), DataType.FLOAT32)
+    private val cacheTensor1 =
         TensorBuffer.createFixedSize(decoderModel.getCacheTensorShape(), DataType.FLOAT32)
 
-    init {
-        val shape = cacheTensor.shape
-        val size = shape[0] * shape[1] * shape[2] * shape[3]
-        cacheTensor.loadArray(FloatArray(size) { 0f } )
-    }
+    private val decoderOutputs0 = WhisperDecoder.Outputs(
+        logitsTensor, cacheTensor1
+    )
+    private val decoderOutputs1 = WhisperDecoder.Outputs(
+        logitsTensor, cacheTensor0
+    )
+
 
     suspend fun run(
         mel: FloatArray,
@@ -308,18 +319,25 @@ class WhisperModel(context: Context, private val model: ModelData, private val s
         Log.i("WhisperModel", "Running encoder for model ${model.name}")
 
         yield()
-        val xAtn = runEncoderAndGetXatn(audioFeatures)
+        runEncoderAndGetXatn()
 
         yield()
         onStatusUpdate(RunState.StartedDecoding)
-
-        val seqLenArray = FloatArray(1)
-        val inputIdsArray = FloatArray(1)
 
         var fullString = ""
         var previousToken = decodeStartToken
 
         Log.i("WhisperModel", "Running decoder for model ${model.name}")
+
+        // Empty the cache
+        run {
+            val shape = cacheTensor0.shape
+            val size = shape[0] * shape[1] * shape[2] * shape[3]
+
+            val arr = FloatArray(size) { 0f }
+            cacheTensor0.loadArray(arr)
+            cacheTensor1.loadArray(arr)
+        }
 
         for (seqLen in 0 until 256) {
             seqLenArray[0] = seqLen.toFloat()
@@ -331,14 +349,19 @@ class WhisperModel(context: Context, private val model: ModelData, private val s
             inputIdTensor.loadArray(inputIdsArray)
 
             yield()
-            val decoderOutputs = runDecoder(xAtn, seqLenTensor, cacheTensor, inputIdTensor)
+
+            val cacheTensor = if(seqLen % 2 == 0) cacheTensor0 else cacheTensor1
+            val decoderOutputs = if(seqLen % 2 == 0) decoderOutputs0 else decoderOutputs1
+
+            runDecoder(cacheTensor, decoderOutputs)
 
             yield()
-            cacheTensor.loadBuffer(decoderOutputs.nextCache.buffer.duplicate())
+
+            cacheTensor.buffer.rewind()
 
             val logits = decoderOutputs.logits.floatArray
 
-            for(i in bannedTokens) logits[i] -= 1024.0f
+            for(i in bannedTokens) logits[i] = Float.NEGATIVE_INFINITY
 
             var selectedToken = logits.withIndex().maxByOrNull { it.value }?.index!!
             if(selectedToken == decodeEndToken) break
@@ -384,6 +407,11 @@ class WhisperModel(context: Context, private val model: ModelData, private val s
         yield()
         return@withContext makeStringUnicode(fullString)
     }
+
+    fun close() {
+        encoderModel.close()
+        decoderModel.close()
+    }
 }
 
 
@@ -403,6 +431,7 @@ class WhisperModelWrapper(
         }
     }
 
+    private var modelJob: Job? = null
     suspend fun run(
         samples: FloatArray,
         onStatusUpdate: (RunState) -> Unit,
@@ -430,5 +459,10 @@ class WhisperModelWrapper(
                 null
             )
         }
+    }
+
+    suspend fun close() = withContext(inferenceContext) {
+        primary.close()
+        fallback?.close()
     }
 }

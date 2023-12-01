@@ -1,7 +1,6 @@
 package org.futo.voiceinput.ml
 
 import android.content.Context
-import org.tensorflow.lite.DataType
 import org.tensorflow.lite.support.model.Model
 import org.tensorflow.lite.support.tensorbuffer.TensorBuffer
 import java.nio.MappedByteBuffer
@@ -20,8 +19,7 @@ class WhisperEncoderXatn {
     }
 
 
-    fun process(audioFeatures: TensorBuffer): Outputs {
-        val outputs = Outputs(model)
+    fun process(audioFeatures: TensorBuffer, outputs: Outputs): Outputs {
         model.run(arrayOf<Any>(audioFeatures.buffer), outputs.buffer)
         return outputs
     }
@@ -30,14 +28,11 @@ class WhisperEncoderXatn {
         model.close()
     }
 
-    inner class Outputs internal constructor(model: Model) {
-        val crossAttention: TensorBuffer
+    fun getXatnShape(): IntArray {
+        return model.getOutputTensorShape(0)
+    }
 
-        init {
-            crossAttention =
-                TensorBuffer.createFixedSize(model.getOutputTensorShape(0), DataType.FLOAT32)
-        }
-
+    data class Outputs(val crossAttention: TensorBuffer) {
         internal val buffer: Map<Int, Any>
             get() {
                 val outputs: MutableMap<Int, Any> = HashMap()

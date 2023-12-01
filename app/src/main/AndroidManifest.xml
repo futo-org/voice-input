@@ -26,6 +26,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.WhisperVoiceInput"
         android:name=".CrashLoggingApplication"
+        android:largeHeap="true"
         tools:targetApi="31" >
         <activity
             android:name=".RecognizeActivity"

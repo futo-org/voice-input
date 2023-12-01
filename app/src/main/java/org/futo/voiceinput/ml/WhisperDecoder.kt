@@ -1,7 +1,6 @@
 package org.futo.voiceinput.ml
 
 import android.content.Context
-import org.tensorflow.lite.DataType
 import org.tensorflow.lite.support.model.Model
 import org.tensorflow.lite.support.tensorbuffer.TensorBuffer
 import java.nio.MappedByteBuffer
@@ -22,9 +21,9 @@ class WhisperDecoder {
 
     fun process(
         crossAttention: TensorBuffer, seqLen: TensorBuffer,
-        cache: TensorBuffer, inputIds: TensorBuffer
+        cache: TensorBuffer, inputIds: TensorBuffer,
+        outputs: Outputs
     ): Outputs {
-        val outputs = Outputs(model)
         model.run(
             arrayOf<Any>(crossAttention.buffer, seqLen.buffer, cache.buffer, inputIds.buffer),
             outputs.buffer
@@ -36,20 +35,15 @@ class WhisperDecoder {
         model.close()
     }
 
+    fun getLogitsTensorShape(): IntArray {
+        return model.getOutputTensorShape(0)
+    }
+
     fun getCacheTensorShape(): IntArray {
         return model.getOutputTensorShape(1)
     }
 
-    inner class Outputs internal constructor(model: Model) {
-        val logits: TensorBuffer
-        val nextCache: TensorBuffer
-
-        init {
-            logits = TensorBuffer.createFixedSize(model.getOutputTensorShape(0), DataType.FLOAT32)
-            nextCache =
-                TensorBuffer.createFixedSize(model.getOutputTensorShape(1), DataType.FLOAT32)
-        }
-
+    data class Outputs(val logits: TensorBuffer, val nextCache: TensorBuffer) {
         internal val buffer: Map<Int, Any>
             get() {
                 val outputs: MutableMap<Int, Any> = HashMap()

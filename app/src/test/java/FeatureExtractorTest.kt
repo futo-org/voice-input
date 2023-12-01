@@ -18,10 +18,9 @@ import java.nio.ByteOrder
 import kotlin.math.abs
 
 private fun loadResourceFile(loader: ClassLoader, file: String): ByteArray {
-    val stream = File(loader.getResource(file).file).inputStream()
-    val bytes = stream.readBytes()
-    stream.close()
-    return bytes
+    return File(loader.getResource(file).file).inputStream().use {
+        it.readBytes()
+    }
 }
 
 private fun ByteArray.littleEndianToFloatArray(): FloatArray {

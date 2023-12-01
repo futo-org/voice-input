@@ -20,13 +20,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -42,7 +40,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.math.MathUtils.clamp
 import androidx.lifecycle.LifecycleCoroutineScope
@@ -50,7 +47,6 @@ import com.google.android.material.math.MathUtils
 import kotlinx.coroutines.launch
 import org.futo.voiceinput.ml.RunState
 import org.futo.voiceinput.ui.theme.Typography
-import kotlin.math.sqrt
 
 @Composable
 fun AnimatedRecognizeCircle(magnitude: Float = 0.5f) {
@@ -300,6 +296,7 @@ abstract class RecognizerView {
                     RunState.ProcessingEncoder -> context.getString(R.string.running_encoder)
                     RunState.StartedDecoding -> context.getString(R.string.decoding_started)
                     RunState.SwitchingModel -> context.getString(R.string.switching_to_english_model)
+                    RunState.OOMError -> context.getString(R.string.out_of_memory_error)
                 }
             } else {
                 when (status) {
@@ -307,6 +304,7 @@ abstract class RecognizerView {
                     RunState.ProcessingEncoder -> context.getString(R.string.processing)
                     RunState.StartedDecoding -> context.getString(R.string.processing)
                     RunState.SwitchingModel -> context.getString(R.string.switching_to_english_model)
+                    RunState.OOMError -> context.getString(R.string.out_of_memory_error)
                 }
             }
 
