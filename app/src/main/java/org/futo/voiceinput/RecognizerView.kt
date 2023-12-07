@@ -395,7 +395,7 @@ abstract class RecognizerView {
 
                             if(!recognizer.isCurrentlyRecording()) {
                                 recognizer.create()
-                            }else{
+                            } else {
                                 // NOTE: If forceLanguage was set to "en" and English-only model was loaded
                                 // then we'll be stuck with English
                                 recognizer.forceLanguage(null)
