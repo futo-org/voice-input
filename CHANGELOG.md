@@ -1,3 +1,7 @@
+# v1.2.6
+* Added screen-lock to keep screen awake during voice input
+* Reduced number of memory-related crashes
+
 # v1.2.5
 * Added a setting to turn off VAD auto-stop 
 * Added an option to configure model-switching behavior:
