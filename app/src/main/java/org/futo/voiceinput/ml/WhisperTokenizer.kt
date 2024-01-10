@@ -7,6 +7,7 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import java.io.File
 import java.io.IOException
+import kotlin.math.max
 
 private fun loadTextFromResource(context: Context, resourceId: Int): String {
     return try {
@@ -38,16 +39,25 @@ class WhisperTokenizer(tokenJson: String) {
     val idToToken: Array<String?>
     val tokenToId: HashMap<String, Int> = hashMapOf()
 
+    val numTokens: Int
+
     init {
         val data = Json.parseToJsonElement(tokenJson)
         idToToken = arrayOfNulls(65536)
+
+        var finalTokenId = 0
+
         for(entry in data.jsonObject.entries) {
             val id = entry.value.jsonPrimitive.int
             val text = entry.key
 
             idToToken[id] = text
             tokenToId[text] = id
+
+            finalTokenId = max(finalTokenId, id)
         }
+
+        numTokens = finalTokenId + 1
     }
 
     constructor(context: Context, resourceId: Int) : this(loadTextFromResource(context, resourceId))

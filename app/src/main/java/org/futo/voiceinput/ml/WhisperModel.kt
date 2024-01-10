@@ -363,10 +363,18 @@ class WhisperModel(context: Context, private val model: ModelData, private val s
 
             for(i in bannedTokens) logits[i] = Float.NEGATIVE_INFINITY
 
+            if(decoderOutputs.logits.floatArray.size > tokenizer.numTokens) {
+                for (i in tokenizer.numTokens until decoderOutputs.logits.floatArray.size) logits[i] =
+                    Float.NEGATIVE_INFINITY
+            }
+
             var selectedToken = logits.withIndex().maxByOrNull { it.value }?.index!!
             if(selectedToken == decodeEndToken) break
 
-            val tokenAsString = tokenToString(selectedToken) ?: break
+            val tokenAsString = tokenToString(selectedToken) ?: run {
+                Log.e("WhisperModel", "Encountered a token with no string conversion $selectedToken!")
+                ""
+            }
 
             if((selectedToken >= startOfLanguages) && (selectedToken <= endOfLanguages)){
                 println("Language detected: $tokenAsString")
