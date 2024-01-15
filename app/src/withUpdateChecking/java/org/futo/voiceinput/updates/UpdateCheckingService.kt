@@ -9,6 +9,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -22,10 +23,8 @@ const val NOTIFICATION_ID = 1
 class UpdateCheckingService : JobService() {
     private var job: Job? = null
     override fun onStartJob(params: JobParameters?): Boolean {
-        println("-- Update Checking Service started")
         job = CoroutineScope(Dispatchers.IO).launch {
             if(checkForUpdateAndSaveToPreferences(applicationContext)) {
-                println("-- Update Checking Service - update available, showing notification")
                 val updateResult = retrieveSavedLastUpdateCheckResult(applicationContext)
 
                 if(updateResult != null && updateResult.isNewer()) {
@@ -60,7 +59,7 @@ class UpdateCheckingService : JobService() {
                     manager.notify(NOTIFICATION_ID, notification.build())
                 }
             } else {
-                println("-- Update Checking Service - no update available, or failed to check")
+                Log.i("UpdateCheckingService", "no update available, or failed to check")
             }
             jobFinished(params, false)
         }

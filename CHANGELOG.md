@@ -1,3 +1,7 @@
+# v1.2.7
+* Fixed issue with sampling invalid tokens, causing decoding to terminate unexpectedly
+* Added option to disable animated circle (for e-ink devices, etc)
+
 # v1.2.6
 * Added screen-lock to keep screen awake during voice input
 * Reduced number of memory-related crashes
