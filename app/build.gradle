@@ -17,8 +17,8 @@ android {
         applicationId "org.futo.voiceinput"
         minSdk 24
         targetSdk 33
-        versionCode 19
-        versionName "1.2.7-rc1"
+        versionCode 20
+        versionName "1.2.7"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
