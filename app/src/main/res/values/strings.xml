@@ -52,6 +52,7 @@
     <string name="languages">Languages</string>
     <string name="models">Models</string>
     <string name="sounds">Sounds</string>
+    <string name="animations">Animations</string>
     <string name="will_play_a_sound_when_started_cancelled">Will play a sound when started / cancelled</string>
     <string name="will_not_play_sounds_when_started_cancelled">Will not play sounds when started / cancelled</string>
     <string name="payment">Payment</string>

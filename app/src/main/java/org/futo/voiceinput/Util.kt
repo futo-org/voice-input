@@ -376,6 +376,7 @@ val MULTILINGUAL_MODELS = listOf(
 
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
 val ENABLE_SOUND = booleanPreferencesKey("enable_sounds")
+val ENABLE_ANIMATIONS = booleanPreferencesKey("enable_animations")
 val VERBOSE_PROGRESS = booleanPreferencesKey("verbose_progress")
 val ENABLE_ENGLISH = booleanPreferencesKey("enable_english")
 val ENABLE_MULTILINGUAL = booleanPreferencesKey("enable_multilingual")

@@ -111,16 +111,10 @@ data class DataStoreItem<T>(val value: T, val setValue: (T) -> Job)
 
 @Composable
 fun <T> useDataStore(key: Preferences.Key<T>, default: T): DataStoreItem<T> {
+    val value = useDataStoreValueNullable(key, default) ?: default
+
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
-
-    val enableSoundFlow: Flow<T> = remember {
-        context.dataStore.data.map { preferences ->
-            preferences[key] ?: default
-        }
-    }
-
-    val value = enableSoundFlow.collectAsState(initial = default).value!!
 
     val setValue = { newValue: T ->
         coroutineScope.launch {
@@ -132,6 +126,20 @@ fun <T> useDataStore(key: Preferences.Key<T>, default: T): DataStoreItem<T> {
 
     return DataStoreItem(value, setValue)
 }
+
+@Composable
+fun <T> useDataStoreValueNullable(key: Preferences.Key<T>, default: T): T? {
+    val context = LocalContext.current
+
+    val enableSoundFlow: Flow<T> = remember {
+        context.dataStore.data.map { preferences ->
+            preferences[key] ?: default
+        }
+    }
+
+    return enableSoundFlow.collectAsState(initial = null).value
+}
+
 
 
 enum class DefaultVoiceInputIntentKind {

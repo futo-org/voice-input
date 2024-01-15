@@ -46,6 +46,7 @@ import androidx.lifecycle.LifecycleCoroutineScope
 import com.google.android.material.math.MathUtils
 import kotlinx.coroutines.launch
 import org.futo.voiceinput.ml.RunState
+import org.futo.voiceinput.settings.useDataStoreValueNullable
 import org.futo.voiceinput.ui.theme.Typography
 
 @Composable
@@ -91,6 +92,7 @@ fun InnerRecognize(
     magnitude: Float = 0.5f,
     state: MagnitudeState = MagnitudeState.MIC_MAY_BE_BLOCKED
 ) {
+    val shouldUseCircle = useDataStoreValueNullable(ENABLE_ANIMATIONS, default = true)
     IconButton(
         onClick = onFinish,
         modifier = Modifier
@@ -98,7 +100,10 @@ fun InnerRecognize(
             .height(80.dp)
             .padding(16.dp)
     ) {
-        AnimatedRecognizeCircle(magnitude = magnitude)
+        if(shouldUseCircle == true) {
+            AnimatedRecognizeCircle(magnitude = magnitude)
+        }
+
         Icon(
             painter = painterResource(R.drawable.mic_2_),
             contentDescription = stringResource(R.string.stop_recording),
