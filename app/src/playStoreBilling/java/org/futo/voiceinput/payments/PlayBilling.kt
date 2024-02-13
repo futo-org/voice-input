@@ -13,19 +13,17 @@ import com.android.billingclient.api.Purchase
 import com.android.billingclient.api.Purchase.PurchaseState
 import com.android.billingclient.api.PurchasesUpdatedListener
 import com.android.billingclient.api.QueryProductDetailsParams
-import com.android.billingclient.api.QueryPurchaseHistoryParams
 import com.android.billingclient.api.QueryPurchasesParams
 import com.android.billingclient.api.queryProductDetails
-import com.android.billingclient.api.queryPurchaseHistory
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.futo.voiceinput.BuildConfig
-import org.futo.voiceinput.IS_ALREADY_PAID
-import org.futo.voiceinput.IS_PAYMENT_PENDING
-import org.futo.voiceinput.ValueFromSettings
-import org.futo.voiceinput.dataStore
+import org.futo.voiceinput.settings.IS_ALREADY_PAID
+import org.futo.voiceinput.settings.IS_PAYMENT_PENDING
+import org.futo.voiceinput.settings.getSetting
+import org.futo.voiceinput.settings.setSetting
 
 const val PRODUCT_ID = "one_time_license"
 class PlayBilling(private val context: Context, private val coroutine: CoroutineScope) : BillingImpl {
@@ -84,18 +82,19 @@ class PlayBilling(private val context: Context, private val coroutine: Coroutine
                 val isPending = lastSuccessfulPurchase == null && lastPendingPurchase != null
 
                 coroutine.launch {
-                    val isPaidSetting = ValueFromSettings(IS_ALREADY_PAID, false).get(context)
-                    val isPendingSettings = ValueFromSettings(IS_PAYMENT_PENDING, false).get(context)
+                    val isPaidSetting = context.getSetting(IS_ALREADY_PAID)
+                    val isPendingSettings = context.getSetting(IS_PAYMENT_PENDING)
 
                     if(isPaid != isPaidSetting
                         && (isPaid || isPendingSettings) // For now, only allow going paid -> unpaid if the payment was pending
                                                          // Otherwise, this would cancel out tapping "I already paid"
                     ) {
-                        context.dataStore.edit { it[IS_ALREADY_PAID] = isPaid }
+                        context.setSetting(IS_ALREADY_PAID, isPaid)
                     }
 
-                    if(isPendingSettings != isPending)
-                        context.dataStore.edit { it[IS_PAYMENT_PENDING] = isPending }
+                    if(isPendingSettings != isPending) {
+                        context.setSetting(IS_PAYMENT_PENDING, isPending)
+                    }
                 }
 
                 purchasesOnlyContainingLicense.filter { !it.isAcknowledged }.forEach { handlePurchasedLicense(it) }

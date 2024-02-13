@@ -57,13 +57,13 @@ import androidx.savedstate.SavedStateRegistryController
 import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.findViewTreeSavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
-import org.futo.voiceinput.settings.ConditionalUnpaidNoticeInVoiceInputWindow
-import org.futo.voiceinput.ui.theme.WhisperVoiceInputTheme
+import org.futo.voiceinput.settings.pages.ConditionalUnpaidNoticeInVoiceInputWindow
+import org.futo.voiceinput.theme.UixThemeAuto
 
 
 @Composable
 fun RecognizerInputMethodWindow(switchBack: (() -> Unit)? = null, onFinish: () -> Unit = { }, content: @Composable ColumnScope.() -> Unit) {
-    WhisperVoiceInputTheme {
+    UixThemeAuto {
         Surface(
             modifier = Modifier
                 .fillMaxWidth()

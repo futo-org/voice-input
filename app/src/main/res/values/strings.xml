@@ -13,7 +13,7 @@
     <string name="thanks_for_the_voice_activity_detection_to_stop_recognition_on_silence">Thanks for the voice activity detection to stop recognition on silence</string>
     <string name="thanks_for_the_android_bindings_to_webrtc_voice_activity_detection">Thanks for the Android bindings to WebRTC voice activity detection</string>
     <string name="thanks_for_the_http_client_used_for_downloading_models">Thanks for the HTTP client, used for downloading models</string>
-    <string name="thanks_for_icon">Thanks for the microphone icon</string>
+    <string name="thanks_for_icon">Thanks for the icons used within the app</string>
     <string name="view_other_dependencies">View Other Dependencies</string>
     <string name="name_legal">The authors, contributors or copyright holders listed above are not affiliated with this product and do not endorse or promote this product. Reference to the authors, contributors or copyright holders is solely for attribution purposes. Mention of their names does not imply approval or endorsement.</string>
     <string name="just_a_demonstration">This is just a demonstration of how Voice Input looks</string>
@@ -99,7 +99,7 @@
     <string name="purchase_will_help_body">Your purchase will help continued development of Voice Input, and other FUTO projects.</string>
     <string name="thank_you">Thank you</string>
     <string name="payment_pending">Payment Pending</string>
-    <string name="payment_failed_body">Unfortunately, your payment has failed for one reason or another. Please contact us if you need help. You can reach us at voiceinput@futo.org, with the button below, or with Send Feedback at the main screen.</string>
+    <string name="payment_failed_body">Unfortunately, your payment has failed for one reason or another. Please contact us if you need help. You can reach us at voiceinput@futo.org, with the button below, or with Send Feedback in Help</string>
     <string name="payment_failed_body_ex">There may have been a problem with your payment. If it did go through, you should receive an email with a license key. Please contact us if you need help. You can reach us at voiceinput@futo.org, with the button below, or with Share Feedback at the main screen.</string>
     <string name="continue_">Continue</string>
     <string name="pay_via_x">Pay via <xliff:g name="paymentMethod" example="Play Store">%s</xliff:g></string>
@@ -157,7 +157,7 @@
     <string name="issue_tracker">Public Issue Tracker</string>
     <string name="contact_support">Contact Support</string>
     <string name="only_language_enabled">Enable another language to disable this one</string>
-    <string name="input_options">Input Options</string>
+    <string name="input_options">Input</string>
     <string name="stop_on_silence">Automatically stop on silence</string>
     <string name="stop_on_silence_info">If you speak with pauses, you may wish to disable the option below. You can always manually stop recording by tapping the microphone icon while it\'s listening.</string>
     <string name="use_language_specific_models">Use language-specific models</string>
@@ -169,4 +169,16 @@
     <string name="language_unsupported_warning_1000">Languages below are likely to not work well. You have enabled the option to see them anyway. Use at your own risk.</string>
     <string name="language_unsupported_warning_100">Languages below are certain to not work well. You have enabled the option to see them anyway. Use at your own risk.</string>
     <string name="out_of_memory_error">Out of Memory error, will retry…</string>
+    <string name="manually_select_language">Enable manual language selection</string>
+
+    <string name="amoled_dark_theme_name">AMOLED Dark Purple</string>
+    <string name="classic_material_dark_theme_name">AOSP Material Dark</string>
+    <string name="classic_material_light_theme_name">AOSP Material Light</string>
+    <string name="voice_input_theme_name">FUTO VI Theme</string>
+
+    <string name="dynamic_system_theme_name">Dynamic System</string>
+    <string name="dynamic_light_theme_name">Dynamic Light</string>
+    <string name="dynamic_dark_theme_name">Dynamic Dark</string>
+    <string name="theme">Theme</string>
+
 </resources>

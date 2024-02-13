@@ -6,77 +6,8 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.core.booleanPreferencesKey
-import androidx.datastore.preferences.core.edit
-import androidx.datastore.preferences.core.intPreferencesKey
-import androidx.datastore.preferences.core.longPreferencesKey
-import androidx.datastore.preferences.core.stringPreferencesKey
-import androidx.datastore.preferences.core.stringSetPreferencesKey
-import androidx.datastore.preferences.preferencesDataStore
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.take
 import org.futo.voiceinput.downloader.DownloadActivity
-import org.futo.voiceinput.ui.theme.Typography
 import java.io.File
-
-@Composable
-fun Screen(title: String, content: @Composable () -> Unit) {
-    Column(modifier = Modifier
-        .padding(16.dp)
-        .fillMaxSize()) {
-        Text(title, style = Typography.titleLarge)
-
-
-        Column(modifier = Modifier
-            .padding(8.dp)
-            .fillMaxSize()) {
-            content()
-        }
-    }
-}
-
-class ValueFromSettings<T>(val key: Preferences.Key<T>, val default: T) {
-    private var _value = default
-
-    val value: T
-        get() { return _value }
-
-    suspend fun load(context: Context, onResult: ((T) -> Unit)? = null) {
-        val valueFlow: Flow<T> = context.dataStore.data.map { preferences -> preferences[key] ?: default }.take(1)
-
-        valueFlow.collect {
-            _value = it
-
-            if(onResult != null) {
-                onResult(it)
-            }
-        }
-    }
-
-    suspend fun set(context: Context, newValue: T) {
-        context.dataStore.edit {
-            it[key] = newValue
-        }
-    }
-
-    suspend fun get(context: Context): T {
-        val valueFlow: Flow<T> =
-            context.dataStore.data.map { preferences -> preferences[key] ?: default }.take(1)
-
-        return valueFlow.first()
-    }
-}
 
 enum class Status {
     Unknown,
@@ -373,39 +304,3 @@ val MULTILINGUAL_MODELS = listOf(
         promptingStyle = PromptingStyle.LanguageTokenAndAction
     ),
 )
-
-val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
-val ENABLE_SOUND = booleanPreferencesKey("enable_sounds")
-val ENABLE_ANIMATIONS = booleanPreferencesKey("enable_animations")
-val VERBOSE_PROGRESS = booleanPreferencesKey("verbose_progress")
-val ENABLE_ENGLISH = booleanPreferencesKey("enable_english")
-val ENABLE_MULTILINGUAL = booleanPreferencesKey("enable_multilingual")
-val DISALLOW_SYMBOLS = booleanPreferencesKey("disallow_symbols")
-
-val ENGLISH_MODEL_INDEX = intPreferencesKey("english_model_index")
-val ENGLISH_MODEL_INDEX_DEFAULT = 0
-
-val MULTILINGUAL_MODEL_INDEX = intPreferencesKey("multilingual_model_index")
-val MULTILINGUAL_MODEL_INDEX_DEFAULT = 1
-
-val LANGUAGE_TOGGLES = stringSetPreferencesKey("enabled_languages")
-
-val IS_ALREADY_PAID = booleanPreferencesKey("already_paid")
-val IS_PAYMENT_PENDING = booleanPreferencesKey("payment_pending")
-val HAS_SEEN_PAID_NOTICE = booleanPreferencesKey("seen_paid_notice")
-val FORCE_SHOW_NOTICE = booleanPreferencesKey("force_show_notice")
-
-// UNIX timestamp in seconds of when to next show the payment reminder
-val NOTICE_REMINDER_TIME = longPreferencesKey("notice_reminder_time")
-
-val LAST_UPDATE_CHECK_RESULT = stringPreferencesKey("last_update_check_result_${BuildConfig.FLAVOR}")
-
-val EXT_LICENSE_KEY = stringPreferencesKey("license_key")
-val EXT_PENDING_PURCHASE_ID = stringPreferencesKey("purchase_id")
-val EXT_PENDING_PURCHASE_LAST_CHECK = longPreferencesKey("purchase_status_last_check")
-
-val IS_VAD_ENABLED = booleanPreferencesKey("enable_vad")
-val USE_LANGUAGE_SPECIFIC_MODELS = booleanPreferencesKey("USE_LANGUAGE_SPECIFIC_MODELS")
-
-val ALLOW_UNDERTRAINED_LANGUAGES = booleanPreferencesKey("allow_undertrained_languages")
-val MANUALLY_SELECT_LANGUAGE = booleanPreferencesKey("manually_select_language")

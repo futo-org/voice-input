@@ -5,7 +5,6 @@ import android.app.job.JobScheduler
 import android.content.ComponentName
 import android.content.Context
 import android.os.Build
-import androidx.datastore.preferences.core.edit
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
@@ -14,10 +13,9 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.internal.closeQuietly
 import org.futo.voiceinput.BuildConfig
-import org.futo.voiceinput.LAST_UPDATE_CHECK_RESULT
-import org.futo.voiceinput.ValueFromSettings
-import org.futo.voiceinput.dataStore
-import java.lang.Exception
+import org.futo.voiceinput.settings.LAST_UPDATE_CHECK_RESULT
+import org.futo.voiceinput.settings.getSetting
+import org.futo.voiceinput.settings.setSetting
 
 const val UPDATE_URL = "https://voiceinput.futo.org/VoiceInput/voice_input_version_${BuildConfig.FLAVOR}"
 
@@ -65,9 +63,7 @@ suspend fun checkForUpdateAndSaveToPreferences(context: Context): Boolean {
     val updateResult = checkForUpdate()
     if(updateResult != null) {
         withContext(Dispatchers.IO) {
-            context.dataStore.edit {
-                it[LAST_UPDATE_CHECK_RESULT] = Json.encodeToString(updateResult)
-            }
+            context.setSetting(LAST_UPDATE_CHECK_RESULT, Json.encodeToString(updateResult))
         }
         return true
     }
@@ -76,7 +72,7 @@ suspend fun checkForUpdateAndSaveToPreferences(context: Context): Boolean {
 }
 
 suspend fun retrieveSavedLastUpdateCheckResult(context: Context): UpdateResult? {
-    return UpdateResult.fromString(ValueFromSettings(LAST_UPDATE_CHECK_RESULT, "").get(context))
+    return UpdateResult.fromString(context.getSetting(LAST_UPDATE_CHECK_RESULT))
 }
 
 const val JOB_ID: Int = 15782789

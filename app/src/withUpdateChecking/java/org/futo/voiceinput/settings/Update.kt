@@ -1,20 +1,16 @@
 package org.futo.voiceinput.settings
 
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowForward
-import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.tooling.preview.Preview
-import org.futo.voiceinput.LAST_UPDATE_CHECK_RESULT
 import org.futo.voiceinput.openURI
 import org.futo.voiceinput.updates.UpdateResult
 
 @Composable
 @Preview
 fun ConditionalUpdate() {
-    val (updateInfo, _) = useDataStore(key = LAST_UPDATE_CHECK_RESULT, default = "")
+    val (updateInfo, _) = useDataStore(LAST_UPDATE_CHECK_RESULT)
 
     val lastUpdateResult = if(!LocalInspectionMode.current){
         UpdateResult.fromString(updateInfo)
@@ -24,15 +20,13 @@ fun ConditionalUpdate() {
 
     val context = LocalContext.current
     if(lastUpdateResult != null && lastUpdateResult.isNewer()) {
-        SettingItem(
+        NavigationItem(
             title = "Update Available",
             subtitle = "${UpdateResult.currentVersionString()} -> ${lastUpdateResult.nextVersionString}",
-            onClick = {
+            style = NavigationItemStyle.Misc,
+            navigate = {
                 context.openURI(lastUpdateResult.apkUrl)
             }
-        ) {
-            Icon(Icons.Default.ArrowForward, contentDescription = "Go")
-        }
-
+        )
     }
 }

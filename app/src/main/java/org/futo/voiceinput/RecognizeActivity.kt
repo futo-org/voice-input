@@ -32,20 +32,21 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.LifecycleCoroutineScope
 import androidx.lifecycle.lifecycleScope
-import org.futo.voiceinput.settings.ConditionalUnpaidNoticeInVoiceInputWindow
-import org.futo.voiceinput.ui.theme.WhisperVoiceInputTheme
+import org.futo.voiceinput.settings.pages.ConditionalUnpaidNoticeInVoiceInputWindow
+import org.futo.voiceinput.theme.UixThemeAuto
 import org.futo.voiceinput.updates.scheduleUpdateCheckingJob
 
 
 @Composable
 fun RecognizeWindow(forceNoUnpaidNotice: Boolean = false, onClose: (() -> Unit)?, onFinish: () -> Unit = { }, content: @Composable ColumnScope.() -> Unit) {
-    WhisperVoiceInputTheme {
+    UixThemeAuto {
         Surface(
             modifier = Modifier
                 .width(280.dp)
@@ -62,13 +63,13 @@ fun RecognizeWindow(forceNoUnpaidNotice: Boolean = false, onClose: (() -> Unit)?
             shape = RoundedCornerShape(8.dp)
         ) {
             val icon = painterResource(id = R.drawable.futo_o)
+            val bgIconTint = MaterialTheme.colorScheme.outline
 
             Column(modifier = Modifier.drawBehind {
                 with(icon) {
                     translate(left = -icon.intrinsicSize.width/2, top = -icon.intrinsicSize.height/2) {
                         translate(left = size.width / 4, top = size.height / 3) {
-                            draw(icon.intrinsicSize)
-
+                            draw(icon.intrinsicSize, colorFilter = ColorFilter.tint(bgIconTint))
                         }
                     }
                 }

@@ -25,7 +25,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import org.futo.voiceinput.Status
-import org.futo.voiceinput.dataStore
 
 
 @Composable
@@ -107,6 +106,7 @@ fun useNumberOfDaysInstalled(): MutableState<Int> {
 }
 
 
+
 data class DataStoreItem<T>(val value: T, val setValue: (T) -> Job)
 
 @Composable
@@ -128,16 +128,21 @@ fun <T> useDataStore(key: Preferences.Key<T>, default: T): DataStoreItem<T> {
 }
 
 @Composable
+fun <T> useDataStore(setting: SettingsKey<T>): DataStoreItem<T> {
+    return useDataStore(key = setting.key, default = setting.default)
+}
+
+@Composable
 fun <T> useDataStoreValueNullable(key: Preferences.Key<T>, default: T): T? {
     val context = LocalContext.current
 
-    val enableSoundFlow: Flow<T> = remember {
+    val valueFlow: Flow<T> = remember {
         context.dataStore.data.map { preferences ->
             preferences[key] ?: default
         }
     }
 
-    return enableSoundFlow.collectAsState(initial = null).value
+    return valueFlow.collectAsState(initial = null).value
 }
 
 

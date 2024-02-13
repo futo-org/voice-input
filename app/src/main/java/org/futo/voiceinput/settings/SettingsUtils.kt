@@ -7,39 +7,22 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Switch
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
-import androidx.datastore.preferences.core.Preferences
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -51,13 +34,22 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-import org.futo.voiceinput.HAS_SEEN_PAID_NOTICE
-import org.futo.voiceinput.IS_ALREADY_PAID
 import org.futo.voiceinput.R
 import org.futo.voiceinput.Status
 import org.futo.voiceinput.payments.BillingManager
-import org.futo.voiceinput.ui.theme.Typography
-import java.lang.Exception
+import org.futo.voiceinput.settings.pages.AdvancedScreen
+import org.futo.voiceinput.settings.pages.CreditsScreen
+import org.futo.voiceinput.settings.pages.DependenciesScreen
+import org.futo.voiceinput.settings.pages.HelpScreen
+import org.futo.voiceinput.settings.pages.HomeScreen
+import org.futo.voiceinput.settings.pages.InputScreen
+import org.futo.voiceinput.settings.pages.LanguagesScreen
+import org.futo.voiceinput.settings.pages.ModelsScreen
+import org.futo.voiceinput.settings.pages.PaymentFailedScreen
+import org.futo.voiceinput.settings.pages.PaymentScreen
+import org.futo.voiceinput.settings.pages.PaymentThankYouScreen
+import org.futo.voiceinput.settings.pages.TestScreen
+import org.futo.voiceinput.settings.pages.ThemeScreen
 
 
 data class SettingsUiState(
@@ -117,160 +109,6 @@ fun Context.openSystemDefaultsSettings(component: ComponentName) {
 
 @Composable
 @Preview
-fun Tip(text: String = "This is an example tip") {
-    Surface(
-        color = MaterialTheme.colorScheme.primaryContainer, modifier = Modifier
-            .fillMaxWidth()
-            .padding(8.dp), shape = RoundedCornerShape(4.dp)
-    ) {
-        Text(
-            text,
-            modifier = Modifier.padding(8.dp),
-            style = Typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onPrimaryContainer
-        )
-    }
-}
-
-
-@Composable
-fun SettingItem(
-    title: String,
-    subtitle: String? = null,
-    onClick: () -> Unit,
-    icon: (@Composable () -> Unit)? = null,
-    disabled: Boolean = false,
-    content: @Composable () -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .defaultMinSize(0.dp, 68.dp)
-            .clickable(enabled = !disabled, onClick = {
-                if (!disabled) {
-                    onClick()
-                }
-            })
-            .padding(0.dp, 4.dp, 8.dp, 4.dp)
-    ) {
-        Column(
-            modifier = Modifier
-                .width(42.dp)
-                .align(Alignment.CenterVertically)
-        ) {
-            Box(modifier = Modifier.align(Alignment.CenterHorizontally)) {
-                if (icon != null) {
-                    icon()
-                }
-            }
-        }
-        Row(
-            modifier = Modifier
-                .weight(1f)
-                .align(Alignment.CenterVertically)
-                .alpha(
-                    if (disabled) {
-                        0.5f
-                    } else {
-                        1.0f
-                    }
-                )
-        ) {
-            Column {
-                Text(title, style = Typography.bodyLarge)
-
-                if (subtitle != null) {
-                    Text(
-                        subtitle,
-                        style = Typography.bodySmall,
-                        color = MaterialTheme.colorScheme.outline
-                    )
-                }
-            }
-        }
-        Box(modifier = Modifier.align(Alignment.CenterVertically)) {
-            content()
-        }
-    }
-}
-
-@Composable
-fun SettingToggleRaw(
-    title: String,
-    enabled: Boolean,
-    setValue: (Boolean) -> Unit,
-    subtitle: String? = null,
-    disabled: Boolean = false,
-    icon: (@Composable () -> Unit)? = null
-) {
-    SettingItem(
-        title = title,
-        subtitle = subtitle,
-        onClick = {
-            if (!disabled) {
-                setValue(!enabled)
-            }
-        },
-        icon = icon
-    ) {
-        Switch(checked = enabled, onCheckedChange = {
-            if (!disabled) {
-                setValue(!enabled)
-            }
-        }, enabled = !disabled)
-    }
-}
-
-@Composable
-fun SettingToggle(
-    title: String,
-    key: Preferences.Key<Boolean>,
-    default: Boolean,
-    subtitle: String? = null,
-    disabledSubtitle: String? = null,
-    disabled: Boolean = false,
-    icon: (@Composable () -> Unit)? = null,
-    onChanged: ((Boolean) -> Unit)? = null
-) {
-    val (enabled, setValue) = useDataStore(key, default)
-
-    val subtitleValue = if (!enabled && disabledSubtitle != null) {
-        disabledSubtitle
-    } else {
-        subtitle
-    }
-
-    SettingToggleRaw(title, enabled, {
-        setValue(it)
-        onChanged?.invoke(it)
-     }, subtitleValue, disabled, icon)
-}
-
-@Composable
-fun ScrollableList(content: @Composable () -> Unit) {
-    val scrollState = rememberScrollState()
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(scrollState)
-    ) {
-        content()
-    }
-}
-
-@Composable
-fun SettingListLazy(content: LazyListScope.() -> Unit) {
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-    ) {
-        content()
-    }
-}
-
-@Composable
-@Preview
 fun SettingsMain(
     settingsViewModel: SettingsViewModel = viewModel(),
     navController: NavHostController = rememberNavController(),
@@ -278,8 +116,8 @@ fun SettingsMain(
 ) {
     val settingsUiState by settingsViewModel.uiState.collectAsState()
 
-    val isAlreadyPaid = useDataStore(IS_ALREADY_PAID, default = false)
-    val hasSeenNotice = useDataStore(HAS_SEEN_PAID_NOTICE, default = false)
+    val isAlreadyPaid = useDataStore(IS_ALREADY_PAID.key, default = IS_ALREADY_PAID.default)
+    val hasSeenNotice = useDataStore(HAS_SEEN_PAID_NOTICE.key, default = HAS_SEEN_PAID_NOTICE.default)
     val paymentDest = if (!isAlreadyPaid.value && hasSeenNotice.value) {
         "error"
     } else if (isAlreadyPaid.value && !hasSeenNotice.value) {
@@ -302,52 +140,37 @@ fun SettingsMain(
         navController = navController,
         startDestination = "home"
     ) {
-        composable("home") {
-            HomeScreen(settingsViewModel, navController)
-        }
-        composable("advanced") {
-            AdvancedScreen(settingsViewModel, navController)
-        }
-        composable("help") {
-            HelpScreen()
-        }
-        composable("languages") {
-            LanguagesScreen(settingsViewModel, navController)
-        }
-        composable("testing") {
-            TestScreen(settingsUiState.intentResultText, navController)
-        }
+        composable("home") { HomeScreen(settingsViewModel, navController) }
+        composable("advanced") { AdvancedScreen(settingsViewModel, navController) }
+        composable("help") { HelpScreen(navController) }
+        composable("languages") { LanguagesScreen(settingsViewModel, navController) }
+        composable("testing") { TestScreen(settingsUiState.intentResultText, navController) }
+        composable("models") { ModelsScreen(settingsViewModel, navController) }
+        composable("input") { InputScreen(settingsViewModel, navController) }
+        composable("themes") { ThemeScreen(navController) }
+
         composable("credits") {
             CreditsScreen(openDependencies = {
                 navController.navigate("dependencies")
-            })
+            }, navController = navController)
         }
-        composable("dependencies") {
-            DependenciesScreen()
-        }
-        composable("models") {
-            ModelsScreen(settingsViewModel, navController)
-        }
-
-        composable("input") {
-            InputScreen(settingsViewModel, navController)
-        }
+        composable("dependencies") { DependenciesScreen(navController) }
 
         composable("pleasePay") {
             PaymentScreen(
                 settingsViewModel,
                 navController,
-                { navController.popBackStack() },
+                { navController.navigateUp() },
                 billing!!
             )
         }
 
         composable("paid") {
-            PaymentThankYouScreen { navController.popBackStack() }
+            PaymentThankYouScreen { navController.navigateUp() }
         }
 
         composable("error") {
-            PaymentFailedScreen { navController.popBackStack() }
+            PaymentFailedScreen { navController.navigateUp() }
         }
     }
 }
@@ -424,7 +247,7 @@ fun SetupOrMain(settingsViewModel: SettingsViewModel = viewModel(), billing: Bil
             ) {
                 CircularProgressIndicator(
                     modifier = Modifier.align(Alignment.CenterHorizontally),
-                    color = MaterialTheme.colorScheme.onPrimary
+                    color = MaterialTheme.colorScheme.primary
                 )
             }
         }

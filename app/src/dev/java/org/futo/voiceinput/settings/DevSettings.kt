@@ -12,33 +12,28 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.rememberNavController
 import com.android.billingclient.api.BillingClient
 import com.android.billingclient.api.ConsumeParams
-import com.android.billingclient.api.Purchase
 import com.android.billingclient.api.QueryPurchasesParams
-import org.futo.voiceinput.FORCE_SHOW_NOTICE
-import org.futo.voiceinput.IS_ALREADY_PAID
-import org.futo.voiceinput.NOTICE_REMINDER_TIME
 import org.futo.voiceinput.payments.PRODUCT_ID
 import org.futo.voiceinput.payments.PlayBilling
-import org.futo.voiceinput.ui.theme.Typography
+import org.futo.voiceinput.settings.pages.SettingsSeparator
+import org.futo.voiceinput.settings.pages.TRIAL_PERIOD_DAYS
 
 @Composable
 fun DevOnlySettings() {
     val daysInstalled = useNumberOfDaysInstalled()
 
     SettingsSeparator("Payment testing [Developer Build only]")
-    SettingToggle(
+    SettingToggleDataStore(
         "Show payment notice despite not being past $TRIAL_PERIOD_DAYS days",
         FORCE_SHOW_NOTICE,
         subtitle = "You are currently at ${daysInstalled.value} days",
-        default = false
     )
-    SettingToggle(
+    SettingToggleDataStore(
         "Is paid?",
-        IS_ALREADY_PAID,
-        default = false
+        IS_ALREADY_PAID
     )
 
-    val reminder = useDataStore(NOTICE_REMINDER_TIME, default = 0L)
+    val reminder = useDataStore(NOTICE_REMINDER_TIME)
     val currTime = System.currentTimeMillis() / 1000L
 
     val subtitleValue = if (reminder.value > currTime) {
@@ -93,7 +88,7 @@ fun DevOnlySettings() {
             }
         }
 
-        navigator.popBackStack()
+        navigator.navigateUp()
     }
 
     val numTimesPressed = remember { mutableStateOf(0) }
@@ -102,7 +97,7 @@ fun DevOnlySettings() {
         numTimesPressed.value += 1;
         if (numTimesPressed.value > 5) {
             consumeProduct()
-            navigator.popBackStack()
+            navigator.navigateUp()
         }
     }, modifier = Modifier.padding(32.dp, 64.dp)) {
         Text("Remove product from purchase history [DANGER!]")

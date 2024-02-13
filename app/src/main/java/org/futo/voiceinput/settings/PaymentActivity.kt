@@ -13,14 +13,15 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import kotlinx.coroutines.launch
 import org.futo.voiceinput.payments.BillingManager
-import org.futo.voiceinput.ui.theme.WhisperVoiceInputTheme
+import org.futo.voiceinput.settings.pages.PaymentScreenSwitch
+import org.futo.voiceinput.theme.UixThemeAuto
 
 class PaymentActivity : ComponentActivity() {
     lateinit var billing: BillingManager
 
     private fun updateContent() {
         setContent {
-            WhisperVoiceInputTheme {
+            UixThemeAuto {
                 // A surface container using the 'background' color from the theme
                 Surface(
                     modifier = Modifier.fillMaxSize(),

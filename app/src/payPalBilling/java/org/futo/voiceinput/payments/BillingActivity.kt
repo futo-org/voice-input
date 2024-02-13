@@ -14,13 +14,12 @@ import com.futo.futopay.PaymentManager
 import com.futo.futopay.PaymentStatusListener
 import com.futo.futopay.UIDialogs
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import org.futo.voiceinput.EXT_PENDING_PURCHASE_ID
-import org.futo.voiceinput.EXT_PENDING_PURCHASE_LAST_CHECK
-import org.futo.voiceinput.IS_ALREADY_PAID
-import org.futo.voiceinput.IS_PAYMENT_PENDING
 import org.futo.voiceinput.R
-import org.futo.voiceinput.dataStore
+import org.futo.voiceinput.settings.EXT_PENDING_PURCHASE_ID
+import org.futo.voiceinput.settings.EXT_PENDING_PURCHASE_LAST_CHECK
+import org.futo.voiceinput.settings.IS_ALREADY_PAID
+import org.futo.voiceinput.settings.IS_PAYMENT_PENDING
+import org.futo.voiceinput.settings.dataStore
 
 const val GJ_PRODUCT_ID_VOICE_INPUT = "voiceinput"
 
@@ -56,10 +55,10 @@ class BuyFragment : Fragment() {
                 if(purchaseId != null) {
                     fragment.lifecycleScope.launch {
                         context.dataStore.edit {
-                            it[IS_ALREADY_PAID] = true
-                            it[IS_PAYMENT_PENDING] = true
-                            it[EXT_PENDING_PURCHASE_ID] = purchaseId
-                            it[EXT_PENDING_PURCHASE_LAST_CHECK] = System.currentTimeMillis() / 1000L
+                            it[IS_ALREADY_PAID.key] = true
+                            it[IS_PAYMENT_PENDING.key] = true
+                            it[EXT_PENDING_PURCHASE_ID.key] = purchaseId
+                            it[EXT_PENDING_PURCHASE_LAST_CHECK.key] = System.currentTimeMillis() / 1000L
                         }
 
                         fragment.onCancel()

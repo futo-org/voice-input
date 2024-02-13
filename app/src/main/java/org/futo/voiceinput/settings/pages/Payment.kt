@@ -1,4 +1,4 @@
-package org.futo.voiceinput.settings
+package org.futo.voiceinput.settings.pages
 
 import android.content.Context
 import androidx.compose.foundation.background
@@ -24,7 +24,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.Center
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
@@ -35,7 +34,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.datastore.preferences.core.edit
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
@@ -43,32 +41,31 @@ import androidx.navigation.NavOptions
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import org.futo.voiceinput.BuildConfig
-import org.futo.voiceinput.FORCE_SHOW_NOTICE
-import org.futo.voiceinput.HAS_SEEN_PAID_NOTICE
-import org.futo.voiceinput.IS_ALREADY_PAID
-import org.futo.voiceinput.IS_PAYMENT_PENDING
-import org.futo.voiceinput.NOTICE_REMINDER_TIME
 import org.futo.voiceinput.R
-import org.futo.voiceinput.Screen
-import org.futo.voiceinput.dataStore
 import org.futo.voiceinput.payments.BillingManager
+import org.futo.voiceinput.settings.FORCE_SHOW_NOTICE
+import org.futo.voiceinput.settings.HAS_SEEN_PAID_NOTICE
+import org.futo.voiceinput.settings.IS_ALREADY_PAID
+import org.futo.voiceinput.settings.IS_PAYMENT_PENDING
+import org.futo.voiceinput.settings.NOTICE_REMINDER_TIME
+import org.futo.voiceinput.settings.PaymentActivity
+import org.futo.voiceinput.settings.ScreenTitle
+import org.futo.voiceinput.settings.ScrollableList
+import org.futo.voiceinput.settings.SettingsViewModel
+import org.futo.voiceinput.settings.setSetting
+import org.futo.voiceinput.settings.useDataStore
+import org.futo.voiceinput.settings.useNumberOfDaysInstalled
 import org.futo.voiceinput.startAppActivity
-import org.futo.voiceinput.ui.theme.Slate200
-import org.futo.voiceinput.ui.theme.Typography
-import kotlin.coroutines.coroutineContext
+import org.futo.voiceinput.theme.Slate200
+import org.futo.voiceinput.theme.Typography
 import kotlin.math.absoluteValue
 
 @Composable
 fun ParagraphText(it: String) {
-    Text(
-        it,
-        modifier = Modifier.padding(8.dp),
-        style = Typography.bodyMedium,
-        color = MaterialTheme.colorScheme.onBackground
-    )
+    Text(it, modifier = Modifier.padding(16.dp, 8.dp), style = Typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onBackground)
 }
 
 @Composable
@@ -95,10 +92,8 @@ suspend fun pushNoticeReminderTime(context: Context, days: Float) {
         days.absoluteValue
     }
 
-    context.dataStore.edit { preferences ->
-        preferences[NOTICE_REMINDER_TIME] =
-            System.currentTimeMillis() / 1000L + (clampedDays * 60.0 * 60.0 * 24.0).toLong()
-    }
+    context.setSetting(NOTICE_REMINDER_TIME,
+        System.currentTimeMillis() / 1000L + (clampedDays * 60.0 * 60.0 * 24.0).toLong())
 }
 
 const val TRIAL_PERIOD_DAYS = 30
@@ -110,9 +105,9 @@ fun UnpaidNoticeCondition(
     inner: @Composable () -> Unit
 ) {
     val numDaysInstalled = useNumberOfDaysInstalled()
-    val forceShowNotice = useDataStore(FORCE_SHOW_NOTICE, default = false)
-    val isAlreadyPaid = useDataStore(IS_ALREADY_PAID, default = false)
-    val pushReminderTime = useDataStore(NOTICE_REMINDER_TIME, default = 0L)
+    val forceShowNotice = useDataStore(FORCE_SHOW_NOTICE)
+    val isAlreadyPaid = useDataStore(IS_ALREADY_PAID)
+    val pushReminderTime = useDataStore(NOTICE_REMINDER_TIME)
     val currentTime = System.currentTimeMillis() / 1000L
 
     val reminderTimeIsUp = (currentTime >= pushReminderTime.value)
@@ -198,7 +193,7 @@ fun UnpaidNotice(onPay: () -> Unit = { }, onAlreadyPaid: () -> Unit = { }) {
 @Composable
 @Preview
 fun ConditionalUnpaidNoticeWithNav(navController: NavController = rememberNavController()) {
-    val isAlreadyPaid = useDataStore(IS_ALREADY_PAID, default = false)
+    val isAlreadyPaid = useDataStore(IS_ALREADY_PAID)
 
     UnpaidNoticeCondition {
         UnpaidNotice(onPay = {
@@ -212,33 +207,33 @@ fun ConditionalUnpaidNoticeWithNav(navController: NavController = rememberNavCon
 @Composable
 @Preview
 fun PaymentThankYouScreen(onExit: () -> Unit = { }) {
-    val hasSeenPaidNotice = useDataStore(HAS_SEEN_PAID_NOTICE, default = false)
-    val isPending = useDataStore(IS_PAYMENT_PENDING, default = false)
+    val hasSeenPaidNotice = useDataStore(HAS_SEEN_PAID_NOTICE)
+    val isPending = useDataStore(IS_PAYMENT_PENDING)
 
-    Screen(
-        if (isPending.value) {
-            stringResource(R.string.payment_pending)
-        } else {
-            stringResource(R.string.thank_you)
-        }
-    ) {
-        ScrollableList {
-            ParagraphText(stringResource(R.string.thank_you_for_purchasing_voice_input))
+    ScrollableList {
+        ScreenTitle(
             if (isPending.value) {
-                ParagraphText(stringResource(R.string.payment_pending_body))
-            }
-            ParagraphText(stringResource(R.string.purchase_will_help_body))
+                stringResource(R.string.payment_pending)
+            } else {
+                stringResource(R.string.thank_you)
+            },
+            showBack = false
+        )
+        ParagraphText(stringResource(R.string.thank_you_for_purchasing_voice_input))
+        if (isPending.value) {
+            ParagraphText(stringResource(R.string.payment_pending_body))
+        }
+        ParagraphText(stringResource(R.string.purchase_will_help_body))
 
-            Box(modifier = Modifier.fillMaxWidth()) {
-                Button(
-                    onClick = {
-                        hasSeenPaidNotice.setValue(true)
-                        onExit()
-                    },
-                    modifier = Modifier.align(Center)
-                ) {
-                    Text(stringResource(R.string.continue_))
-                }
+        Box(modifier = Modifier.fillMaxWidth()) {
+            Button(
+                onClick = {
+                    hasSeenPaidNotice.setValue(true)
+                    onExit()
+                },
+                modifier = Modifier.align(Center)
+            ) {
+                Text(stringResource(R.string.continue_))
             }
         }
     }
@@ -247,36 +242,36 @@ fun PaymentThankYouScreen(onExit: () -> Unit = { }) {
 @Composable
 @Preview
 fun PaymentFailedScreen(onExit: () -> Unit = { }) {
-    val hasSeenPaidNotice = useDataStore(HAS_SEEN_PAID_NOTICE, default = true)
+    val hasSeenPaidNotice = useDataStore(HAS_SEEN_PAID_NOTICE.key, default = true)
 
     val context = LocalContext.current
 
-    Screen(stringResource(R.string.payment_error)) {
-        ScrollableList {
-            @Suppress("KotlinConstantConditions")
-            ParagraphText( when(BuildConfig.FLAVOR) {
-                "fDroid" -> stringResource(R.string.payment_failed_body_ex)
-                "dev" -> stringResource(R.string.payment_failed_body_ex)
-                "standalone" -> stringResource(R.string.payment_failed_body_ex)
-                else -> stringResource(R.string.payment_failed_body)
-            })
-            ShareFeedbackOption(title = stringResource(R.string.contact_support))
-            Box(modifier = Modifier.fillMaxWidth()) {
-                val coroutineScope = rememberCoroutineScope()
-                Button(
-                    onClick = {
-                        // It would be rude to immediately annoy the user again about paying, so delay the notice forever
-                        coroutineScope.launch {
-                            pushNoticeReminderTime(context, Float.MAX_VALUE)
-                        }
+    ScrollableList {
+        ScreenTitle(stringResource(R.string.payment_error), showBack = false)
 
-                        hasSeenPaidNotice.setValue(false)
-                        onExit()
-                    },
-                    modifier = Modifier.align(Center)
-                ) {
-                    Text(stringResource(R.string.continue_))
-                }
+        @Suppress("KotlinConstantConditions")
+        ParagraphText( when(BuildConfig.FLAVOR) {
+            "fDroid" -> stringResource(R.string.payment_failed_body_ex)
+            "dev" -> stringResource(R.string.payment_failed_body_ex)
+            "standalone" -> stringResource(R.string.payment_failed_body_ex)
+            else -> stringResource(R.string.payment_failed_body)
+        })
+        ShareFeedbackOption(title = stringResource(R.string.contact_support))
+        Box(modifier = Modifier.fillMaxWidth()) {
+            val coroutineScope = rememberCoroutineScope()
+            Button(
+                onClick = {
+                    // It would be rude to immediately annoy the user again about paying, so delay the notice forever
+                    coroutineScope.launch {
+                        pushNoticeReminderTime(context, Float.MAX_VALUE)
+                    }
+
+                    hasSeenPaidNotice.setValue(false)
+                    onExit()
+                },
+                modifier = Modifier.align(Center)
+            ) {
+                Text(stringResource(R.string.continue_))
             }
         }
     }
@@ -289,17 +284,17 @@ fun PaymentScreen(
     onExit: () -> Unit = { },
     billing: BillingManager
 ) {
-    val isAlreadyPaid = useDataStore(IS_ALREADY_PAID, default = false)
-    val pushReminderTime = useDataStore(NOTICE_REMINDER_TIME, default = 0L)
+    val isAlreadyPaid = useDataStore(IS_ALREADY_PAID)
+    val pushReminderTime = useDataStore(NOTICE_REMINDER_TIME)
     val numDaysInstalled = useNumberOfDaysInstalled()
-    val forceShowNotice = useDataStore(FORCE_SHOW_NOTICE, default = false)
+    val forceShowNotice = useDataStore(FORCE_SHOW_NOTICE)
     val currentTime = System.currentTimeMillis() / 1000L
 
     val reminderTimeIsUp = (currentTime >= pushReminderTime.value) && ((numDaysInstalled.value >= TRIAL_PERIOD_DAYS) || forceShowNotice.value)
 
     val onAlreadyPaid = {
         isAlreadyPaid.setValue(true)
-        navController.popBackStack()
+        navController.navigateUp()
         navController.navigate("paid", NavOptions.Builder().setLaunchSingleTop(true).build())
     }
 
@@ -307,109 +302,108 @@ fun PaymentScreen(
         billing.checkAlreadyOwnsProduct()
     }
 
-    Screen(stringResource(R.string.payment_title)) {
-        ScrollableList {
-            PaymentText()
+    ScrollableList {
+        ScreenTitle(stringResource(R.string.payment_title), showBack = true, navController = navController)
+        PaymentText()
 
-            val context = LocalContext.current
-            Column(modifier = Modifier.fillMaxWidth()) {
-                Column(
-                    modifier = Modifier
-                        .padding(8.dp)
-                        .align(CenterHorizontally)
-                ) {
-                    billing.getBillings().forEach {
-                        Button(
-                            onClick = {
-                                it.launchBillingFlow()
-                            }, modifier = Modifier
-                                .padding(8.dp)
-                                .align(CenterHorizontally)
-                        ) {
-                            val name = it.getName()
-                            val text = if(name.isEmpty()) {
-                                stringResource(R.string.pay)
-                            } else {
-                                stringResource(R.string.pay_via_x, name)
-                            }
-
-                            Text(text)
-                        }
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(64.dp))
-
-                val counter = remember { mutableStateOf(0) }
-                Button(
-                    onClick = {
-                        counter.value += 1
-                        if(counter.value == 2) {
-                            onAlreadyPaid()
-                        }
-                    }, colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.secondary,
-                        contentColor = MaterialTheme.colorScheme.onSecondary
-                    ), modifier = Modifier.align(CenterHorizontally)
-                ) {
-                    Text(stringResource(
-                        when(counter.value) {
-                            0 -> R.string.i_already_paid
-                            else -> R.string.i_already_paid_2
-                        })
-                    )
-                }
-
-                if (reminderTimeIsUp) {
-                    val lastValidRemindValue = remember { mutableStateOf(5.0f) }
-                    val remindDays = remember { mutableStateOf("5") }
-                    Row(
-                        modifier = Modifier
+        val context = LocalContext.current
+        Column(modifier = Modifier.fillMaxWidth()) {
+            Column(
+                modifier = Modifier
+                    .padding(8.dp)
+                    .align(CenterHorizontally)
+            ) {
+                billing.getBillings().forEach {
+                    Button(
+                        onClick = {
+                            it.launchBillingFlow()
+                        }, modifier = Modifier
+                            .padding(8.dp)
                             .align(CenterHorizontally)
-                            .padding(16.dp)
                     ) {
-                        val coroutineScope = rememberCoroutineScope()
-                        Button(
-                            onClick = {
-                                coroutineScope.launch {
-                                    pushNoticeReminderTime(context, lastValidRemindValue.value)
-                                }
-                                onExit()
-                            }, colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.secondary,
-                                contentColor = MaterialTheme.colorScheme.onSecondary
-                            )
-                        ) {
-                            Text(stringResource(R.string.remind_me_in_x))
-                            Surface(color = MaterialTheme.colorScheme.surface) {
-                                BasicTextField(
-                                    value = remindDays.value,
-                                    onValueChange = {
-                                        remindDays.value = it
-
-                                        it.toFloatOrNull()?.let { lastValidRemindValue.value = it }
-                                    },
-                                    modifier = Modifier
-                                        .width(32.dp)
-                                        .background(MaterialTheme.colorScheme.surface),
-                                    textStyle = Typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface),
-                                    cursorBrush = SolidColor(MaterialTheme.colorScheme.onSurface),
-                                    keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number)
-                                )
-                            }
-                            Text(stringResource(R.string.in_x_days))
+                        val name = it.getName()
+                        val text = if(name.isEmpty()) {
+                            stringResource(R.string.pay)
+                        } else {
+                            stringResource(R.string.pay_via_x, name)
                         }
+
+                        Text(text)
                     }
                 }
+            }
 
-                @Suppress("KotlinConstantConditions")
-                if (BuildConfig.FLAVOR == "dev") {
-                    Text(
-                        stringResource(R.string.developer_mode_payment_methods),
-                        style = Typography.labelSmall,
-                        modifier = Modifier.padding(8.dp)
-                    )
+            Spacer(modifier = Modifier.height(64.dp))
+
+            val counter = remember { mutableStateOf(0) }
+            Button(
+                onClick = {
+                    counter.value += 1
+                    if(counter.value == 2) {
+                        onAlreadyPaid()
+                    }
+                }, colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.secondary,
+                    contentColor = MaterialTheme.colorScheme.onSecondary
+                ), modifier = Modifier.align(CenterHorizontally)
+            ) {
+                Text(stringResource(
+                    when(counter.value) {
+                        0 -> R.string.i_already_paid
+                        else -> R.string.i_already_paid_2
+                    })
+                )
+            }
+
+            if (reminderTimeIsUp) {
+                val lastValidRemindValue = remember { mutableStateOf(5.0f) }
+                val remindDays = remember { mutableStateOf("5") }
+                Row(
+                    modifier = Modifier
+                        .align(CenterHorizontally)
+                        .padding(16.dp)
+                ) {
+                    val coroutineScope = rememberCoroutineScope()
+                    Button(
+                        onClick = {
+                            coroutineScope.launch {
+                                pushNoticeReminderTime(context, lastValidRemindValue.value)
+                            }
+                            onExit()
+                        }, colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.secondary,
+                            contentColor = MaterialTheme.colorScheme.onSecondary
+                        )
+                    ) {
+                        Text(stringResource(R.string.remind_me_in_x))
+                        Surface(color = MaterialTheme.colorScheme.surface) {
+                            BasicTextField(
+                                value = remindDays.value,
+                                onValueChange = {
+                                    remindDays.value = it
+
+                                    it.toFloatOrNull()?.let { lastValidRemindValue.value = it }
+                                },
+                                modifier = Modifier
+                                    .width(32.dp)
+                                    .background(MaterialTheme.colorScheme.surface),
+                                textStyle = Typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface),
+                                cursorBrush = SolidColor(MaterialTheme.colorScheme.onSurface),
+                                keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number)
+                            )
+                        }
+                        Text(stringResource(R.string.in_x_days))
+                    }
                 }
+            }
+
+            @Suppress("KotlinConstantConditions")
+            if (BuildConfig.FLAVOR == "dev") {
+                Text(
+                    stringResource(R.string.developer_mode_payment_methods),
+                    style = Typography.labelSmall,
+                    modifier = Modifier.padding(8.dp)
+                )
             }
         }
     }
@@ -424,8 +418,8 @@ fun PaymentScreenSwitch(
     billing: BillingManager,
     startDestination: String = "pleasePay"
 ) {
-    val isAlreadyPaid = useDataStore(IS_ALREADY_PAID, default = false)
-    val hasSeenNotice = useDataStore(HAS_SEEN_PAID_NOTICE, default = false)
+    val isAlreadyPaid = useDataStore(IS_ALREADY_PAID)
+    val hasSeenNotice = useDataStore(HAS_SEEN_PAID_NOTICE)
     val paymentDest = if (!isAlreadyPaid.value && hasSeenNotice.value) {
         "error"
     } else if (isAlreadyPaid.value && !hasSeenNotice.value) {

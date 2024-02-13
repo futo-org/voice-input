@@ -8,12 +8,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.futo.voiceinput.BuildConfig
-import org.futo.voiceinput.EXT_LICENSE_KEY
-import org.futo.voiceinput.EXT_PENDING_PURCHASE_ID
-import org.futo.voiceinput.EXT_PENDING_PURCHASE_LAST_CHECK
-import org.futo.voiceinput.IS_ALREADY_PAID
-import org.futo.voiceinput.IS_PAYMENT_PENDING
-import org.futo.voiceinput.ValueFromSettings
+import org.futo.voiceinput.settings.EXT_LICENSE_KEY
+import org.futo.voiceinput.settings.EXT_PENDING_PURCHASE_ID
+import org.futo.voiceinput.settings.EXT_PENDING_PURCHASE_LAST_CHECK
+import org.futo.voiceinput.settings.IS_ALREADY_PAID
+import org.futo.voiceinput.settings.IS_PAYMENT_PENDING
+import org.futo.voiceinput.settings.getSetting
+import org.futo.voiceinput.settings.setSetting
 import org.futo.voiceinput.startAppActivity
 
 @Suppress("KotlinConstantConditions")
@@ -52,21 +53,19 @@ class PayPalBilling(val context: Context, private val coroutineScope: CoroutineS
         }
 
         suspend fun pollPendingStatus(context: Context) {
-            val lastCheck = ValueFromSettings(EXT_PENDING_PURCHASE_LAST_CHECK, 0)
-            val purchaseId = ValueFromSettings(EXT_PENDING_PURCHASE_ID, "")
-            val isPurchased = ValueFromSettings(IS_ALREADY_PAID, false)
-            val isPending = ValueFromSettings(IS_PAYMENT_PENDING, false)
-            val licenseKey = ValueFromSettings(EXT_LICENSE_KEY, "")
+            val lastCheck = context.getSetting(EXT_PENDING_PURCHASE_LAST_CHECK)
+            val purchaseId = context.getSetting(EXT_PENDING_PURCHASE_ID)
+            val isPending = context.getSetting(IS_PAYMENT_PENDING)
 
-            if(isPending.get(context) && purchaseId.get(context).isNotEmpty()) {
-                val secondsSinceLastCheck = (System.currentTimeMillis() / 1000L) - lastCheck.get(context)
+            if(isPending && purchaseId.isNotEmpty()) {
+                val secondsSinceLastCheck = (System.currentTimeMillis() / 1000L) - lastCheck
 
                 if(secondsSinceLastCheck > pollPeriod || TEST_MODE) {
                     Log.d("PayPalBilling", "About to poll server for pending payment status...")
-                    lastCheck.set(context, System.currentTimeMillis() / 1000L)
+                    context.setSetting(EXT_PENDING_PURCHASE_LAST_CHECK, System.currentTimeMillis() / 1000L)
 
                     try {
-                        val status = StatePayment.instance.getPaymentStatus(purchaseId.get(context))
+                        val status = StatePayment.instance.getPaymentStatus(purchaseId)
                         when (status.status) {
                             -1 -> {
                                 // still pending
@@ -74,21 +73,17 @@ class PayPalBilling(val context: Context, private val coroutineScope: CoroutineS
                             }
                             0 -> {
                                 // failed
-                                isPurchased.set(context, false)
-                                isPending.set(context, false)
+                                context.setSetting(IS_ALREADY_PAID, false)
+                                context.setSetting(IS_PAYMENT_PENDING, false)
                                 Log.d("PayPalBilling", "Poll result - payment failed")
                             }
                             1 -> {
                                 // success
-                                isPurchased.set(context, true)
-                                isPending.set(context, false)
+                                context.setSetting(IS_ALREADY_PAID, true)
+                                context.setSetting(IS_PAYMENT_PENDING, false)
 
-                                if(status.purchaseId != null) {
-                                    licenseKey.set(context, status.purchaseId!!)
-                                } else {
-                                    licenseKey.set(context, purchaseId.get(context))
-                                }
-                                Log.d("PayPalBilling", "Poll result - payment successful, id ${purchaseId.get(context)} ${status.purchaseId}")
+                                context.setSetting(EXT_LICENSE_KEY, status.purchaseId ?: purchaseId)
+                                Log.d("PayPalBilling", "Poll result - payment successful, id $purchaseId ${status.purchaseId}")
                             }
                             else -> {
                                 Log.e("PayPalBilling", "Invalid status response ${status.status}")

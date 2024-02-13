@@ -1,4 +1,4 @@
-package org.futo.voiceinput.ui.theme
+package org.futo.voiceinput.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle

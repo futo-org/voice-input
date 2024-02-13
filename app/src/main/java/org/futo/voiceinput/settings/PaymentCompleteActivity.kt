@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.viewModels
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -18,20 +17,17 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import kotlinx.coroutines.launch
-import org.futo.voiceinput.EXT_LICENSE_KEY
-import org.futo.voiceinput.IS_ALREADY_PAID
-import org.futo.voiceinput.IS_PAYMENT_PENDING
 import org.futo.voiceinput.R
-import org.futo.voiceinput.ValueFromSettings
-import org.futo.voiceinput.dataStore
 import org.futo.voiceinput.payments.StatePayment
+import org.futo.voiceinput.settings.pages.PaymentThankYouScreen
+import org.futo.voiceinput.settings.pages.ShareFeedbackOption
 import org.futo.voiceinput.startAppActivity
-import org.futo.voiceinput.ui.theme.WhisperVoiceInputTheme
+import org.futo.voiceinput.theme.UixThemeAuto
 
 class PaymentCompleteActivity : ComponentActivity() {
     private fun updateContent() {
         setContent {
-            WhisperVoiceInputTheme {
+            UixThemeAuto {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
@@ -48,9 +44,9 @@ class PaymentCompleteActivity : ComponentActivity() {
     private fun onPaid(license: String) {
         lifecycleScope.launch {
             dataStore.edit {
-                it[IS_ALREADY_PAID] = true
-                it[IS_PAYMENT_PENDING] = false
-                it[EXT_LICENSE_KEY] = license
+                it[IS_ALREADY_PAID.key] = true
+                it[IS_PAYMENT_PENDING.key] = false
+                it[EXT_LICENSE_KEY.key] = license
             }
 
             repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -61,11 +57,11 @@ class PaymentCompleteActivity : ComponentActivity() {
 
     private fun onInvalidKey() {
         lifecycleScope.launch {
-            if(ValueFromSettings(IS_ALREADY_PAID, false).get(this@PaymentCompleteActivity)) {
+            if(applicationContext.getSetting(IS_ALREADY_PAID)) {
                 finish()
             } else {
                 setContent {
-                    WhisperVoiceInputTheme {
+                    UixThemeAuto {
                         Surface(
                             modifier = Modifier.fillMaxSize(),
                             color = MaterialTheme.colorScheme.background
