@@ -35,6 +35,7 @@
             android:clearTaskOnLaunch="true"
             android:launchMode="singleInstance"
             android:visibleToInstantApps="true"
+            android:configChanges="orientation|screenLayout|screenSize|keyboardHidden|keyboard|uiMode|density"
             android:theme="@style/Theme.RecognizerInput">
 
             <intent-filter>
