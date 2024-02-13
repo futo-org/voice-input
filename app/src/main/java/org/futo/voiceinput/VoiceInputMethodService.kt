@@ -32,6 +32,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.platform.ComposeView
@@ -79,13 +80,15 @@ fun RecognizerInputMethodWindow(switchBack: (() -> Unit)? = null, onFinish: () -
             color = MaterialTheme.colorScheme.surface
         ) {
             val icon = painterResource(id = R.drawable.futo_o)
+            val bgIconTint = MaterialTheme.colorScheme.outline
+
             Column(
                 modifier = Modifier.padding(0.dp, 0.dp, 0.dp, 64.dp).drawBehind {
                     with(icon) {
                         translate(left = -icon.intrinsicSize.width/2, top = -icon.intrinsicSize.height/2) {
                             translate(left = size.width / 3, top = size.height / 2) {
                                 scale(scaleX = 1.3f, scaleY = 1.3f) {
-                                    draw(icon.intrinsicSize)
+                                    draw(icon.intrinsicSize, colorFilter = ColorFilter.tint(bgIconTint))
                                 }
 
                             }
