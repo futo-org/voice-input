@@ -24,6 +24,11 @@ android {
         vectorDrawables {
             useSupportLibrary true
         }
+        externalNativeBuild {
+            cmake {
+                cppFlags '-O3'
+            }
+        }
     }
 
     final def keystorePropertiesFile = rootProject.file("keystore.properties")
@@ -177,6 +182,12 @@ android {
 
             // Include non-dev code
             java.srcDir 'src/nonDev/java'
+        }
+    }
+    externalNativeBuild {
+        cmake {
+            path file('src/main/cpp/CMakeLists.txt')
+            version '3.22.1'
         }
     }
 }

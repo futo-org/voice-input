@@ -2,14 +2,22 @@ package org.futo.voiceinput.settings.pages
 
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import kotlinx.coroutines.withContext
 import org.futo.voiceinput.R
 import org.futo.voiceinput.settings.ENABLE_ANIMATIONS
 import org.futo.voiceinput.settings.ENABLE_SOUND
@@ -18,14 +26,17 @@ import org.futo.voiceinput.settings.LANGUAGE_TOGGLES
 import org.futo.voiceinput.settings.MANUALLY_SELECT_LANGUAGE
 import org.futo.voiceinput.settings.NavigationItem
 import org.futo.voiceinput.settings.NavigationItemStyle
+import org.futo.voiceinput.settings.PERSONAL_DICTIONARY
 import org.futo.voiceinput.settings.ScreenTitle
 import org.futo.voiceinput.settings.ScrollableList
 import org.futo.voiceinput.settings.SettingToggleDataStore
 import org.futo.voiceinput.settings.SettingsViewModel
 import org.futo.voiceinput.settings.Tip
 import org.futo.voiceinput.settings.USE_LANGUAGE_SPECIFIC_MODELS
+import org.futo.voiceinput.settings.getSettingBlocking
 import org.futo.voiceinput.settings.useDataStore
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 @Preview
 fun InputScreen(
@@ -76,5 +87,18 @@ fun InputScreen(
                 USE_LANGUAGE_SPECIFIC_MODELS
             )
         }
+
+        val personalDict = useDataStore(PERSONAL_DICTIONARY)
+        val context = LocalContext.current
+        val textFieldValue = remember { mutableStateOf(context.getSettingBlocking(
+            PERSONAL_DICTIONARY.key, PERSONAL_DICTIONARY.default)) }
+
+        LaunchedEffect(textFieldValue.value) {
+            personalDict.setValue(textFieldValue.value)
+        }
+
+        TextField(value = textFieldValue.value, onValueChange = {
+            textFieldValue.value = it
+        }, placeholder = { Text("Personal dictionary") })
     }
 }

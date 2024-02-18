@@ -100,6 +100,14 @@ fun CreditsScreen(openDependencies: () -> Unit = {}, navController: NavHostContr
         )
 
         CreditItem(
+            name = "whisper.cpp & ggml",
+            thanksFor = stringResource(R.string.thanks_for_the_machine_learning_inference_library),
+            link = "https://github.com/ggerganov/whisper.cpp",
+            license = "MIT",
+            copyright = "Copyright (c) 2023 Georgi Gerganov"
+        )
+
+        CreditItem(
             name = "TensorFlow Lite",
             thanksFor = stringResource(R.string.thanks_for_the_machine_learning_inference_library),
             link = "https://mvnrepository.com/artifact/org.tensorflow/tensorflow-lite",

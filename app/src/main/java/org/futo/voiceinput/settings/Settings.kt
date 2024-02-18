@@ -138,6 +138,7 @@ val USE_LANGUAGE_SPECIFIC_MODELS = SettingsKey(booleanPreferencesKey("USE_LANGUA
 val ALLOW_UNDERTRAINED_LANGUAGES = SettingsKey(booleanPreferencesKey("allow_undertrained_languages"), false)
 val MANUALLY_SELECT_LANGUAGE = SettingsKey(booleanPreferencesKey("manually_select_language"), false)
 
+val PERSONAL_DICTIONARY = SettingsKey(stringPreferencesKey("personal_dict"), "")
 
 val THEME_KEY = SettingsKey(
     key = stringPreferencesKey("activeThemeOption"),

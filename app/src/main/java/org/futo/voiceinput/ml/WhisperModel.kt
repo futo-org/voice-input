@@ -10,8 +10,10 @@ import kotlinx.coroutines.yield
 import org.futo.voiceinput.AudioFeatureExtraction
 import org.futo.voiceinput.ModelData
 import org.futo.voiceinput.PromptingStyle
+import org.futo.voiceinput.ggml.WhisperGGML
 import org.futo.voiceinput.toDoubleArray
 import org.tensorflow.lite.DataType
+import org.tensorflow.lite.support.common.FileUtil
 import org.tensorflow.lite.support.model.Model
 import org.tensorflow.lite.support.tensorbuffer.TensorBuffer
 import java.io.File
@@ -62,16 +64,16 @@ data class LoadedModels(
 )
 
 fun initModelsWithOptions(context: Context, model: ModelData, encoderOptions: Model.Options, decoderOptions: Model.Options): LoadedModels {
-    return if(model.is_builtin_asset) {
-        val encoderModel = WhisperEncoderXatn(context, model.encoder_xatn_file, encoderOptions)
-        val decoderModel = WhisperDecoder(context, model.decoder_file, decoderOptions)
-        val tokenizer = WhisperTokenizer(context, model.vocab_raw_asset!!)
+    return if(model.legacy.is_builtin_asset) {
+        val encoderModel = WhisperEncoderXatn(context, model.legacy.encoder_xatn_file, encoderOptions)
+        val decoderModel = WhisperDecoder(context, model.legacy.decoder_file, decoderOptions)
+        val tokenizer = WhisperTokenizer(context, model.legacy.vocab_raw_asset!!)
 
         LoadedModels(encoderModel, decoderModel, tokenizer, "")
     } else {
-        val encoderFile = context.tryOpenDownloadedModel(model.encoder_xatn_file)
-        val decoderFile = context.tryOpenDownloadedModel(model.decoder_file)
-        val vocabFile = File(context.filesDir, model.vocab_file)
+        val encoderFile = context.tryOpenDownloadedModel(model.legacy.encoder_xatn_file)
+        val decoderFile = context.tryOpenDownloadedModel(model.legacy.decoder_file)
+        val vocabFile = File(context.filesDir, model.legacy.vocab_file)
 
 
         var taint = ""
@@ -87,16 +89,16 @@ fun initModelsWithOptions(context: Context, model: ModelData, encoderOptions: Mo
             digest.update(vocabFile.readBytes())
             val vocabDigest = digest.digest().toSHA256String()
 
-            if (encoderDigest != model.digests.encoder_digest) {
-                taint += "Encoder digest mismatch for model ${model.name} - expected ${model.digests.encoder_digest}, got $encoderDigest\n"
+            if (encoderDigest != model.legacy.digests.encoder_digest) {
+                taint += "Encoder digest mismatch for model ${model.name} - expected ${model.legacy.digests.encoder_digest}, got $encoderDigest\n"
             }
 
-            if (decoderDigest != model.digests.decoder_digest) {
-                taint += "Decoder digest mismatch for model ${model.name} - expected ${model.digests.decoder_digest}, got $decoderDigest\n"
+            if (decoderDigest != model.legacy.digests.decoder_digest) {
+                taint += "Decoder digest mismatch for model ${model.name} - expected ${model.legacy.digests.decoder_digest}, got $decoderDigest\n"
             }
 
-            if (vocabDigest != model.digests.vocab_digest) {
-                taint += "Vocab digest mismatch for model ${model.name} - expected ${model.digests.vocab_digest}, got $vocabDigest\n"
+            if (vocabDigest != model.legacy.digests.vocab_digest) {
+                taint += "Vocab digest mismatch for model ${model.name} - expected ${model.legacy.digests.vocab_digest}, got $vocabDigest\n"
             }
         } catch (e: Exception) {
             Log.e("WhisperModel", "Failed to verify digests due to exception $e")
@@ -215,7 +217,7 @@ class WhisperModel(context: Context, private val model: ModelData, private val s
         var bannedTokens = tokenizer.tokenToId.filterKeys { isBannedChar(it) }.values.toIntArray()
         bannedTokens += listOf(translateToken, noCaptionsToken)
 
-        if(model.promptingStyle == PromptingStyle.LanguageTokenAndAction && languages != null) {
+        if(model.legacy.promptingStyle == PromptingStyle.LanguageTokenAndAction && languages != null) {
             val permittedLanguages = languages.map {
                 stringToToken("<|$it|>")!!
             }.toHashSet()
@@ -423,54 +425,103 @@ class WhisperModel(context: Context, private val model: ModelData, private val s
 }
 
 
+fun loadGGMLModel(context: Context, model: ModelData, onPartialDecode: (String) -> Unit): WhisperGGML {
+    val modelBuffer = if(model.ggml.is_builtin_asset) {
+        FileUtil.loadMappedFile(context, model.ggml.ggml_file)
+    } else {
+        context.tryOpenDownloadedModel(model.ggml.ggml_file)
+    }
+
+    return WhisperGGML(modelBuffer, onPartialDecode)
+}
+
+
 class WhisperModelWrapper(
     val context: Context,
     primaryModel: ModelData,
     fallbackEnglishModel: ModelData?,
     private val suppressNonSpeech: Boolean,
-    languages: Set<String>?
+    languages: Set<String>,
+
+    private val onStatusUpdate: (RunState) -> Unit,
+    private val onPartialDecode: (String) -> Unit,
 ) {
-    private val primary: WhisperModel = WhisperModel(context, primaryModel, suppressNonSpeech, languages)
-    private val fallback: WhisperModel? = fallbackEnglishModel?.let { WhisperModel(context, it, suppressNonSpeech) }
+    private var primaryModelGGML: WhisperGGML? = null
+    private var fallbackModelGGML: WhisperGGML? = null
+    private var primaryModelLegacy: WhisperModel? = null
+    private var fallbackModelLegacy: WhisperModel? = null
+    //private val primary: WhisperModel? = WhisperModel(context, primaryModel, suppressNonSpeech, languages)
+    //private val fallback: WhisperModel? = fallbackEnglishModel?.let { WhisperModel(context, it, suppressNonSpeech) }
 
     init {
         if(primaryModel == fallbackEnglishModel) {
             throw IllegalArgumentException("Fallback model must be unique from the primary model")
+        }
+
+        try {
+            primaryModelGGML = loadGGMLModel(context, primaryModel, onPartialDecode)
+
+            fallbackEnglishModel?.let {
+                fallbackModelGGML = loadGGMLModel(context, it, onPartialDecode)
+            }
+        }catch(e: Exception) {
+            when(e) {
+                is IOException, is IllegalArgumentException -> {
+                    primaryModelLegacy = WhisperModel(context, primaryModel, suppressNonSpeech, languages)
+                    fallbackModelLegacy = fallbackEnglishModel?.let { WhisperModel(context, it, suppressNonSpeech) }
+                }
+                else -> throw e
+            }
         }
     }
 
     private var modelJob: Job? = null
     suspend fun run(
         samples: FloatArray,
-        onStatusUpdate: (RunState) -> Unit,
-        onPartialDecode: (String) -> Unit,
+        glossary: Set<String>,
         forceLanguage: String?
     ): String {
         yield()
-        onStatusUpdate(RunState.ExtractingFeatures)
-        val mel = WhisperModel.extractor.melSpectrogram(samples.toDoubleArray())
 
-        return try {
-            yield()
-            primary.run(mel, onStatusUpdate, onPartialDecode, fallback != null, forceLanguage)
-        } catch(e: DecodingEnglishException) {
-            yield()
-            fallback!!.run(
-                mel,
-                {
-                    if(it != RunState.ProcessingEncoder) {
-                        onStatusUpdate(it)
-                    }
-                },
-                onPartialDecode,
-                false,
-                null
-            )
+        if(primaryModelGGML != null) {
+            // TODO: This only works well for English.
+            // This causes weird behavior with other languages, it usually decides to translate to english
+            val prompt = if(glossary.isEmpty()) "" else "(Glossary: ${glossary.joinToString(separator = " ")})"
+
+            // TODO: Fallback model
+            // TODO: Language forcing and restriction
+            // TODO: Early exiting from native code if cancelled
+            return primaryModelGGML!!.infer(samples, prompt)
+        }else if(primaryModelLegacy != null) {
+            onStatusUpdate(RunState.ExtractingFeatures)
+            val mel = WhisperModel.extractor.melSpectrogram(samples.toDoubleArray())
+
+            return try {
+                yield()
+                primaryModelLegacy!!.run(mel, onStatusUpdate, onPartialDecode, fallbackModelLegacy != null, forceLanguage)
+            } catch (e: DecodingEnglishException) {
+                yield()
+                fallbackModelLegacy!!.run(
+                    mel,
+                    {
+                        if (it != RunState.ProcessingEncoder) {
+                            onStatusUpdate(it)
+                        }
+                    },
+                    onPartialDecode,
+                    false,
+                    null
+                )
+            }
+        } else {
+            throw IllegalStateException("No models are loaded!")
         }
     }
 
     suspend fun close() = withContext(inferenceContext) {
-        primary.close()
-        fallback?.close()
+        primaryModelGGML?.close()
+        fallbackModelGGML?.close()
+        primaryModelLegacy?.close()
+        fallbackModelLegacy?.close()
     }
 }

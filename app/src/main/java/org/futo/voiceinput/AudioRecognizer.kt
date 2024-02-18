@@ -34,6 +34,7 @@ import org.futo.voiceinput.settings.ENGLISH_MODEL_INDEX
 import org.futo.voiceinput.settings.IS_VAD_ENABLED
 import org.futo.voiceinput.settings.LANGUAGE_TOGGLES
 import org.futo.voiceinput.settings.MULTILINGUAL_MODEL_INDEX
+import org.futo.voiceinput.settings.PERSONAL_DICTIONARY
 import org.futo.voiceinput.settings.USE_LANGUAGE_SPECIFIC_MODELS
 import org.futo.voiceinput.settings.getSetting
 import java.io.IOException
@@ -171,7 +172,17 @@ abstract class AudioRecognizer {
                 primaryModel,
                 secondaryModel,
                 context.getSetting(DISALLOW_SYMBOLS),
-                context.getSetting(LANGUAGE_TOGGLES)
+                context.getSetting(LANGUAGE_TOGGLES),
+                onStatusUpdate = {
+                    decodingStatus(it)
+                },
+                onPartialDecode = {
+                    lifecycleScope.launch {
+                        withContext(Dispatchers.Main) {
+                            partialResult(it)
+                        }
+                    }
+                }
             )
         } catch (e: IOException) {
             context.startModelDownloadActivity(
@@ -468,19 +479,11 @@ abstract class AudioRecognizer {
 
         val floatArray = floatSamples.array().sliceArray(0 until floatSamples.position())
 
-        val onStatusUpdate = { state: RunState ->
-            decodingStatus(state)
-        }
+        val words = context.getSetting(PERSONAL_DICTIONARY).split(" ").toSet()
 
         yield()
         val text = try {
-            model!!.run(floatArray, onStatusUpdate, {
-                lifecycleScope.launch {
-                    withContext(Dispatchers.Main) {
-                        partialResult(it)
-                    }
-                }
-            }, forcedLanguage)
+            model!!.run(floatArray, words, forcedLanguage)
         } catch(e: OutOfMemoryError) {
             decodingStatus(RunState.OOMError)
             model!!.close()
