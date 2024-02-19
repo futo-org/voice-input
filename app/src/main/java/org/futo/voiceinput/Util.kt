@@ -235,8 +235,8 @@ val ENGLISH_MODELS = listOf(
 
         ggml = ModelDataGGML(
             is_builtin_asset = true,
-            ggml_file = "tiny_en_q5_1.bin.not.tflite",
-            digest = "cc393fd5d2055d00bed6b3a67f1f3393c88e731ded80bdeea2912985179b1c9b"
+            ggml_file = "tiny_en_q8_0.bin.not.tflite",
+            digest = "55164c6ef4db44108a11484895169a0fd787bb47225fc12f15e892ba35a6639b"
         ),
 
         legacy = ModelDataLegacy(
@@ -258,8 +258,8 @@ val ENGLISH_MODELS = listOf(
 
         ggml = ModelDataGGML(
             is_builtin_asset = false,
-            ggml_file = "base_en_q5_1.bin",
-            digest = "121e76ad8f95c9b7dcfe0295527423d2523beee7b50d9679782fc907a7f0b3de"
+            ggml_file = "base_en_q8_0.bin",
+            digest = "0a61cdd465b9e136efca3ebde99582b84b9df21dbd3b50a5c3b21c8cd0925219"
         ),
 
         legacy = ModelDataLegacy(
@@ -287,8 +287,8 @@ val MULTILINGUAL_MODELS = listOf(
 
         ggml = ModelDataGGML(
         is_builtin_asset = false,
-        ggml_file = "tiny_q5_1.bin",
-        digest = "2fc2aa8e079b64dcab60dfd0d7bea8b9e18235ebc5137cb5ba0280adf6473b06"
+        ggml_file = "tiny_q8_0.bin",
+        digest = "9ade048c9d3692b411572a9a8ad615766168e62fb1d4c234973825a377c71984"
         ),
 
         legacy = ModelDataLegacy(
@@ -312,8 +312,8 @@ val MULTILINGUAL_MODELS = listOf(
 
         ggml = ModelDataGGML(
             is_builtin_asset = false,
-            ggml_file = "base_q5_1.bin",
-            digest = "36a6bf6281261fec331fcc65235e0f466d855ea4dae1bbbfb28ed4c0cf72d8c0"
+            ggml_file = "base_q8_0.bin",
+            digest = "cced49a244b3f776f42cfb4c41920037a4bc00058f41ef9579dee7f327d746de"
         ),
 
         legacy = ModelDataLegacy(
@@ -337,8 +337,8 @@ val MULTILINGUAL_MODELS = listOf(
 
         ggml = ModelDataGGML(
         is_builtin_asset = false,
-        ggml_file = "small_q4_0.bin",
-        digest = "642342ef13ac5a5699ed4dbf73108f991e21f1db4604d3f5f287ef632998b9fb"
+        ggml_file = "small_q8_0.bin",
+        digest = "7b41ebac4b31f953a7ec942e9e3d06c852bbbfc04e6e68e66cd78ddd0c1d9bb0"
         ),
 
         legacy = ModelDataLegacy(
