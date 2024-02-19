@@ -22,6 +22,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.futo.voiceinput.BuildConfig
+import org.futo.voiceinput.theme.presets.DevThemeYellow
 import org.futo.voiceinput.theme.presets.VoiceInputTheme
 
 suspend fun <T> Context.getSetting(key: Preferences.Key<T>, default: T): T {
@@ -142,7 +143,7 @@ val PERSONAL_DICTIONARY = SettingsKey(stringPreferencesKey("personal_dict"), "")
 
 val THEME_KEY = SettingsKey(
     key = stringPreferencesKey("activeThemeOption"),
-    default = VoiceInputTheme.key
+    default = if(BuildConfig.FLAVOR == "dev" || BuildConfig.FLAVOR == "devSameId") { DevThemeYellow.key } else { VoiceInputTheme.key }
 )
 
 val BEAM_SEARCH = SettingsKey(key = booleanPreferencesKey("use_beam_search"), default = false)

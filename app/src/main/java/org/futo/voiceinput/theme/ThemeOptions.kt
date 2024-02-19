@@ -6,6 +6,7 @@ import androidx.compose.material3.ColorScheme
 import org.futo.voiceinput.theme.presets.AMOLEDDarkPurple
 import org.futo.voiceinput.theme.presets.ClassicMaterialDark
 import org.futo.voiceinput.theme.presets.ClassicMaterialLight
+import org.futo.voiceinput.theme.presets.DevThemeYellow
 import org.futo.voiceinput.theme.presets.DynamicDarkTheme
 import org.futo.voiceinput.theme.presets.DynamicLightTheme
 import org.futo.voiceinput.theme.presets.DynamicSystemTheme
@@ -40,6 +41,7 @@ val ThemeOptions = hashMapOf(
     ClassicMaterialLight.key to ClassicMaterialLight,
     VoiceInputTheme.key to VoiceInputTheme,
     AMOLEDDarkPurple.key to AMOLEDDarkPurple,
+    DevThemeYellow.key to DevThemeYellow
 )
 
 val ThemeOptionKeys = arrayOf(
@@ -51,4 +53,5 @@ val ThemeOptionKeys = arrayOf(
     ClassicMaterialDark.key,
     ClassicMaterialLight.key,
     AMOLEDDarkPurple.key,
+    DevThemeYellow.key
 )
