@@ -31,11 +31,14 @@ class WhisperGGML(
         partialResultCallback(text)
     }
 
-    suspend fun infer(samples: FloatArray, prompt: String): String = withContext(inferenceContext) {
+    // empty languages = autodetect any language
+    // 1 language = will force that language
+    // 2 or more languages = autodetect between those languages
+    suspend fun infer(samples: FloatArray, prompt: String, languages: Array<String>): String = withContext(inferenceContext) {
         if(handle == 0L) {
             throw IllegalStateException("WhisperGGML has already been closed, cannot infer")
         }
-        return@withContext inferNative(handle, samples, prompt)
+        return@withContext inferNative(handle, samples, prompt, languages)
     }
 
     fun close() {
@@ -47,6 +50,6 @@ class WhisperGGML(
 
     private external fun openNative(path: String): Long
     private external fun openFromBufferNative(buffer: Buffer): Long
-    private external fun inferNative(handle: Long, samples: FloatArray, prompt: String): String
+    private external fun inferNative(handle: Long, samples: FloatArray, prompt: String, languages: Array<String>): String
     private external fun closeNative(handle: Long)
 }

@@ -441,7 +441,7 @@ class WhisperModelWrapper(
     primaryModel: ModelData,
     fallbackEnglishModel: ModelData?,
     private val suppressNonSpeech: Boolean,
-    languages: Set<String>,
+    private val languages: Set<String>,
 
     private val onStatusUpdate: (RunState) -> Unit,
     private val onPartialDecode: (String) -> Unit,
@@ -488,10 +488,11 @@ class WhisperModelWrapper(
             // This causes weird behavior with other languages, it usually decides to translate to english
             val prompt = if(glossary.isBlank()) "" else "(Glossary: ${glossary})"
 
+            val languagesOrLanguage = forceLanguage?.let { arrayOf(it) } ?: languages.toTypedArray()
+
             // TODO: Fallback model
-            // TODO: Language forcing and restriction
             // TODO: Early exiting from native code if cancelled
-            return primaryModelGGML!!.infer(samples, prompt)
+            return primaryModelGGML!!.infer(samples, prompt, languagesOrLanguage)
         }else if(primaryModelLegacy != null) {
             onStatusUpdate(RunState.ExtractingFeatures)
             val mel = WhisperModel.extractor.melSpectrogram(samples.toDoubleArray())

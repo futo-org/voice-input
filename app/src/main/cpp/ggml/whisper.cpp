@@ -2143,11 +2143,11 @@ static bool whisper_encode_internal(
     TIME_START(conv)
     // conv
     {
-        auto & alloc = wstate.alloc_conv.alloc;
+        auto &alloc = wstate.alloc_conv.alloc;
 
         ggml_allocr_reset(alloc);
 
-        ggml_cgraph * gf = whisper_build_graph_conv(wctx, wstate, mel_offset);
+        ggml_cgraph *gf = whisper_build_graph_conv(wctx, wstate, mel_offset);
 
         ggml_allocr_alloc_graph(alloc, gf);
 
@@ -2168,22 +2168,22 @@ static bool whisper_encode_internal(
 
         ggml_allocr_alloc_graph(alloc, gf);
 
-        ggml_graph_compute_helper(wstate.backend, gf, n_threads);
+        ggml_graph_compute_helper(wstate.backend, gf, 2); // TODO: Over 2 threads seems to slow things down
     }
     TIME_END(encode)
 
     TIME_START(cross)
     // cross
     {
-        auto & alloc = wstate.alloc_cross.alloc;
+        auto &alloc = wstate.alloc_cross.alloc;
 
         ggml_allocr_reset(alloc);
 
-        ggml_cgraph * gf = whisper_build_graph_cross(wctx, wstate);
+        ggml_cgraph *gf = whisper_build_graph_cross(wctx, wstate);
 
         ggml_allocr_alloc_graph(alloc, gf);
 
-        ggml_graph_compute_helper(wstate.backend, gf, n_threads);
+        ggml_graph_compute_helper(wstate.backend, gf, 2);
     }
     TIME_END(cross)
 
@@ -3615,7 +3615,9 @@ int whisper_lang_auto_detect_with_state(
         struct whisper_state * state,
         int   offset_ms,
         int   n_threads,
-        float * lang_probs) {
+        float * lang_probs,
+        const int * allowed_langs,
+        size_t allowed_langs_size) {
     const int seek = offset_ms/10;
 
     if (seek < 0) {
@@ -3645,6 +3647,17 @@ int whisper_lang_auto_detect_with_state(
     logits_id.clear();
 
     for (const auto & kv : g_lang) {
+        if(allowed_langs != nullptr && allowed_langs_size >= 0) {
+            bool is_allowed = false;
+            for(size_t i=0; i < allowed_langs_size; i++) {
+                if(allowed_langs[i] == kv.second.first) {
+                    is_allowed = true;
+                    break;
+                }
+            }
+
+            if(!is_allowed) continue;
+        }
         const auto token_lang = whisper_token_lang(ctx, kv.second.first);
         logits_id.emplace_back(state->logits[token_lang], kv.second.first);
     }
@@ -3690,7 +3703,7 @@ int whisper_lang_auto_detect(
         int   offset_ms,
         int   n_threads,
         float * lang_probs) {
-    return whisper_lang_auto_detect_with_state(ctx, ctx->state, offset_ms, n_threads, lang_probs);
+    return whisper_lang_auto_detect_with_state(ctx, ctx->state, offset_ms, n_threads, lang_probs, nullptr, 0);
 }
 
 int whisper_model_n_vocab(struct whisper_context * ctx) {
@@ -4389,6 +4402,9 @@ struct whisper_full_params whisper_full_default_params(enum whisper_sampling_str
             /*.language          =*/ "en",
             /*.detect_language   =*/ false,
 
+            /*.allowed_langs     =*/ nullptr,
+            /*.allowed_langs_size=*/ 0,
+
             /*.suppress_blank    =*/ true,
             /*.suppress_non_speech_tokens =*/ false,
 
@@ -5040,7 +5056,7 @@ int whisper_full_with_state(
     if (params.language == nullptr || strlen(params.language) == 0 || strcmp(params.language, "auto") == 0 || params.detect_language) {
         std::vector<float> probs(whisper_lang_max_id() + 1, 0.0f);
 
-        const auto lang_id = whisper_lang_auto_detect_with_state(ctx, state, 0, params.n_threads, probs.data());
+        const auto lang_id = whisper_lang_auto_detect_with_state(ctx, state, 0, params.n_threads, probs.data(), params.allowed_langs, params.allowed_langs_size);
         encoding_required = false;
         if (lang_id < 0) {
             WHISPER_LOG_ERROR("%s: failed to auto-detect language\n", __func__);
