@@ -468,6 +468,7 @@ class WhisperModelWrapper(
         }catch(e: Exception) {
             when(e) {
                 is IOException, is IllegalArgumentException -> {
+                    Log.e("WhisperModel", "Exception during loading ggml model: ${e.stackTraceToString()}")
                     primaryModelLegacy = WhisperModel(context, primaryModel, suppressNonSpeech, languages)
                     fallbackModelLegacy = fallbackEnglishModel?.let { WhisperModel(context, it, suppressNonSpeech) }
                 }
