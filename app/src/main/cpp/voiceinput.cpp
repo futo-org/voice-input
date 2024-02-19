@@ -98,6 +98,7 @@ static jstring WhisperGGML_infer(JNIEnv *env, jobject instance, jlong handle, jf
     wparams.suppress_non_speech_tokens = true;
     wparams.no_timestamps = true;
 
+    wparams.language = nullptr;
 
     std::string prompt_str = jstring2string(env, prompt);
     wparams.initial_prompt = prompt_str.c_str();
@@ -131,7 +132,7 @@ static jstring WhisperGGML_infer(JNIEnv *env, jobject instance, jlong handle, jf
 
         jstring pjstr = wstate->env->NewStringUTF(partial.c_str());
         wstate->env->CallVoidMethod(wstate->partial_result_instance, wstate->partial_result_method, pjstr);
-        // TODO: Delete local ref
+        wstate->env->DeleteLocalRef(pjstr);
     };
 
     AKLOGI("Calling whisper_full");

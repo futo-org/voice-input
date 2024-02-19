@@ -152,7 +152,7 @@ static void whisper_log_callback_default(ggml_log_level level, const char * text
 #define WHISPER_PRINT_DEBUG(...)
 #endif
 
-//#define WHISPER_USE_FLASH_ATTN
+#define WHISPER_USE_FLASH_ATTN
 //#define WHISPER_USE_FLASH_FF
 #define WHISPER_MAX_DECODERS 8
 #define WHISPER_MAX_NODES 4096
@@ -2572,9 +2572,12 @@ static bool whisper_decode_internal(
         whisper_context & wctx,
         whisper_state & wstate,
         const whisper_batch & batch,
-        const int   n_threads,
+        const int   _n_threads,
         whisper_abort_callback   abort_callback,
         void * abort_callback_data) {
+
+    const int n_threads = 2; // TODO: Higher n_threads appears to significantly hurt performance for some reason
+
     const int64_t t_start_us = ggml_time_us();
 
     const auto & model   = wctx.model;
@@ -5031,12 +5034,14 @@ int whisper_full_with_state(
     }
     TIME_END(mel_spectro)
 
+    bool encoding_required = true;
     TIME_START(detect_lang)
     // auto-detect language if not specified
     if (params.language == nullptr || strlen(params.language) == 0 || strcmp(params.language, "auto") == 0 || params.detect_language) {
         std::vector<float> probs(whisper_lang_max_id() + 1, 0.0f);
 
         const auto lang_id = whisper_lang_auto_detect_with_state(ctx, state, 0, params.n_threads, probs.data());
+        encoding_required = false;
         if (lang_id < 0) {
             WHISPER_LOG_ERROR("%s: failed to auto-detect language\n", __func__);
             return -3;
@@ -5044,7 +5049,7 @@ int whisper_full_with_state(
         state->lang_id = lang_id;
         params.language = whisper_lang_str(lang_id);
 
-        WHISPER_LOG_INFO("%s: auto-detected language: %s (p = %f)\n", __func__, params.language, probs[whisper_lang_id(params.language)]);
+        AKLOGI("%s: auto-detected language: %s (p = %f)\n", __func__, params.language, probs[whisper_lang_id(params.language)]);
         if (params.detect_language) {
             return 0;
         }
@@ -5229,9 +5234,12 @@ int whisper_full_with_state(
         }
 
         // encode audio features starting at offset seek
-        if (!whisper_encode_internal(*ctx, *state, seek, params.n_threads, params.abort_callback, params.abort_callback_user_data)) {
-            WHISPER_LOG_ERROR("%s: failed to encode\n", __func__);
-            return -6;
+        if(encoding_required || seek > 0) {
+            if (!whisper_encode_internal(*ctx, *state, seek, params.n_threads,
+                                         params.abort_callback, params.abort_callback_user_data)) {
+                WHISPER_LOG_ERROR("%s: failed to encode\n", __func__);
+                return -6;
+            }
         }
 
         // if there is a very short audio segment left to process, we remove any past prompt since it tends
@@ -5659,7 +5667,7 @@ int whisper_full_with_state(
                             }
                         };
 
-                        const int n_threads = std::min(params.n_threads, n_decoders_cur);
+                        const int n_threads = 1;// std::min(params.n_threads, n_decoders_cur);
 
                         if (n_threads == 1) {
                             process();

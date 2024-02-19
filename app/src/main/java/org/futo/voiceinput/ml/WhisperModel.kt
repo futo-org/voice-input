@@ -478,7 +478,7 @@ class WhisperModelWrapper(
     private var modelJob: Job? = null
     suspend fun run(
         samples: FloatArray,
-        glossary: Set<String>,
+        glossary: String,
         forceLanguage: String?
     ): String {
         yield()
@@ -486,7 +486,7 @@ class WhisperModelWrapper(
         if(primaryModelGGML != null) {
             // TODO: This only works well for English.
             // This causes weird behavior with other languages, it usually decides to translate to english
-            val prompt = if(glossary.isEmpty()) "" else "(Glossary: ${glossary.joinToString(separator = " ")})"
+            val prompt = if(glossary.isBlank()) "" else "(Glossary: ${glossary})"
 
             // TODO: Fallback model
             // TODO: Language forcing and restriction

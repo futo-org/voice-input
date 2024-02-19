@@ -479,7 +479,7 @@ abstract class AudioRecognizer {
 
         val floatArray = floatSamples.array().sliceArray(0 until floatSamples.position())
 
-        val words = context.getSetting(PERSONAL_DICTIONARY).split(" ").toSet()
+        val words = context.getSetting(PERSONAL_DICTIONARY)
 
         yield()
         val text = try {
