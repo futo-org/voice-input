@@ -87,18 +87,5 @@ fun InputScreen(
                 USE_LANGUAGE_SPECIFIC_MODELS
             )
         }
-
-        val personalDict = useDataStore(PERSONAL_DICTIONARY)
-        val context = LocalContext.current
-        val textFieldValue = remember { mutableStateOf(context.getSettingBlocking(
-            PERSONAL_DICTIONARY.key, PERSONAL_DICTIONARY.default)) }
-
-        LaunchedEffect(textFieldValue.value) {
-            personalDict.setValue(textFieldValue.value)
-        }
-
-        TextField(value = textFieldValue.value, onValueChange = {
-            textFieldValue.value = it
-        }, placeholder = { Text("Personal dictionary") })
     }
 }

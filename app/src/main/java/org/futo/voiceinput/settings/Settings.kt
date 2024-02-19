@@ -144,3 +144,5 @@ val THEME_KEY = SettingsKey(
     key = stringPreferencesKey("activeThemeOption"),
     default = VoiceInputTheme.key
 )
+
+val BEAM_SEARCH = SettingsKey(key = booleanPreferencesKey("use_beam_search"), default = false)

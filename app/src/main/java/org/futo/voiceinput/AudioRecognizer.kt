@@ -26,8 +26,10 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.yield
+import org.futo.voiceinput.ggml.DecodingMode
 import org.futo.voiceinput.ml.RunState
 import org.futo.voiceinput.ml.WhisperModelWrapper
+import org.futo.voiceinput.settings.BEAM_SEARCH
 import org.futo.voiceinput.settings.DISALLOW_SYMBOLS
 import org.futo.voiceinput.settings.ENABLE_MULTILINGUAL
 import org.futo.voiceinput.settings.ENGLISH_MODEL_INDEX
@@ -480,10 +482,11 @@ abstract class AudioRecognizer {
         val floatArray = floatSamples.array().sliceArray(0 until floatSamples.position())
 
         val words = context.getSetting(PERSONAL_DICTIONARY)
+        val decodingMode = if(context.getSetting(BEAM_SEARCH)){ DecodingMode.BeamSearch5 } else { DecodingMode.Greedy }
 
         yield()
         val text = try {
-            model!!.run(floatArray, words, forcedLanguage)
+            model!!.run(floatArray, words, forcedLanguage, decodingMode)
         } catch(e: OutOfMemoryError) {
             decodingStatus(RunState.OOMError)
             model!!.close()

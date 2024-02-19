@@ -50,7 +50,7 @@
     <string name="futo_voice_input_settings">FUTO Voice Input Settings</string>
     <string name="help">Help</string>
     <string name="languages">Languages</string>
-    <string name="models">Models</string>
+    <string name="model">Model</string>
     <string name="sounds">Sounds</string>
     <string name="animations">Animations</string>
     <string name="will_play_a_sound_when_started_cancelled">Will play a sound when started / cancelled</string>
@@ -88,6 +88,7 @@
     <string name="intent_was_cancelled">Intent was cancelled</string>
     <string name="unknown_intent_result">Unknown intent result</string>
     <string name="model_picker">Model Picker</string>
+    <string name="model_options">Model Options</string>
     <string name="parameter_count_tip">Tip: The number is the model\'s parameter count in millions. More parameters = slower and more accurate</string>
     <string name="english_model">English Model</string>
     <string name="multilingual_model">Multilingual Model</string>

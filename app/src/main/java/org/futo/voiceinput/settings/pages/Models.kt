@@ -1,26 +1,40 @@
 package org.futo.voiceinput.settings.pages
 
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import org.futo.voiceinput.ENGLISH_MODELS
 import org.futo.voiceinput.MULTILINGUAL_MODELS
 import org.futo.voiceinput.R
+import org.futo.voiceinput.settings.BEAM_SEARCH
 import org.futo.voiceinput.settings.ENABLE_MULTILINGUAL
 import org.futo.voiceinput.settings.ENGLISH_MODEL_INDEX
 import org.futo.voiceinput.settings.LANGUAGE_TOGGLES
 import org.futo.voiceinput.settings.MULTILINGUAL_MODEL_INDEX
+import org.futo.voiceinput.settings.PERSONAL_DICTIONARY
 import org.futo.voiceinput.settings.ScreenTitle
 import org.futo.voiceinput.settings.ScrollableList
 import org.futo.voiceinput.settings.SettingRadio
+import org.futo.voiceinput.settings.SettingToggleDataStore
 import org.futo.voiceinput.settings.SettingsViewModel
 import org.futo.voiceinput.settings.Tip
 import org.futo.voiceinput.settings.USE_LANGUAGE_SPECIFIC_MODELS
+import org.futo.voiceinput.settings.getSettingBlocking
 import org.futo.voiceinput.settings.useDataStore
 import org.futo.voiceinput.startModelDownloadActivity
 
@@ -72,6 +86,27 @@ fun modelsSubtitle(): String? {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun PersonalDictionaryEditor() {
+    val context = LocalContext.current
+
+    val personalDict = useDataStore(PERSONAL_DICTIONARY)
+    val textFieldValue = remember { mutableStateOf(context.getSettingBlocking(
+        PERSONAL_DICTIONARY.key, PERSONAL_DICTIONARY.default)) }
+
+    LaunchedEffect(textFieldValue.value) {
+        personalDict.setValue(textFieldValue.value)
+    }
+    
+    ScreenTitle(title = "Personal Dictionary")
+
+    TextField(value = textFieldValue.value, onValueChange = {
+        textFieldValue.value = it
+    }, placeholder = { Text("John Doe, Jane Smith, TensorFlow, boba tea, type anything you want voice input to recognize more often here!") }, modifier = Modifier.fillMaxWidth())
+
+}
+
 @Composable
 @Preview
 fun ModelsScreen(
@@ -106,9 +141,16 @@ fun ModelsScreen(
     }
 
     ScrollableList {
-        ScreenTitle(stringResource(R.string.model_picker), showBack = true, navController = navController)
+        ScreenTitle(stringResource(R.string.model_options), showBack = true, navController = navController)
 
-        Tip(stringResource(R.string.parameter_count_tip))
+        SettingToggleDataStore("Use beam search (more accurate)", BEAM_SEARCH)
+
+        Spacer(modifier = Modifier.height(32.dp))
+        PersonalDictionaryEditor()
+
+        Spacer(modifier = Modifier.height(64.dp))
+
+        //ScreenTitle(stringResource(R.string.model_picker), showBack = false)
 
         if (useMultilingual) {
             SettingRadio(
@@ -127,5 +169,7 @@ fun ModelsScreen(
                 ENGLISH_MODEL_INDEX
             )
         }
+
+        Tip(stringResource(R.string.parameter_count_tip))
     }
 }

@@ -62,26 +62,22 @@ static jlong WhisperGGML_openFromBuffer(JNIEnv *env, jclass clazz, jobject buffe
     return reinterpret_cast<jlong>(state);
 }
 
-static jstring WhisperGGML_infer(JNIEnv *env, jobject instance, jlong handle, jfloatArray samples_array, jstring prompt, jobjectArray languages) {
+static jstring WhisperGGML_infer(JNIEnv *env, jobject instance, jlong handle, jfloatArray samples_array, jstring prompt, jobjectArray languages, jint decoding_mode) {
     auto *state = reinterpret_cast<WhisperModelState *>(handle);
 
     std::vector<int> allowed_languages;
 
     int num_languages = env->GetArrayLength(languages);
 
-    AKLOGI("Allowed languages:");
     for (int i=0; i<num_languages; i++) {
         jstring jstr = static_cast<jstring>(env->GetObjectArrayElement(languages, i));
         std::string str = jstring2string(env, jstr);
 
         allowed_languages.push_back(whisper_lang_id(str.c_str()));
-        AKLOGI(" * %s (%d)", str.c_str(), allowed_languages.back());
     }
 
     size_t num_samples = env->GetArrayLength(samples_array);
     jfloat *samples = env->GetFloatArrayElements(samples_array, nullptr);
-
-    bool use_beam_search = false;
 
     long num_procs = sysconf(_SC_NPROCESSORS_ONLN);
     if(num_procs < 2 || num_procs > 16) num_procs = 6; // Make sure the number is sane
@@ -98,13 +94,13 @@ static jstring WhisperGGML_infer(JNIEnv *env, jobject instance, jlong handle, jf
     wparams.temperature_inc = 0.0f;
 
     // Replicates old tflite behavior
-    if(!use_beam_search) {
+    if(decoding_mode == 0) {
         wparams.strategy = WHISPER_SAMPLING_GREEDY;
         wparams.greedy.best_of = 1;
     } else {
         wparams.strategy = WHISPER_SAMPLING_BEAM_SEARCH;
-        wparams.beam_search.beam_size = 5;
-        wparams.greedy.best_of = 5;
+        wparams.beam_search.beam_size = decoding_mode;
+        wparams.greedy.best_of = decoding_mode;
     }
 
 
@@ -199,7 +195,7 @@ static const JNINativeMethod sMethods[] = {
         },
         {
                 const_cast<char *>("inferNative"),
-                const_cast<char *>("(J[FLjava/lang/String;[Ljava/lang/String;)Ljava/lang/String;"),
+                const_cast<char *>("(J[FLjava/lang/String;[Ljava/lang/String;I)Ljava/lang/String;"),
                 reinterpret_cast<void *>(WhisperGGML_infer)
         },
         {

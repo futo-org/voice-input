@@ -10,6 +10,7 @@ import kotlinx.coroutines.yield
 import org.futo.voiceinput.AudioFeatureExtraction
 import org.futo.voiceinput.ModelData
 import org.futo.voiceinput.PromptingStyle
+import org.futo.voiceinput.ggml.DecodingMode
 import org.futo.voiceinput.ggml.WhisperGGML
 import org.futo.voiceinput.toDoubleArray
 import org.tensorflow.lite.DataType
@@ -479,20 +480,22 @@ class WhisperModelWrapper(
     suspend fun run(
         samples: FloatArray,
         glossary: String,
-        forceLanguage: String?
+        forceLanguage: String?,
+        decodingMode: DecodingMode
     ): String {
         yield()
 
         if(primaryModelGGML != null) {
             // TODO: This only works well for English.
             // This causes weird behavior with other languages, it usually decides to translate to english
-            val prompt = if(glossary.isBlank()) "" else "(Glossary: ${glossary})"
+            val glossaryCleaned = glossary.trim().replace("\n", ", ").replace("  ", " ")
+            val prompt = if(glossary.isBlank()) "" else "(Glossary: ${glossaryCleaned})"
 
             val languagesOrLanguage = forceLanguage?.let { arrayOf(it) } ?: languages.toTypedArray()
 
             // TODO: Fallback model
             // TODO: Early exiting from native code if cancelled
-            return primaryModelGGML!!.infer(samples, prompt, languagesOrLanguage)
+            return primaryModelGGML!!.infer(samples, prompt, languagesOrLanguage, decodingMode)
         }else if(primaryModelLegacy != null) {
             onStatusUpdate(RunState.ExtractingFeatures)
             val mel = WhisperModel.extractor.melSpectrogram(samples.toDoubleArray())

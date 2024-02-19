@@ -94,7 +94,7 @@ fun HomeScreen(
         )
 
         NavigationItem(
-            title = stringResource(R.string.models),
+            title = stringResource(R.string.model),
             subtitle = modelsSubtitle(),
             style = NavigationItemStyle.HomeSecondary,
             navigate = { navController.navigate("models") },
