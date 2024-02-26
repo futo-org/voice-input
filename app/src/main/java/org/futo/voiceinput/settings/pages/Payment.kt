@@ -58,7 +58,6 @@ import org.futo.voiceinput.settings.setSetting
 import org.futo.voiceinput.settings.useDataStore
 import org.futo.voiceinput.settings.useNumberOfDaysInstalled
 import org.futo.voiceinput.startAppActivity
-import org.futo.voiceinput.theme.Slate200
 import org.futo.voiceinput.theme.Typography
 import kotlin.math.absoluteValue
 
@@ -138,7 +137,7 @@ fun ConditionalUnpaidNoticeInVoiceInputWindow(onClose: (() -> Unit)? = null) {
             context.startAppActivity(PaymentActivity::class.java)
             if (onClose != null) onClose()
         }) {
-            Text(stringResource(R.string.unpaid_indicator), color = Slate200)
+            Text(stringResource(R.string.unpaid_indicator), color = MaterialTheme.colorScheme.onSurface)
         }
     }
 }
