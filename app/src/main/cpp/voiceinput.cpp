@@ -178,6 +178,8 @@ static void WhisperGGML_close(JNIEnv *env, jclass clazz, jlong handle) {
     auto *state = reinterpret_cast<WhisperModelState *>(handle);
     if(!state) return;
 
+    whisper_free(state->context);
+
     delete state;
 }
 
