@@ -63,6 +63,12 @@
         #define ASSERT(success) assert(success)
         #define SHOW_STACK_TRACE
     #endif
+
+    #define TIME_START(name)  const int64_t start_##name = ggml_time_us();
+    #define TIME_END(name)    const int64_t end_##name = ggml_time_us(); \
+                              const int64_t time_taken_##name = (end_##name - start_##name) / 1000L; \
+                              AKLOGI("%s:     Time taken by %s: %d ms\n", __func__, #name, (int)time_taken_##name);
+
 #else
     #define AKLOGE(fmt, ...)
     #define AKLOGI(fmt, ...)
@@ -70,6 +76,9 @@
     #define ASSERT(success)
     #define SHOW_STACK_TRACE
     #define INTS_TO_CHARS(input, length, output)
+
+    #define TIME_START(name)
+    #define TIME_END(name)
 #endif
 
 // TODO: Use size_t instead of int.

@@ -1,8 +1,3 @@
-#define TIME_START(name)  const int64_t start_##name = ggml_time_us();
-#define TIME_END(name)    const int64_t end_##name = ggml_time_us(); \
-                          const int64_t time_taken_##name = (end_##name - start_##name) / 1000L; \
-                          AKLOGI("%s:     Time taken by %s: %d ms\n", __func__, #name, (int)time_taken_##name);
-
 #include "whisper.h"
 
 #ifdef WHISPER_USE_COREML
@@ -130,7 +125,7 @@ static void whisper_log_callback_default(ggml_log_level level, const char * text
 
 #define WHISPER_LOG_INFO(...)  whisper_log_internal(GGML_LOG_LEVEL_INFO , __VA_ARGS__)
 #define WHISPER_LOG_WARN(...)  whisper_log_internal(GGML_LOG_LEVEL_WARN , __VA_ARGS__)
-#define WHISPER_LOG_ERROR(...) whisper_log_internal(GGML_LOG_LEVEL_ERROR, __VA_ARGS__)
+#define WHISPER_LOG_ERROR(...) AKLOGE(__VA_ARGS__) // whisper_log_internal(GGML_LOG_LEVEL_ERROR, __VA_ARGS__)
 
 #define WHISPER_ASSERT(x) \
     do { \
