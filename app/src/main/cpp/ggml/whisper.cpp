@@ -5050,6 +5050,13 @@ int whisper_full_with_state(
     }
     TIME_END(mel_spectro)
 
+    // overwrite audio_ctx, max allowed is hparams.n_audio_ctx
+    if (params.audio_ctx > whisper_n_audio_ctx(ctx)) {
+        WHISPER_LOG_ERROR("%s: audio_ctx is larger than the maximum allowed (%d > %d)\n", __func__, params.audio_ctx, whisper_n_audio_ctx(ctx));
+        return -5;
+    }
+    state->exp_n_audio_ctx = params.audio_ctx;
+
     bool encoding_required = true;
     TIME_START(detect_lang)
     // auto-detect language if not specified
@@ -5170,13 +5177,6 @@ int whisper_full_with_state(
             std::rotate(prompt_past.begin(), prompt_past.end() - params.prompt_n_tokens, prompt_past.end());
         }
     }
-
-    // overwrite audio_ctx, max allowed is hparams.n_audio_ctx
-    if (params.audio_ctx > whisper_n_audio_ctx(ctx)) {
-        WHISPER_LOG_ERROR("%s: audio_ctx is larger than the maximum allowed (%d > %d)\n", __func__, params.audio_ctx, whisper_n_audio_ctx(ctx));
-        return -5;
-    }
-    state->exp_n_audio_ctx = params.audio_ctx;
 
     // these tokens determine the task that will be performed
     std::vector<whisper_token> prompt_init = { whisper_token_sot(ctx), };
@@ -5426,7 +5426,7 @@ int whisper_full_with_state(
                                         bc_per_dec[j].back().sequence.sum_logprobs_all += token.plog;
                                     }
 
-                                    if(params.partial_text_callback != nullptr) {
+                                    if(params.partial_text_callback != nullptr && j == 0) {
                                         params.partial_text_callback(
                                                 ctx,
                                                 state,
@@ -5520,6 +5520,15 @@ int whisper_full_with_state(
                     }
                 }
 
+                int num_completed = 0;
+                for (int j = 0; j < n_decoders_cur; ++j) {
+                    auto & decoder = state->decoders[j];
+
+                    if (decoder.completed) {
+                        num_completed += 1;
+                    }
+                }
+
                 // update the decoder state
                 // - check if the sequence is completed
                 // - check if the sequence is failed
@@ -5592,6 +5601,20 @@ int whisper_full_with_state(
                         if (ctx->model.n_loaded == 0) {
                             seek_delta = 100*WHISPER_CHUNK_SIZE;
                             completed = true;
+                            continue;
+                        }
+                    }
+
+                    // fail this if it's getting repetitive, unlikely and something else already completed
+                    if (num_completed > 0 && j > 0) {
+                        if(
+                                decoder.sequence.result_len > 32 &&
+                                (
+                                        whisper_sequence_score(params, decoder.sequence),
+                                        decoder.sequence.entropy < params.entropy_thold
+                                )
+                        ) {
+                            failed = true;
                             continue;
                         }
                     }

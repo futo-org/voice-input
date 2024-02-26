@@ -90,7 +90,7 @@ static jstring WhisperGGML_infer(JNIEnv *env, jobject instance, jlong handle, jf
     wparams.max_tokens = 256;
     wparams.n_threads = (int)num_procs;
 
-    //wparams.audio_ctx = (int)ceil((double)num_samples / (double)(160.0 * 2.0));
+    wparams.audio_ctx = std::min(1500, (int)ceil((double)num_samples / (double)(320.0)) + 16);
     wparams.temperature_inc = 0.0f;
 
     // Replicates old tflite behavior

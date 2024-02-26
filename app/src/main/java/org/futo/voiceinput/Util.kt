@@ -235,8 +235,8 @@ val ENGLISH_MODELS = listOf(
 
         ggml = ModelDataGGML(
             is_builtin_asset = true,
-            ggml_file = "tiny_en_q8_0.bin.not.tflite",
-            digest = "55164c6ef4db44108a11484895169a0fd787bb47225fc12f15e892ba35a6639b"
+            ggml_file = "tiny_en_acft_q8_0.bin.not.tflite",
+            digest = "4b5480aa1b14a7efc5b578ef176510970a898049671c3cd237285b3e3f6bfbfc"
         ),
 
         legacy = ModelDataLegacy(
@@ -258,8 +258,8 @@ val ENGLISH_MODELS = listOf(
 
         ggml = ModelDataGGML(
             is_builtin_asset = false,
-            ggml_file = "base_en_q8_0.bin",
-            digest = "0a61cdd465b9e136efca3ebde99582b84b9df21dbd3b50a5c3b21c8cd0925219"
+            ggml_file = "base_en_acft_q8_0.bin",
+            digest = "e9b4b7b81b8a28769e8aa9962aa39bb9f21b622cf6a63982e93f065ed5caf1c8"
         ),
 
         legacy = ModelDataLegacy(
@@ -278,6 +278,33 @@ val ENGLISH_MODELS = listOf(
             promptingStyle = PromptingStyle.SingleLanguageOnly
         )
     ),
+
+    ModelData(
+        name = "English-244 (slow)",
+
+        ggml = ModelDataGGML(
+            is_builtin_asset = false,
+            ggml_file = "small_en_acft_q8_0.bin",
+            digest = "58fbe949992dafed917590d58bc12ca577b08b9957f0b3e0d7ee71b64bed3aa8"
+        ),
+
+        legacy = ModelDataLegacy(
+            is_builtin_asset = false,
+            encoder_xatn_file = "base.en-encoder-xatn.tflite",
+            decoder_file = "base.en-decoder.tflite",
+
+            vocab_file = "base.en-vocab.json",
+
+            digests = ModelDigests(
+                encoder_digest = "c94bcafb3cd95c193ca5ada5b94e517f1645dbf72e72986f55c6c8729d04da23",
+                decoder_digest = "d6979b4a06416ff1d3e38a238997e4051684c60aa2fcab6ae7d7dbafab75494f",
+                vocab_digest = "48d9307faad7c1c1a708fbfa7f4b57cb6d5936ceee4cdf354e2b7d8cdf0cf24b"
+            ),
+
+            promptingStyle = PromptingStyle.SingleLanguageOnly
+        )
+    ),
+
 )
 
 
@@ -287,8 +314,8 @@ val MULTILINGUAL_MODELS = listOf(
 
         ggml = ModelDataGGML(
         is_builtin_asset = false,
-        ggml_file = "tiny_q8_0.bin",
-        digest = "9ade048c9d3692b411572a9a8ad615766168e62fb1d4c234973825a377c71984"
+        ggml_file = "tiny_acft_q8_0.bin",
+        digest = "07aa4d514144deacf5ffec5cacb36c93dee272fda9e64ac33a801f8cd5cbd953"
         ),
 
         legacy = ModelDataLegacy(
@@ -312,8 +339,8 @@ val MULTILINGUAL_MODELS = listOf(
 
         ggml = ModelDataGGML(
             is_builtin_asset = false,
-            ggml_file = "base_q8_0.bin",
-            digest = "cced49a244b3f776f42cfb4c41920037a4bc00058f41ef9579dee7f327d746de"
+            ggml_file = "base_acft_q8_0.bin",
+            digest = "e44f352c9aa2c3609dece20c733c4ad4a75c28cd9ab07d005383df55fa96efc4"
         ),
 
         legacy = ModelDataLegacy(
@@ -337,8 +364,8 @@ val MULTILINGUAL_MODELS = listOf(
 
         ggml = ModelDataGGML(
         is_builtin_asset = false,
-        ggml_file = "small_q8_0.bin",
-        digest = "7b41ebac4b31f953a7ec942e9e3d06c852bbbfc04e6e68e66cd78ddd0c1d9bb0"
+        ggml_file = "small_acft_q8_0.bin",
+        digest = "15ef255465a6dc582ecf1ec651a4618c7ee2c18c05570bbe46493d248d465ac4"
         ),
 
         legacy = ModelDataLegacy(
