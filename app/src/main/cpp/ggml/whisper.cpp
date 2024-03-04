@@ -5021,6 +5021,8 @@ int whisper_full_with_state(
         const float * samples,
         int   n_samples) {
 
+    state->lang_id = -1;
+
     TIME_START(clearing)
     // clear old results
     auto & result_all = state->result_all;

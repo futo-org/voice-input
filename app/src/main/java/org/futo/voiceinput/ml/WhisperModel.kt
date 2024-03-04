@@ -10,6 +10,7 @@ import kotlinx.coroutines.yield
 import org.futo.voiceinput.AudioFeatureExtraction
 import org.futo.voiceinput.ModelData
 import org.futo.voiceinput.PromptingStyle
+import org.futo.voiceinput.ggml.BailLanguageException
 import org.futo.voiceinput.ggml.DecodingMode
 import org.futo.voiceinput.ggml.WhisperGGML
 import org.futo.voiceinput.toDoubleArray
@@ -506,10 +507,45 @@ class WhisperModelWrapper(
 
         val languagesOrLanguage = forceLanguage?.let { arrayOf(it) } ?: languages.toTypedArray()
 
+        val bailLanguages = if(fallbackModelGGML != null || fallbackModelLegacy != null) {
+            arrayOf("en")
+        } else {
+            arrayOf()
+        }
+
         if(primaryModelGGML != null) {
-            // TODO: Fallback model
             // TODO: Early exiting from native code if cancelled
-            return primaryModelGGML!!.infer(samples, prompt, languagesOrLanguage, decodingMode)
+            return try {
+                yield()
+                primaryModelGGML!!.infer(
+                    samples,
+                    prompt,
+                    languagesOrLanguage,
+                    bailLanguages,
+                    decodingMode
+                )
+            }catch(e: BailLanguageException) {
+                yield()
+                onStatusUpdate(RunState.SwitchingModel)
+                assert(e.language == "en")
+
+                if(fallbackModelGGML != null) {
+                    fallbackModelGGML!!.infer(samples, prompt, languagesOrLanguage, arrayOf(), decodingMode)
+                } else {
+                    val mel = WhisperModel.extractor.melSpectrogram(samples.toDoubleArray())
+                    fallbackModelLegacy!!.run(
+                        mel,
+                        {
+                            if (it != RunState.ProcessingEncoder) {
+                                onStatusUpdate(it)
+                            }
+                        },
+                        onPartialDecode,
+                        false,
+                        null
+                    )
+                }
+            }
         }else if(primaryModelLegacy != null) {
             onStatusUpdate(RunState.ExtractingFeatures)
             val mel = WhisperModel.extractor.melSpectrogram(samples.toDoubleArray())
@@ -520,7 +556,7 @@ class WhisperModelWrapper(
             } catch (e: DecodingEnglishException) {
                 yield()
                 if(fallbackModelGGML != null) {
-                    fallbackModelGGML!!.infer(samples, prompt, languagesOrLanguage, decodingMode)
+                    fallbackModelGGML!!.infer(samples, prompt, languagesOrLanguage, bailLanguages, decodingMode)
                 } else {
                     fallbackModelLegacy!!.run(
                         mel,

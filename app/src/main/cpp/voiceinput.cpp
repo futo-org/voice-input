@@ -27,6 +27,8 @@ struct WhisperModelState {
     jmethodID partial_result_method;
     int n_threads = 4;
     struct whisper_context *context = nullptr;
+
+    std::vector<int> last_forbidden_languages;
 };
 
 static jlong WhisperGGML_open(JNIEnv *env, jclass clazz, jstring model_dir) {
@@ -62,19 +64,29 @@ static jlong WhisperGGML_openFromBuffer(JNIEnv *env, jclass clazz, jobject buffe
     return reinterpret_cast<jlong>(state);
 }
 
-static jstring WhisperGGML_infer(JNIEnv *env, jobject instance, jlong handle, jfloatArray samples_array, jstring prompt, jobjectArray languages, jint decoding_mode) {
+static jstring WhisperGGML_infer(JNIEnv *env, jobject instance, jlong handle, jfloatArray samples_array, jstring prompt, jobjectArray languages, jobjectArray bail_languages, jint decoding_mode) {
     auto *state = reinterpret_cast<WhisperModelState *>(handle);
 
     std::vector<int> allowed_languages;
-
     int num_languages = env->GetArrayLength(languages);
-
     for (int i=0; i<num_languages; i++) {
         jstring jstr = static_cast<jstring>(env->GetObjectArrayElement(languages, i));
         std::string str = jstring2string(env, jstr);
 
         allowed_languages.push_back(whisper_lang_id(str.c_str()));
     }
+
+
+    std::vector<int> forbidden_languages;
+    int num_bail_languages = env->GetArrayLength(bail_languages);
+    for (int i=0; i<num_bail_languages; i++) {
+        jstring jstr = static_cast<jstring>(env->GetObjectArrayElement(bail_languages, i));
+        std::string str = jstring2string(env, jstr);
+
+        forbidden_languages.push_back(whisper_lang_id(str.c_str()));
+    }
+
+    state->last_forbidden_languages = forbidden_languages;
 
     size_t num_samples = env->GetArrayLength(samples_array);
     jfloat *samples = env->GetFloatArrayElements(samples_array, nullptr);
@@ -153,12 +165,27 @@ static jstring WhisperGGML_infer(JNIEnv *env, jobject instance, jlong handle, jf
         wstate->env->DeleteLocalRef(pjstr);
     };
 
+    wparams.abort_callback_user_data = state;
+    wparams.abort_callback = [](void * user_data) -> bool {
+        auto *wstate = reinterpret_cast<WhisperModelState *>(user_data);
+
+        if(std::find(wstate->last_forbidden_languages.begin(),
+                     wstate->last_forbidden_languages.end(),
+                     whisper_full_lang_id(wstate->context)) != wstate->last_forbidden_languages.end()) {
+            return true;
+        }
+
+        return false;
+    };
+
     AKLOGI("Calling whisper_full");
     int res = whisper_full(state->context, wparams, samples, (int)num_samples);
     if(res != 0) {
         AKLOGE("WhisperGGML whisper_full failed with non-zero code %d", res);
     }
     AKLOGI("whisper_full finished");
+
+
 
     whisper_print_timings(state->context);
 
@@ -168,6 +195,12 @@ static jstring WhisperGGML_infer(JNIEnv *env, jobject instance, jlong handle, jf
     for (int i = 0; i < n_segments; i++) {
         auto seg = whisper_full_get_segment_text(state->context, i);
         output.append(seg);
+    }
+
+    if(std::find(forbidden_languages.begin(),
+                 forbidden_languages.end(),
+                 whisper_full_lang_id(state->context)) != forbidden_languages.end()) {
+        output = "<>CANCELLED<> lang=" + std::string(whisper_lang_str(whisper_full_lang_id(state->context)));
     }
 
     jstring jstr = env->NewStringUTF(output.c_str());
@@ -197,7 +230,7 @@ static const JNINativeMethod sMethods[] = {
         },
         {
                 const_cast<char *>("inferNative"),
-                const_cast<char *>("(J[FLjava/lang/String;[Ljava/lang/String;I)Ljava/lang/String;"),
+                const_cast<char *>("(J[FLjava/lang/String;[Ljava/lang/String;[Ljava/lang/String;I)Ljava/lang/String;"),
                 reinterpret_cast<void *>(WhisperGGML_infer)
         },
         {
