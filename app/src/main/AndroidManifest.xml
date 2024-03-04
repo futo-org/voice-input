@@ -65,6 +65,14 @@
             android:theme="@style/Theme.WhisperVoiceInput" />
 
         <activity
+            android:name=".migration.MigrationActivity"
+            android:exported="false"
+            android:label="@string/migration_screen"
+            android:clearTaskOnLaunch="true"
+            android:launchMode="singleTask"
+            android:theme="@style/Theme.WhisperVoiceInput" />
+
+        <activity
             android:name=".settings.PaymentActivity"
             android:exported="false"
             android:label="@string/payment"
@@ -110,6 +118,12 @@
         <service
             android:name=".updates.UpdateCheckingService"
             android:label="@string/update_checking_service"
+            android:permission="android.permission.BIND_JOB_SERVICE" >
+        </service>
+
+        <service
+            android:name=".migration.ModelMigrationJob"
+            android:label="@string/migration_screen"
             android:permission="android.permission.BIND_JOB_SERVICE" >
         </service>
 

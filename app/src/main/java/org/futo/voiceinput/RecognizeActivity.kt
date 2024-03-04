@@ -39,6 +39,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.LifecycleCoroutineScope
 import androidx.lifecycle.lifecycleScope
+import org.futo.voiceinput.migration.scheduleModelMigrationJob
 import org.futo.voiceinput.settings.pages.ConditionalUnpaidNoticeInVoiceInputWindow
 import org.futo.voiceinput.theme.UixThemeAuto
 import org.futo.voiceinput.updates.scheduleUpdateCheckingJob
@@ -181,6 +182,7 @@ class RecognizeActivity : ComponentActivity() {
         recognizer.reset()
         recognizer.init()
         scheduleUpdateCheckingJob(applicationContext)
+        scheduleModelMigrationJob(applicationContext)
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
     }
 

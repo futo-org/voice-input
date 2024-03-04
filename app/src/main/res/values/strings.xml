@@ -182,5 +182,23 @@
     <string name="dynamic_light_theme_name">Dynamic Light</string>
     <string name="dynamic_dark_theme_name">Dynamic Dark</string>
     <string name="theme">Theme</string>
+    <string name="migration_screen">Migration Screen</string>
+    <string name="model_update_notice">Updated model files are available to make FUTO Voice Input better and faster.</string>
+    <string name="model_update_features_1">Better: Personal Dictionary feature\nFaster: up to ~6x faster depending on speaking length</string>
+    <string name="support_thank_you_notice">Thank you for supporting FUTO Voice Input!</string>
+    <string name="model_update_finish">Update has finished! To use the personal dictionary feature, visit the Model settings. If you have any feedback about the update, feel free to contact us.</string>
+    <string name="model_update">Model Update</string>
+    <string name="update_requires_your_attention">Update requires your attention</string>
+    <string name="model_update_question">Would you like to update them now or later?\n(This may incur data fees if you\'re using mobile data instead of Wi-Fi)</string>
+    <string name="update_later">Later</string>
+    <string name="update_now">Update now</string>
+    <string name="model_update_network_error_1">There was a network error attempting to fetch the new model info. If you don\'t have internet right now, you can return to this screen later.</string>
+    <string name="model_update_network_error_2">If you\'ve blocked network permission for the app, please re-enable it temporarily to do the model update.</string>
+    <string name="check_permissions">Check permissions</string>
+    <string name="use_beam_search">Use beam search</string>
+    <string name="recommended">Recommended</string>
+    <string name="new_model_features_tip">Models have been updated for better accuracy and faster performance. You can now also add words/phrases in the personal dictionary. Feel free to contact us with any feedback!</string>
+    <string name="personal_dictionary_placeholder">John Doe, Jane Smith, TensorFlow, bobble, type anything you want voice input to recognize more often here!</string>
+    <string name="personal_dictionary">Personal Dictionary</string>
 
 </resources>

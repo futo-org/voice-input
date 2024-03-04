@@ -7,6 +7,12 @@ import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
 import org.futo.voiceinput.downloader.DownloadActivity
+import org.futo.voiceinput.settings.ENGLISH_MODEL_INDEX
+import org.futo.voiceinput.settings.LANGUAGE_TOGGLES
+import org.futo.voiceinput.settings.MANUALLY_SELECT_LANGUAGE
+import org.futo.voiceinput.settings.MULTILINGUAL_MODEL_INDEX
+import org.futo.voiceinput.settings.USE_LANGUAGE_SPECIFIC_MODELS
+import org.futo.voiceinput.settings.getSetting
 import java.io.File
 
 enum class Status {
@@ -96,6 +102,18 @@ fun Context.modelNeedsDownloading(model: ModelData): Boolean {
     }
 
     return fileNeedsDownloading(model.ggml.ggml_file)
+}
+
+fun Context.isUsingTfliteLegacy(): Boolean {
+    return ENGLISH_MODELS.any {
+        File(filesDir, it.legacy.vocab_file).exists()
+                || File(filesDir, it.legacy.decoder_file).exists()
+                || File(filesDir, it.legacy.encoder_xatn_file).exists()
+    } || MULTILINGUAL_MODELS.any {
+        File(filesDir, it.legacy.vocab_file).exists()
+                || File(filesDir, it.legacy.decoder_file).exists()
+                || File(filesDir, it.legacy.encoder_xatn_file).exists()
+    }
 }
 
 fun Context.startModelDownloadActivity(models: List<ModelData>) {
@@ -385,3 +403,28 @@ val MULTILINGUAL_MODELS = listOf(
         )
     ),
 )
+
+suspend fun Context.getLanguageModelMap(): Map<String, ModelData> {
+    val modelIdx = getSetting(MULTILINGUAL_MODEL_INDEX)
+    val englishModelIdx = getSetting(ENGLISH_MODEL_INDEX)
+    val useLanguageSpecificModels = getSetting(USE_LANGUAGE_SPECIFIC_MODELS)
+    val manuallySelectLanguage = getSetting(MANUALLY_SELECT_LANGUAGE)
+    val languages = getSetting(LANGUAGE_TOGGLES)
+
+    val map = hashMapOf<String, ModelData>()
+    languages.forEach {
+        if(it == "en") {
+            map[it] = ENGLISH_MODELS[englishModelIdx]
+        } else {
+            map[it] = MULTILINGUAL_MODELS[modelIdx]
+        }
+    }
+
+    if(languages.size > 1 && !manuallySelectLanguage) {
+        map["unk"] = MULTILINGUAL_MODELS[modelIdx]
+    }
+
+    //if(!manuallySelectLanguage && !useLanguageSpecificModels)
+
+    return map
+}

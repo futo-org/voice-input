@@ -10,6 +10,7 @@ import androidx.navigation.compose.rememberNavController
 import org.futo.voiceinput.MULTILINGUAL_MODELS
 import org.futo.voiceinput.R
 import org.futo.voiceinput.settings.ALLOW_UNDERTRAINED_LANGUAGES
+import org.futo.voiceinput.settings.BEAM_SEARCH
 import org.futo.voiceinput.settings.DISALLOW_SYMBOLS
 import org.futo.voiceinput.settings.DevOnlySettings
 import org.futo.voiceinput.settings.MULTILINGUAL_MODEL_INDEX
@@ -48,6 +49,8 @@ fun AdvancedScreen(
             stringResource(R.string.verbose_mode),
             VERBOSE_PROGRESS
         )
+
+        SettingToggleDataStore(stringResource(R.string.use_beam_search), BEAM_SEARCH, subtitle = stringResource(R.string.recommended))
 
         SettingToggleDataStore(
             stringResource(R.string.allow_undertrained_languages),

@@ -21,16 +21,18 @@ import androidx.navigation.compose.rememberNavController
 import org.futo.voiceinput.ENGLISH_MODELS
 import org.futo.voiceinput.MULTILINGUAL_MODELS
 import org.futo.voiceinput.R
-import org.futo.voiceinput.settings.BEAM_SEARCH
+import org.futo.voiceinput.migration.ConditionalModelUpdate
+import org.futo.voiceinput.migration.NeedsMigration
+import org.futo.voiceinput.settings.DISMISS_MIGRATION_TIP
 import org.futo.voiceinput.settings.ENABLE_MULTILINGUAL
 import org.futo.voiceinput.settings.ENGLISH_MODEL_INDEX
 import org.futo.voiceinput.settings.LANGUAGE_TOGGLES
+import org.futo.voiceinput.settings.MODELS_MIGRATED
 import org.futo.voiceinput.settings.MULTILINGUAL_MODEL_INDEX
 import org.futo.voiceinput.settings.PERSONAL_DICTIONARY
 import org.futo.voiceinput.settings.ScreenTitle
 import org.futo.voiceinput.settings.ScrollableList
 import org.futo.voiceinput.settings.SettingRadio
-import org.futo.voiceinput.settings.SettingToggleDataStore
 import org.futo.voiceinput.settings.SettingsViewModel
 import org.futo.voiceinput.settings.Tip
 import org.futo.voiceinput.settings.USE_LANGUAGE_SPECIFIC_MODELS
@@ -88,7 +90,7 @@ fun modelsSubtitle(): String? {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PersonalDictionaryEditor() {
+fun PersonalDictionaryEditor(disabled: Boolean) {
     val context = LocalContext.current
 
     val personalDict = useDataStore(PERSONAL_DICTIONARY)
@@ -99,11 +101,11 @@ fun PersonalDictionaryEditor() {
         personalDict.setValue(textFieldValue.value)
     }
     
-    ScreenTitle(title = "Personal Dictionary")
+    ScreenTitle(title = stringResource(R.string.personal_dictionary))
 
     TextField(value = textFieldValue.value, onValueChange = {
         textFieldValue.value = it
-    }, placeholder = { Text("John Doe, Jane Smith, TensorFlow, boba tea, type anything you want voice input to recognize more often here!") }, modifier = Modifier.fillMaxWidth())
+    }, placeholder = { Text(stringResource(R.string.personal_dictionary_placeholder)) }, modifier = Modifier.fillMaxWidth(), enabled = !disabled)
 
 }
 
@@ -122,6 +124,10 @@ fun ModelsScreen(
     val (useLanguageSpecificModels, _) = useDataStore(USE_LANGUAGE_SPECIFIC_MODELS)
 
     val context = LocalContext.current
+    val needsUpdate = NeedsMigration()
+
+    val wasMigrated = useDataStore(setting = MODELS_MIGRATED)
+    val dismissMigrationTip = useDataStore(setting = DISMISS_MIGRATION_TIP)
 
     val launchDownloaderIfNecessary = {
         if (useMultilingual) {
@@ -140,17 +146,21 @@ fun ModelsScreen(
         launchDownloaderIfNecessary()
     }
 
+
     ScrollableList {
         ScreenTitle(stringResource(R.string.model_options), showBack = true, navController = navController)
 
-        SettingToggleDataStore("Use beam search (more accurate)", BEAM_SEARCH)
+        ConditionalModelUpdate()
 
-        Spacer(modifier = Modifier.height(32.dp))
-        PersonalDictionaryEditor()
+        if(wasMigrated.value && !dismissMigrationTip.value) {
+            Tip(stringResource(R.string.new_model_features_tip), onDismiss = { dismissMigrationTip.setValue(true) })
+        }
 
-        Spacer(modifier = Modifier.height(64.dp))
+        if(!needsUpdate) {
+            PersonalDictionaryEditor(disabled = false)
 
-        //ScreenTitle(stringResource(R.string.model_picker), showBack = false)
+            Spacer(modifier = Modifier.height(32.dp))
+        }
 
         if (useMultilingual) {
             SettingRadio(

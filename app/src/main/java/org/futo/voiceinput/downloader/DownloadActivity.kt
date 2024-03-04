@@ -74,7 +74,7 @@ val EXAMPLE_MODELS = listOf(
 
 @Composable
 fun ModelItem(model: ModelInfo, showProgress: Boolean) {
-    Column(modifier = Modifier.padding(4.dp)) {
+    Column(modifier = Modifier.padding(16.dp, 8.dp)) {
         val color = if (model.error) {
             MaterialTheme.colorScheme.errorContainer
         } else {
@@ -123,7 +123,7 @@ fun ModelItem(model: ModelInfo, showProgress: Boolean) {
 }
 
 @Composable
-@Preview
+@Preview(showBackground = true)
 fun DownloadPrompt(
     onContinue: () -> Unit = {},
     onCancel: () -> Unit = {},
@@ -167,7 +167,7 @@ fun DownloadPrompt(
 }
 
 @Composable
-@Preview
+@Preview(showBackground = true)
 fun DownloadScreen(models: List<ModelInfo> = EXAMPLE_MODELS) {
     ScrollableList {
         ScreenTitle(stringResource(R.string.download_progress))

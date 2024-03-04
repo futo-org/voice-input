@@ -146,4 +146,6 @@ val THEME_KEY = SettingsKey(
     default = if(BuildConfig.FLAVOR == "dev" || BuildConfig.FLAVOR == "devSameId") { DevThemeYellow.key } else { VoiceInputTheme.key }
 )
 
-val BEAM_SEARCH = SettingsKey(key = booleanPreferencesKey("use_beam_search"), default = false)
+val BEAM_SEARCH = SettingsKey(key = booleanPreferencesKey("use_beam_search"), default = true)
+val MODELS_MIGRATED = SettingsKey(key = booleanPreferencesKey("models_migrated_1"), default = false)
+val DISMISS_MIGRATION_TIP = SettingsKey(key = booleanPreferencesKey("dismiss_migration_tip"), default = false)

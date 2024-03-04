@@ -24,6 +24,7 @@ import org.futo.voiceinput.R
 import org.futo.voiceinput.openURI
 import org.futo.voiceinput.theme.Typography
 import org.futo.voiceinput.BuildConfig
+import org.futo.voiceinput.migration.ConditionalModelUpdate
 import org.futo.voiceinput.settings.ConditionalUpdate
 import org.futo.voiceinput.settings.ENABLE_MULTILINGUAL
 import org.futo.voiceinput.settings.IS_ALREADY_PAID
@@ -70,8 +71,8 @@ fun HomeScreen(
     settingsViewModel: SettingsViewModel = viewModel(),
     navController: NavHostController = rememberNavController()
 ) {
-    val isAlreadyPaid = useDataStore(IS_ALREADY_PAID.key, IS_ALREADY_PAID.default)
-    val isMultilingual = useDataStore(ENABLE_MULTILINGUAL.key, ENABLE_MULTILINGUAL.default)
+    val isAlreadyPaid = useDataStore(IS_ALREADY_PAID)
+    val isMultilingual = useDataStore(ENABLE_MULTILINGUAL)
     val multilingualSubtitle = if (isMultilingual.value) {
         stringResource(R.string.multilingual_enabled_english_will_be_slower)
     } else {
@@ -84,6 +85,7 @@ fun HomeScreen(
 
         ConditionalUnpaidNoticeWithNav(navController)
         ConditionalUpdate()
+        ConditionalModelUpdate()
 
         NavigationItem(
             title = stringResource(R.string.languages),

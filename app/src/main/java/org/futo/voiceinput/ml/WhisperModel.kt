@@ -461,18 +461,31 @@ class WhisperModelWrapper(
 
         try {
             primaryModelGGML = loadGGMLModel(context, primaryModel, onPartialDecode)
+        } catch(e: Exception) {
+            primaryModelGGML?.close()
 
-            fallbackEnglishModel?.let {
-                fallbackModelGGML = loadGGMLModel(context, it, onPartialDecode)
-            }
-        }catch(e: Exception) {
             when(e) {
                 is IOException, is IllegalArgumentException -> {
-                    Log.e("WhisperModel", "Exception during loading ggml model: ${e.stackTraceToString()}")
+                    Log.e("WhisperModel", "Exception during loading primary ggml model: ${e.stackTraceToString()}")
                     primaryModelLegacy = WhisperModel(context, primaryModel, suppressNonSpeech, languages)
-                    fallbackModelLegacy = fallbackEnglishModel?.let { WhisperModel(context, it, suppressNonSpeech) }
                 }
                 else -> throw e
+            }
+        }
+
+        fallbackEnglishModel?.let { fallbackEnglishModel ->
+            try {
+                fallbackModelGGML = loadGGMLModel(context, fallbackEnglishModel, onPartialDecode)
+            } catch(e: Exception) {
+                fallbackModelGGML?.close()
+
+                when(e) {
+                    is IOException, is IllegalArgumentException -> {
+                        Log.e("WhisperModel", "Exception during loading fallback ggml model: ${e.stackTraceToString()}")
+                        fallbackModelLegacy = WhisperModel(context, fallbackEnglishModel, suppressNonSpeech, languages)
+                    }
+                    else -> throw e
+                }
             }
         }
     }
@@ -486,14 +499,14 @@ class WhisperModelWrapper(
     ): String {
         yield()
 
+        // TODO: This only works well for English.
+        // This causes weird behavior with other languages, it usually decides to translate to english
+        val glossaryCleaned = glossary.trim().replace("\n", ", ").replace("  ", " ")
+        val prompt = if(glossary.isBlank()) "" else "(Glossary: ${glossaryCleaned})"
+
+        val languagesOrLanguage = forceLanguage?.let { arrayOf(it) } ?: languages.toTypedArray()
+
         if(primaryModelGGML != null) {
-            // TODO: This only works well for English.
-            // This causes weird behavior with other languages, it usually decides to translate to english
-            val glossaryCleaned = glossary.trim().replace("\n", ", ").replace("  ", " ")
-            val prompt = if(glossary.isBlank()) "" else "(Glossary: ${glossaryCleaned})"
-
-            val languagesOrLanguage = forceLanguage?.let { arrayOf(it) } ?: languages.toTypedArray()
-
             // TODO: Fallback model
             // TODO: Early exiting from native code if cancelled
             return primaryModelGGML!!.infer(samples, prompt, languagesOrLanguage, decodingMode)
@@ -503,20 +516,24 @@ class WhisperModelWrapper(
 
             return try {
                 yield()
-                primaryModelLegacy!!.run(mel, onStatusUpdate, onPartialDecode, fallbackModelLegacy != null, forceLanguage)
+                primaryModelLegacy!!.run(mel, onStatusUpdate, onPartialDecode, (fallbackModelLegacy != null) || (fallbackModelGGML != null), forceLanguage)
             } catch (e: DecodingEnglishException) {
                 yield()
-                fallbackModelLegacy!!.run(
-                    mel,
-                    {
-                        if (it != RunState.ProcessingEncoder) {
-                            onStatusUpdate(it)
-                        }
-                    },
-                    onPartialDecode,
-                    false,
-                    null
-                )
+                if(fallbackModelGGML != null) {
+                    fallbackModelGGML!!.infer(samples, prompt, languagesOrLanguage, decodingMode)
+                } else {
+                    fallbackModelLegacy!!.run(
+                        mel,
+                        {
+                            if (it != RunState.ProcessingEncoder) {
+                                onStatusUpdate(it)
+                            }
+                        },
+                        onPartialDecode,
+                        false,
+                        null
+                    )
+                }
             }
         } else {
             throw IllegalStateException("No models are loaded!")

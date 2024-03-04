@@ -19,12 +19,14 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.CenterVertically
@@ -34,10 +36,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import org.futo.voiceinput.R
 import org.futo.voiceinput.theme.Typography
 
 @Composable
@@ -64,18 +68,25 @@ fun ScreenTitle(title: String, showBack: Boolean = false, navController: NavHost
 
 @Composable
 @Preview
-fun Tip(text: String = "This is an example tip") {
+fun Tip(text: String = "This is an example tip", onDismiss: (() -> Unit)? = null) {
     Surface(
         color = MaterialTheme.colorScheme.primaryContainer, modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp), shape = RoundedCornerShape(4.dp)
     ) {
-        Text(
-            text,
-            modifier = Modifier.padding(8.dp),
-            style = Typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onPrimaryContainer
-        )
+        Column {
+            Text(
+                text,
+                modifier = Modifier.padding(8.dp),
+                style = Typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onPrimaryContainer
+            )
+            if (onDismiss != null) {
+                TextButton(onClick = onDismiss, modifier = Modifier.align(Alignment.End)) {
+                    Text(stringResource(R.string.dismiss))
+                }
+            }
+        }
     }
 }
 
@@ -218,7 +229,8 @@ fun<T> SettingRadio(
     options: List<T>,
     optionNames: List<String>,
     setting: SettingsKey<T>,
-    onChanged: (() -> Unit)? = null
+    onChanged: (() -> Unit)? = null,
+    disabled: Boolean = false
 ) {
     val (value, setValue) = useDataStore(key = setting.key, default = setting.default)
 
@@ -228,10 +240,18 @@ fun<T> SettingRadio(
             SettingItem(
                 title = it.second,
                 onClick = {
-                    setValue(it.first)
-                    onChanged?.invoke()
+                    if(!disabled) {
+                        setValue(it.first)
+                        onChanged?.invoke()
+                    }
                 },
-                icon = { RadioButton(selected = value == it.first, onClick = null) }
+                disabled = disabled,
+                icon = { RadioButton(selected = value == it.first, onClick = {
+                    if(!disabled) {
+                        setValue(it.first)
+                        onChanged?.invoke()
+                    }
+                }, enabled = !disabled) }
             ) { }
         }
     }

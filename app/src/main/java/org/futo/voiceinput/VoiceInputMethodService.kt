@@ -58,8 +58,10 @@ import androidx.savedstate.SavedStateRegistryController
 import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.findViewTreeSavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
+import org.futo.voiceinput.migration.scheduleModelMigrationJob
 import org.futo.voiceinput.settings.pages.ConditionalUnpaidNoticeInVoiceInputWindow
 import org.futo.voiceinput.theme.UixThemeAuto
+import org.futo.voiceinput.updates.scheduleUpdateCheckingJob
 
 
 @Composable
@@ -182,6 +184,9 @@ class VoiceInputMethodService : InputMethodService(), LifecycleOwner, ViewModelS
         super.onCreate()
         mSavedStateRegistryController.performRestore(null)
         handleLifecycleEvent(Lifecycle.Event.ON_RESUME)
+
+        scheduleUpdateCheckingJob(applicationContext)
+        scheduleModelMigrationJob(applicationContext)
     }
 
     private val recognizer = object : RecognizerView() {
