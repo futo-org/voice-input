@@ -452,8 +452,6 @@ class WhisperModelWrapper(
     private var fallbackModelGGML: WhisperGGML? = null
     private var primaryModelLegacy: WhisperModel? = null
     private var fallbackModelLegacy: WhisperModel? = null
-    //private val primary: WhisperModel? = WhisperModel(context, primaryModel, suppressNonSpeech, languages)
-    //private val fallback: WhisperModel? = fallbackEnglishModel?.let { WhisperModel(context, it, suppressNonSpeech) }
 
     init {
         if(primaryModel == fallbackEnglishModel) {
@@ -500,8 +498,8 @@ class WhisperModelWrapper(
     ): String {
         yield()
 
-        // TODO: This only works well for English.
-        // This causes weird behavior with other languages, it usually decides to translate to english
+        // TODO: This only works well for English, it may cause weird behavior with other languages
+        // (maybe need to translate "Glossary" per language, or language-neutral way of expressing)
         val glossaryCleaned = glossary.trim().replace("\n", ", ").replace("  ", " ")
         val prompt = if(glossary.isBlank()) "" else "(Glossary: ${glossaryCleaned})"
 

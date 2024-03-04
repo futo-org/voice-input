@@ -67,11 +67,6 @@ fun InputScreen(
             ENABLE_ANIMATIONS
         )
 
-        if(languages.value.size > 1) {
-            SettingToggleDataStore(stringResource(R.string.manually_select_language), MANUALLY_SELECT_LANGUAGE)
-        }
-
-
         Spacer(modifier = Modifier.height(32.dp))
 
         Tip(stringResource(R.string.stop_on_silence_info))

@@ -27,12 +27,14 @@ import org.futo.voiceinput.settings.DISMISS_MIGRATION_TIP
 import org.futo.voiceinput.settings.ENABLE_MULTILINGUAL
 import org.futo.voiceinput.settings.ENGLISH_MODEL_INDEX
 import org.futo.voiceinput.settings.LANGUAGE_TOGGLES
+import org.futo.voiceinput.settings.MANUALLY_SELECT_LANGUAGE
 import org.futo.voiceinput.settings.MODELS_MIGRATED
 import org.futo.voiceinput.settings.MULTILINGUAL_MODEL_INDEX
 import org.futo.voiceinput.settings.PERSONAL_DICTIONARY
 import org.futo.voiceinput.settings.ScreenTitle
 import org.futo.voiceinput.settings.ScrollableList
 import org.futo.voiceinput.settings.SettingRadio
+import org.futo.voiceinput.settings.SettingToggleDataStore
 import org.futo.voiceinput.settings.SettingsViewModel
 import org.futo.voiceinput.settings.Tip
 import org.futo.voiceinput.settings.USE_LANGUAGE_SPECIFIC_MODELS
@@ -155,6 +157,8 @@ fun ModelsScreen(
         if(wasMigrated.value && !dismissMigrationTip.value) {
             Tip(stringResource(R.string.new_model_features_tip), onDismiss = { dismissMigrationTip.setValue(true) })
         }
+
+        SettingToggleDataStore(stringResource(R.string.manually_select_language), MANUALLY_SELECT_LANGUAGE, subtitle = stringResource(R.string.manual_language_selection_toggle_subtitle))
 
         if(!needsUpdate) {
             PersonalDictionaryEditor(disabled = false)
