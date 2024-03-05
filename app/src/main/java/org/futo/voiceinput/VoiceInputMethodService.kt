@@ -9,8 +9,6 @@ import android.view.WindowManager
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.view.inputmethod.InputMethodSubtype
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -28,7 +26,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
@@ -65,20 +62,13 @@ import org.futo.voiceinput.updates.scheduleUpdateCheckingJob
 
 
 @Composable
-fun RecognizerInputMethodWindow(switchBack: (() -> Unit)? = null, onFinish: () -> Unit = { }, content: @Composable ColumnScope.() -> Unit) {
+fun RecognizerInputMethodWindow(switchBack: (() -> Unit)? = null, allowClick: Boolean = false, onPauseVAD: (Boolean) -> Unit = { }, onFinish: () -> Unit = { }, content: @Composable ColumnScope.() -> Unit) {
     UixThemeAuto {
         Surface(
             modifier = Modifier
+                .recognizerSurfaceClickable(disabled = !allowClick, onPauseVAD = onPauseVAD, onFinish = onFinish)
                 .fillMaxWidth()
-                .wrapContentHeight()
-                .clickable(
-                    enabled = true,
-                    onClickLabel = null,
-                    onClick = onFinish,
-                    role = null,
-                    indication = null,
-                    interactionSource = remember { MutableInteractionSource() }
-                ),
+                .wrapContentHeight(),
             color = MaterialTheme.colorScheme.surface
         ) {
             val icon = painterResource(id = R.drawable.futo_o)
@@ -145,7 +135,7 @@ fun RecognizeIMELoadingPreview() {
 @Composable
 fun PreviewRecognizeViewLoadedIME() {
     RecognizerInputMethodWindow(switchBack = { }) {
-        InnerRecognize(onFinish = { })
+        InnerRecognize()
     }
 }
 @Preview
@@ -272,8 +262,8 @@ class VoiceInputMethodService : InputMethodService(), LifecycleOwner, ViewModelS
         }
 
         @Composable
-        override fun Window(onClose: () -> Unit, content: @Composable ColumnScope.() -> Unit) {
-            RecognizerInputMethodWindow(switchBack = onClose, onFinish = { finishRecognizerIfRecording() }) {
+        override fun Window(onClose: () -> Unit, allowClick: Boolean, onPauseVAD: (Boolean) -> Unit, onFinish: () -> Unit, content: @Composable ColumnScope.() -> Unit) {
+            RecognizerInputMethodWindow(switchBack = onClose, onPauseVAD = onPauseVAD, onFinish = onFinish, allowClick = allowClick) {
                 content()
             }
         }

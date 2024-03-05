@@ -88,6 +88,11 @@ abstract class AudioRecognizer {
 
     protected abstract fun processing()
 
+    private var isVADPaused = false
+    fun pauseVAD(v: Boolean) {
+        isVADPaused = v
+    }
+
     fun finishRecognizerIfRecording() {
         if (isRecording) {
             finishRecognizer()
@@ -107,6 +112,7 @@ abstract class AudioRecognizer {
     }
 
     fun reset() {
+        isVADPaused = false
         recorder?.stop()
         recorderJob?.cancel()
         modelJob?.cancel()
@@ -282,6 +288,8 @@ abstract class AudioRecognizer {
             throw IllegalStateException("Start recording when already recording")
         }
 
+        isVADPaused = false
+
         try {
             recorder = AudioRecord(
                 MediaRecorder.AudioSource.VOICE_RECOGNITION,
@@ -359,7 +367,7 @@ abstract class AudioRecognizer {
                         }
 
                         // Run VAD
-                        if(shouldUseVad) {
+                        if(shouldUseVad && !isVADPaused) {
                             var remainingSamples = nRead
                             var offset = 0
                             while(remainingSamples > 0) {
@@ -384,6 +392,8 @@ abstract class AudioRecognizer {
                                     remainingSamples -= 1
                                 }
                             }
+                        } else {
+                            numConsecutiveNonSpeech = 0
                         }
 
                         floatSamples.put(samples.sliceArray(0 until nRead))

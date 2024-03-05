@@ -9,8 +9,6 @@ import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -28,7 +26,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
@@ -46,20 +43,13 @@ import org.futo.voiceinput.updates.scheduleUpdateCheckingJob
 
 
 @Composable
-fun RecognizeWindow(forceNoUnpaidNotice: Boolean = false, onClose: (() -> Unit)?, onFinish: () -> Unit = { }, content: @Composable ColumnScope.() -> Unit) {
+fun RecognizeWindow(forceNoUnpaidNotice: Boolean = false, allowClick: Boolean = false, onClose: (() -> Unit)?, onPauseVAD: (Boolean) -> Unit = { }, onFinish: () -> Unit = { }, content: @Composable ColumnScope.() -> Unit) {
     UixThemeAuto {
         Surface(
             modifier = Modifier
+                .recognizerSurfaceClickable(disabled = !allowClick, onPauseVAD = onPauseVAD, onFinish = onFinish)
                 .width(280.dp)
-                .wrapContentHeight()
-                .clickable(
-                    enabled = true,
-                    onClickLabel = null,
-                    onClick = onFinish,
-                    role = null,
-                    indication = null,
-                    interactionSource = remember { MutableInteractionSource() }
-                ),
+                .wrapContentHeight(),
             color = MaterialTheme.colorScheme.surface,
             shape = RoundedCornerShape(8.dp)
         ) {
@@ -123,7 +113,7 @@ fun RecognizeLoadingPreview() {
 @Composable
 fun PreviewRecognizeViewLoaded() {
     RecognizeWindow(onClose = { }) {
-        InnerRecognize(onFinish = { })
+        InnerRecognize()
     }
 }
 @Preview
@@ -166,8 +156,8 @@ class RecognizeActivity : ComponentActivity() {
         }
 
         @Composable
-        override fun Window(onClose: () -> Unit, content: @Composable ColumnScope.() -> Unit) {
-            RecognizeWindow(onClose = onClose, onFinish = { finishRecognizerIfRecording() }) {
+        override fun Window(onClose: () -> Unit, allowClick: Boolean, onPauseVAD: (Boolean) -> Unit, onFinish: () -> Unit, content: @Composable ColumnScope.() -> Unit) {
+            RecognizeWindow(onClose = onClose, onPauseVAD = onPauseVAD, onFinish = onFinish, allowClick = allowClick) {
                 content()
             }
         }

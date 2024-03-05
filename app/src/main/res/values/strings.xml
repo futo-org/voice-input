@@ -197,7 +197,7 @@
     <string name="check_permissions">Check permissions</string>
     <string name="use_beam_search">Use beam search</string>
     <string name="recommended">Recommended</string>
-    <string name="new_model_features_tip">Models have been updated for better accuracy and faster performance. You can now also add words/phrases in the personal dictionary. Feel free to contact us with any feedback!</string>
+    <string name="new_model_features_tip">Models have been updated for better accuracy and faster performance. You can now also add words/phrases in the personal dictionary. If you have any issues or feedback after this change please contact us.</string>
     <string name="personal_dictionary_placeholder">John Doe, Jane Smith, TensorFlow, bobble, type anything you want voice input to recognize more often here!</string>
     <string name="personal_dictionary">Personal Dictionary</string>
     <string name="manual_language_selection_toggle_subtitle">Avoids model switching delay if you have multiple languages enabled</string>
