@@ -126,7 +126,7 @@ class PlayBilling(private val context: Context, private val coroutine: Coroutine
     override fun launchBillingFlow() {
         if(billingClient.connectionState != BillingClient.ConnectionState.CONNECTED) {
             println("Launch billing flow - not connected")
-            Toast.makeText(context, "PlayBilling - Not connected to Billing", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "Not connected to Play Store Billing, visit payment FAQ at our website? voiceinput.futo.org/payment", Toast.LENGTH_LONG).show()
             return startConnection { launchBillingFlow() }
         }
 

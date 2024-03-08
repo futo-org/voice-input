@@ -149,7 +149,7 @@ fun UnpaidNotice(onPay: () -> Unit = { }, onAlreadyPaid: () -> Unit = { }) {
     Surface(
         color = MaterialTheme.colorScheme.surfaceVariant, modifier = Modifier
             .fillMaxWidth()
-            .padding(8.dp), shape = RoundedCornerShape(4.dp)
+            .padding(24.dp, 8.dp), shape = RoundedCornerShape(4.dp)
     ) {
         Column(modifier = Modifier.padding(8.dp, 0.dp)) {
             Text(

@@ -20,6 +20,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -28,6 +29,8 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import org.futo.voiceinput.R
 import org.futo.voiceinput.settings.FORCE_SHOW_NOTICE
+import org.futo.voiceinput.settings.NavigationItem
+import org.futo.voiceinput.settings.NavigationItemStyle
 import org.futo.voiceinput.settings.ScreenTitle
 import org.futo.voiceinput.settings.ScrollableList
 import org.futo.voiceinput.settings.SettingItem
@@ -99,10 +102,11 @@ fun TestScreen(
         ) {
             Icon(Icons.Default.ArrowForward, contentDescription = stringResource(R.string.go))
         }
-        SettingItem(
+        NavigationItem(
             title = stringResource(R.string.help),
-            onClick = { navController.navigate("help") }) {
-            Icon(Icons.Default.ArrowForward, contentDescription = stringResource(R.string.go))
-        }
+            style = NavigationItemStyle.Misc,
+            navigate = { navController.navigate("help") },
+            icon = painterResource(R.drawable.help_circle)
+        )
     }
 }
