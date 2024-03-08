@@ -1,3 +1,16 @@
+# v1.3.2
+* Replaced tflite with whisper.cpp (tflite still works for a transition period, but is unsupported and will later be removed)
+* Now using fine-tuned models that make use of whisper.cpp audio_ctx parameter for speedup (thanks to whisper.cpp)
+* Added personal dictionary option that make use of prompting (thanks to whisper.cpp)
+* Beam search is now used instead of greedy search (thanks to whisper.cpp)
+* Added English-244
+* General UI improvements and theming
+* You can now tap and hold the mic to prevent automatic stopping
+* Added background model migration, and foreground model migration screen to download updated models
+* Fixed a few minor bugs
+
+Note: some version numbers were skipped
+
 # v1.2.7
 * Fixed issue with sampling invalid tokens, causing decoding to terminate unexpectedly
 * Added option to disable animated circle (for e-ink devices, etc)

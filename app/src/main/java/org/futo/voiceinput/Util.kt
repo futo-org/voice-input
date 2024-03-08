@@ -6,77 +6,14 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.core.booleanPreferencesKey
-import androidx.datastore.preferences.core.edit
-import androidx.datastore.preferences.core.intPreferencesKey
-import androidx.datastore.preferences.core.longPreferencesKey
-import androidx.datastore.preferences.core.stringPreferencesKey
-import androidx.datastore.preferences.core.stringSetPreferencesKey
-import androidx.datastore.preferences.preferencesDataStore
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.take
 import org.futo.voiceinput.downloader.DownloadActivity
-import org.futo.voiceinput.ui.theme.Typography
+import org.futo.voiceinput.settings.ENGLISH_MODEL_INDEX
+import org.futo.voiceinput.settings.LANGUAGE_TOGGLES
+import org.futo.voiceinput.settings.MANUALLY_SELECT_LANGUAGE
+import org.futo.voiceinput.settings.MULTILINGUAL_MODEL_INDEX
+import org.futo.voiceinput.settings.USE_LANGUAGE_SPECIFIC_MODELS
+import org.futo.voiceinput.settings.getSetting
 import java.io.File
-
-@Composable
-fun Screen(title: String, content: @Composable () -> Unit) {
-    Column(modifier = Modifier
-        .padding(16.dp)
-        .fillMaxSize()) {
-        Text(title, style = Typography.titleLarge)
-
-
-        Column(modifier = Modifier
-            .padding(8.dp)
-            .fillMaxSize()) {
-            content()
-        }
-    }
-}
-
-class ValueFromSettings<T>(val key: Preferences.Key<T>, val default: T) {
-    private var _value = default
-
-    val value: T
-        get() { return _value }
-
-    suspend fun load(context: Context, onResult: ((T) -> Unit)? = null) {
-        val valueFlow: Flow<T> = context.dataStore.data.map { preferences -> preferences[key] ?: default }.take(1)
-
-        valueFlow.collect {
-            _value = it
-
-            if(onResult != null) {
-                onResult(it)
-            }
-        }
-    }
-
-    suspend fun set(context: Context, newValue: T) {
-        context.dataStore.edit {
-            it[key] = newValue
-        }
-    }
-
-    suspend fun get(context: Context): T {
-        val valueFlow: Flow<T> =
-            context.dataStore.data.map { preferences -> preferences[key] ?: default }.take(1)
-
-        return valueFlow.first()
-    }
-}
 
 enum class Status {
     Unknown,
@@ -106,9 +43,7 @@ enum class PromptingStyle {
 }
 
 
-data class ModelData(
-    val name: String,
-
+data class ModelDataLegacy(
     val is_builtin_asset: Boolean,
     val encoder_xatn_file: String,
     val decoder_file: String,
@@ -119,6 +54,19 @@ data class ModelData(
     val digests: ModelDigests,
 
     val promptingStyle: PromptingStyle
+)
+
+data class ModelDataGGML(
+    val is_builtin_asset: Boolean,
+    val ggml_file: String,
+
+    val digest: String
+)
+
+data class ModelData(
+    val name: String,
+    val ggml: ModelDataGGML,
+    val legacy: ModelDataLegacy
 )
 
 fun Array<DoubleArray>.transpose(): Array<DoubleArray> {
@@ -146,11 +94,26 @@ fun Context.fileNeedsDownloading(file: String): Boolean {
 }
 
 fun Context.modelNeedsDownloading(model: ModelData): Boolean {
-    if(model.is_builtin_asset) return false
+    if(model.ggml.is_builtin_asset) return false
 
-    return this.fileNeedsDownloading(model.encoder_xatn_file)
-            || this.fileNeedsDownloading(model.decoder_file)
-            || this.fileNeedsDownloading(model.vocab_file)
+    // Skip download if all legacy files are present
+    if(!fileNeedsDownloading(model.legacy.decoder_file) && !fileNeedsDownloading(model.legacy.encoder_xatn_file) && !fileNeedsDownloading(model.legacy.vocab_file)) {
+        return false
+    }
+
+    return fileNeedsDownloading(model.ggml.ggml_file)
+}
+
+fun Context.isUsingTfliteLegacy(): Boolean {
+    return ENGLISH_MODELS.any {
+        File(filesDir, it.legacy.vocab_file).exists()
+                || File(filesDir, it.legacy.decoder_file).exists()
+                || File(filesDir, it.legacy.encoder_xatn_file).exists()
+    } || MULTILINGUAL_MODELS.any {
+        File(filesDir, it.legacy.vocab_file).exists()
+                || File(filesDir, it.legacy.decoder_file).exists()
+                || File(filesDir, it.legacy.encoder_xatn_file).exists()
+    }
 }
 
 fun Context.startModelDownloadActivity(models: List<ModelData>) {
@@ -160,9 +123,7 @@ fun Context.startModelDownloadActivity(models: List<ModelData>) {
     val intent = Intent(this, DownloadActivity::class.java)
     intent.putStringArrayListExtra("models", ArrayList(models.map { model ->
         arrayListOf(
-            model.encoder_xatn_file,
-            model.decoder_file,
-            model.vocab_file
+            model.ggml.ggml_file
         )
     }.flatten()))
 
@@ -285,127 +246,185 @@ val LANGUAGE_LIST = listOf(
     LanguageEntry("lo", "Lao", 0)
 )
 
+
 val ENGLISH_MODELS = listOf(
-    // TODO: The names are not localized
     ModelData(
         name = "English-39 (default)",
 
-        is_builtin_asset = true,
-        encoder_xatn_file = "tiny-en-encoder-xatn.tflite",
-        decoder_file = "tiny-en-decoder.tflite",
+        ggml = ModelDataGGML(
+            is_builtin_asset = true,
+            ggml_file = "tiny_en_acft_q8_0.bin.not.tflite",
+            digest = "4b5480aa1b14a7efc5b578ef176510970a898049671c3cd237285b3e3f6bfbfc"
+        ),
 
-        vocab_file = "tinyenvocab.json",
-        vocab_raw_asset = R.raw.tinyenvocab,
+        legacy = ModelDataLegacy(
+            is_builtin_asset = false,
+            encoder_xatn_file = "tiny-en-encoder-xatn.tflite",
+            decoder_file = "tiny-en-decoder.tflite",
 
-        digests = ModelDigests("", "", ""),
+            vocab_file = "tinyenvocab.json",
+            vocab_raw_asset = R.raw.tinyenvocab,
 
-        promptingStyle = PromptingStyle.SingleLanguageOnly
+            digests = ModelDigests("", "", ""),
+
+            promptingStyle = PromptingStyle.SingleLanguageOnly
+        )
     ),
+
     ModelData(
         name = "English-74 (slower, more accurate)",
 
-        is_builtin_asset = false,
-        encoder_xatn_file = "base.en-encoder-xatn.tflite",
-        decoder_file = "base.en-decoder.tflite",
-
-        vocab_file = "base.en-vocab.json",
-
-        digests = ModelDigests(
-            encoder_digest = "c94bcafb3cd95c193ca5ada5b94e517f1645dbf72e72986f55c6c8729d04da23",
-            decoder_digest = "d6979b4a06416ff1d3e38a238997e4051684c60aa2fcab6ae7d7dbafab75494f",
-            vocab_digest = "48d9307faad7c1c1a708fbfa7f4b57cb6d5936ceee4cdf354e2b7d8cdf0cf24b"
+        ggml = ModelDataGGML(
+            is_builtin_asset = false,
+            ggml_file = "base_en_acft_q8_0.bin",
+            digest = "e9b4b7b81b8a28769e8aa9962aa39bb9f21b622cf6a63982e93f065ed5caf1c8"
         ),
 
-        promptingStyle = PromptingStyle.SingleLanguageOnly
-    )
+        legacy = ModelDataLegacy(
+            is_builtin_asset = false,
+            encoder_xatn_file = "base.en-encoder-xatn.tflite",
+            decoder_file = "base.en-decoder.tflite",
+
+            vocab_file = "base.en-vocab.json",
+
+            digests = ModelDigests(
+                encoder_digest = "c94bcafb3cd95c193ca5ada5b94e517f1645dbf72e72986f55c6c8729d04da23",
+                decoder_digest = "d6979b4a06416ff1d3e38a238997e4051684c60aa2fcab6ae7d7dbafab75494f",
+                vocab_digest = "48d9307faad7c1c1a708fbfa7f4b57cb6d5936ceee4cdf354e2b7d8cdf0cf24b"
+            ),
+
+            promptingStyle = PromptingStyle.SingleLanguageOnly
+        )
+    ),
+
+    ModelData(
+        name = "English-244 (slow)",
+
+        ggml = ModelDataGGML(
+            is_builtin_asset = false,
+            ggml_file = "small_en_acft_q8_0.bin",
+            digest = "58fbe949992dafed917590d58bc12ca577b08b9957f0b3e0d7ee71b64bed3aa8"
+        ),
+
+        legacy = ModelDataLegacy(
+            is_builtin_asset = false,
+            encoder_xatn_file = "base.en-encoder-xatn.tflite",
+            decoder_file = "base.en-decoder.tflite",
+
+            vocab_file = "base.en-vocab.json",
+
+            digests = ModelDigests(
+                encoder_digest = "c94bcafb3cd95c193ca5ada5b94e517f1645dbf72e72986f55c6c8729d04da23",
+                decoder_digest = "d6979b4a06416ff1d3e38a238997e4051684c60aa2fcab6ae7d7dbafab75494f",
+                vocab_digest = "48d9307faad7c1c1a708fbfa7f4b57cb6d5936ceee4cdf354e2b7d8cdf0cf24b"
+            ),
+
+            promptingStyle = PromptingStyle.SingleLanguageOnly
+        )
+    ),
+
 )
+
 
 val MULTILINGUAL_MODELS = listOf(
     ModelData(
         name = "Multilingual-39 (less accurate)",
 
+        ggml = ModelDataGGML(
         is_builtin_asset = false,
-        encoder_xatn_file = "tiny-multi-encoder-xatn.tflite",
-        decoder_file = "tiny-multi-decoder.tflite",
-
-        vocab_file = "tiny-multi-vocab.json",
-
-        digests = ModelDigests(
-            encoder_digest = "1240660ec64f549052cd469aef7ee6ff30ecd9bf45dafcf330f2a77d20f081ee",
-            decoder_digest = "1c19e4d891a9bb976023bdacefa475a9cefb522c3c1d722f2b98a1e3e08d4a2c",
-            vocab_digest = "bd5b181b5ea2b5ea58b1f4ef8c48c7636e66443c212a5d9fb4dfe5bae15d6055"
+        ggml_file = "tiny_acft_q8_0.bin",
+        digest = "07aa4d514144deacf5ffec5cacb36c93dee272fda9e64ac33a801f8cd5cbd953"
         ),
 
-        promptingStyle = PromptingStyle.LanguageTokenAndAction
+        legacy = ModelDataLegacy(
+            is_builtin_asset = false,
+            encoder_xatn_file = "tiny-multi-encoder-xatn.tflite",
+            decoder_file = "tiny-multi-decoder.tflite",
+
+            vocab_file = "tiny-multi-vocab.json",
+
+            digests = ModelDigests(
+                encoder_digest = "1240660ec64f549052cd469aef7ee6ff30ecd9bf45dafcf330f2a77d20f081ee",
+                decoder_digest = "1c19e4d891a9bb976023bdacefa475a9cefb522c3c1d722f2b98a1e3e08d4a2c",
+                vocab_digest = "bd5b181b5ea2b5ea58b1f4ef8c48c7636e66443c212a5d9fb4dfe5bae15d6055"
+            ),
+
+            promptingStyle = PromptingStyle.LanguageTokenAndAction
+        )
     ),
     ModelData(
         name = "Multilingual-74 (default)",
 
-        is_builtin_asset = false,
-        encoder_xatn_file = "base-encoder-xatn.tflite",
-        decoder_file = "base-decoder.tflite",
-
-        vocab_file = "base-vocab.json",
-
-        digests = ModelDigests(
-            encoder_digest = "8832248eefbc1b7a297ac12358357001c613da4183099966fbb6950079d252f8",
-            decoder_digest = "3369ab7e0ec7ebf828cef7a5740a6d32e1e90502737b89812e383c76041f878b",
-            vocab_digest = "bd5b181b5ea2b5ea58b1f4ef8c48c7636e66443c212a5d9fb4dfe5bae15d6055"
+        ggml = ModelDataGGML(
+            is_builtin_asset = false,
+            ggml_file = "base_acft_q8_0.bin",
+            digest = "e44f352c9aa2c3609dece20c733c4ad4a75c28cd9ab07d005383df55fa96efc4"
         ),
 
-        promptingStyle = PromptingStyle.LanguageTokenAndAction
+        legacy = ModelDataLegacy(
+            is_builtin_asset = false,
+            encoder_xatn_file = "base-encoder-xatn.tflite",
+            decoder_file = "base-decoder.tflite",
+
+            vocab_file = "base-vocab.json",
+
+            digests = ModelDigests(
+                encoder_digest = "8832248eefbc1b7a297ac12358357001c613da4183099966fbb6950079d252f8",
+                decoder_digest = "3369ab7e0ec7ebf828cef7a5740a6d32e1e90502737b89812e383c76041f878b",
+                vocab_digest = "bd5b181b5ea2b5ea58b1f4ef8c48c7636e66443c212a5d9fb4dfe5bae15d6055"
+            ),
+
+            promptingStyle = PromptingStyle.LanguageTokenAndAction
+        )
     ),
     ModelData(
         name = "Multilingual-244 (slow)",
 
+        ggml = ModelDataGGML(
         is_builtin_asset = false,
-        encoder_xatn_file = "small-encoder-xatn.tflite",
-        decoder_file = "small-decoder.tflite",
-
-        vocab_file = "small-vocab.json",
-
-        digests = ModelDigests(
-            encoder_digest = "03e141a363cbb983799dbf589e53298324bc1dc906eb8fabc8a412d40338f0d9",
-            decoder_digest = "1dbdeac1c0fabede5aa57424b7e1e8061f34c6f646fa1031e8aead20a25f4e41",
-            vocab_digest = "bd5b181b5ea2b5ea58b1f4ef8c48c7636e66443c212a5d9fb4dfe5bae15d6055"
+        ggml_file = "small_acft_q8_0.bin",
+        digest = "15ef255465a6dc582ecf1ec651a4618c7ee2c18c05570bbe46493d248d465ac4"
         ),
 
-        promptingStyle = PromptingStyle.LanguageTokenAndAction
+        legacy = ModelDataLegacy(
+            is_builtin_asset = false,
+            encoder_xatn_file = "small-encoder-xatn.tflite",
+            decoder_file = "small-decoder.tflite",
+
+            vocab_file = "small-vocab.json",
+
+            digests = ModelDigests(
+                encoder_digest = "03e141a363cbb983799dbf589e53298324bc1dc906eb8fabc8a412d40338f0d9",
+                decoder_digest = "1dbdeac1c0fabede5aa57424b7e1e8061f34c6f646fa1031e8aead20a25f4e41",
+                vocab_digest = "bd5b181b5ea2b5ea58b1f4ef8c48c7636e66443c212a5d9fb4dfe5bae15d6055"
+            ),
+
+            promptingStyle = PromptingStyle.LanguageTokenAndAction
+        )
     ),
 )
 
-val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
-val ENABLE_SOUND = booleanPreferencesKey("enable_sounds")
-val ENABLE_ANIMATIONS = booleanPreferencesKey("enable_animations")
-val VERBOSE_PROGRESS = booleanPreferencesKey("verbose_progress")
-val ENABLE_ENGLISH = booleanPreferencesKey("enable_english")
-val ENABLE_MULTILINGUAL = booleanPreferencesKey("enable_multilingual")
-val DISALLOW_SYMBOLS = booleanPreferencesKey("disallow_symbols")
+suspend fun Context.getLanguageModelMap(): Map<String, ModelData> {
+    val modelIdx = getSetting(MULTILINGUAL_MODEL_INDEX)
+    val englishModelIdx = getSetting(ENGLISH_MODEL_INDEX)
+    val useLanguageSpecificModels = getSetting(USE_LANGUAGE_SPECIFIC_MODELS)
+    val manuallySelectLanguage = getSetting(MANUALLY_SELECT_LANGUAGE)
+    val languages = getSetting(LANGUAGE_TOGGLES)
 
-val ENGLISH_MODEL_INDEX = intPreferencesKey("english_model_index")
-val ENGLISH_MODEL_INDEX_DEFAULT = 0
+    val map = hashMapOf<String, ModelData>()
+    languages.forEach {
+        if(it == "en") {
+            map[it] = ENGLISH_MODELS[englishModelIdx]
+        } else {
+            map[it] = MULTILINGUAL_MODELS[modelIdx]
+        }
+    }
 
-val MULTILINGUAL_MODEL_INDEX = intPreferencesKey("multilingual_model_index")
-val MULTILINGUAL_MODEL_INDEX_DEFAULT = 1
+    if(languages.size > 1 && !manuallySelectLanguage) {
+        map["unk"] = MULTILINGUAL_MODELS[modelIdx]
+    }
 
-val LANGUAGE_TOGGLES = stringSetPreferencesKey("enabled_languages")
+    //if(!manuallySelectLanguage && !useLanguageSpecificModels)
 
-val IS_ALREADY_PAID = booleanPreferencesKey("already_paid")
-val IS_PAYMENT_PENDING = booleanPreferencesKey("payment_pending")
-val HAS_SEEN_PAID_NOTICE = booleanPreferencesKey("seen_paid_notice")
-val FORCE_SHOW_NOTICE = booleanPreferencesKey("force_show_notice")
-
-// UNIX timestamp in seconds of when to next show the payment reminder
-val NOTICE_REMINDER_TIME = longPreferencesKey("notice_reminder_time")
-
-val LAST_UPDATE_CHECK_RESULT = stringPreferencesKey("last_update_check_result_${BuildConfig.FLAVOR}")
-
-val EXT_LICENSE_KEY = stringPreferencesKey("license_key")
-val EXT_PENDING_PURCHASE_ID = stringPreferencesKey("purchase_id")
-val EXT_PENDING_PURCHASE_LAST_CHECK = longPreferencesKey("purchase_status_last_check")
-
-val IS_VAD_ENABLED = booleanPreferencesKey("enable_vad")
-val USE_LANGUAGE_SPECIFIC_MODELS = booleanPreferencesKey("USE_LANGUAGE_SPECIFIC_MODELS")
-
-val ALLOW_UNDERTRAINED_LANGUAGES = booleanPreferencesKey("allow_undertrained_languages")
-val MANUALLY_SELECT_LANGUAGE = booleanPreferencesKey("manually_select_language")
+    return map
+}

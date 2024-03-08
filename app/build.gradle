@@ -17,12 +17,17 @@ android {
         applicationId "org.futo.voiceinput"
         minSdk 24
         targetSdk 33
-        versionCode 20
-        versionName "1.2.7"
+        versionCode 23
+        versionName "1.3.2"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
             useSupportLibrary true
+        }
+        externalNativeBuild {
+            cmake {
+                cppFlags '-O3'
+            }
         }
     }
 
@@ -177,6 +182,12 @@ android {
 
             // Include non-dev code
             java.srcDir 'src/nonDev/java'
+        }
+    }
+    externalNativeBuild {
+        cmake {
+            path file('src/main/cpp/CMakeLists.txt')
+            version '3.22.1'
         }
     }
 }

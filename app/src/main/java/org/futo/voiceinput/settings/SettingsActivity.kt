@@ -18,14 +18,14 @@ import androidx.lifecycle.repeatOnLifecycle
 import kotlinx.coroutines.launch
 import org.futo.voiceinput.R
 import org.futo.voiceinput.payments.BillingManager
-import org.futo.voiceinput.ui.theme.WhisperVoiceInputTheme
+import org.futo.voiceinput.theme.UixThemeAuto
 import org.futo.voiceinput.updates.scheduleUpdateCheckingJob
 
 class SettingsActivity : ComponentActivity() {
     internal lateinit var billing: BillingManager
     private fun updateContent() {
         setContent {
-            WhisperVoiceInputTheme {
+            UixThemeAuto {
                 // A surface container using the 'background' color from the theme
                 Surface(
                     modifier = Modifier.fillMaxSize(),

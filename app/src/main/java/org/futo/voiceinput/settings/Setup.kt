@@ -36,8 +36,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import org.futo.voiceinput.R
-import org.futo.voiceinput.ui.theme.Slate300
-import org.futo.voiceinput.ui.theme.Typography
+import org.futo.voiceinput.theme.Typography
 
 
 @Composable
@@ -56,7 +55,7 @@ fun SetupContainer(inner: @Composable () -> Unit) {
                         LocalConfiguration.current.screenHeightDp.dp * 0.2f
                     )
                     .align(CenterHorizontally),
-                tint = Slate300
+                tint = MaterialTheme.colorScheme.onSurface
             )
 
             Box(modifier = Modifier.align(CenterHorizontally)) {

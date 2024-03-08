@@ -9,8 +9,6 @@ import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -28,47 +26,41 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.LifecycleCoroutineScope
 import androidx.lifecycle.lifecycleScope
-import org.futo.voiceinput.settings.ConditionalUnpaidNoticeInVoiceInputWindow
-import org.futo.voiceinput.ui.theme.WhisperVoiceInputTheme
+import org.futo.voiceinput.migration.scheduleModelMigrationJob
+import org.futo.voiceinput.settings.pages.ConditionalUnpaidNoticeInVoiceInputWindow
+import org.futo.voiceinput.theme.UixThemeAuto
 import org.futo.voiceinput.updates.scheduleUpdateCheckingJob
 
 
 @Composable
-fun RecognizeWindow(forceNoUnpaidNotice: Boolean = false, onClose: (() -> Unit)?, onFinish: () -> Unit = { }, content: @Composable ColumnScope.() -> Unit) {
-    WhisperVoiceInputTheme {
+fun RecognizeWindow(forceNoUnpaidNotice: Boolean = false, allowClick: Boolean = false, onClose: (() -> Unit)?, onPauseVAD: (Boolean) -> Unit = { }, onFinish: () -> Unit = { }, content: @Composable ColumnScope.() -> Unit) {
+    UixThemeAuto {
         Surface(
             modifier = Modifier
+                .recognizerSurfaceClickable(disabled = !allowClick, onPauseVAD = onPauseVAD, onFinish = onFinish)
                 .width(280.dp)
-                .wrapContentHeight()
-                .clickable(
-                    enabled = true,
-                    onClickLabel = null,
-                    onClick = onFinish,
-                    role = null,
-                    indication = null,
-                    interactionSource = remember { MutableInteractionSource() }
-                ),
+                .wrapContentHeight(),
             color = MaterialTheme.colorScheme.surface,
             shape = RoundedCornerShape(8.dp)
         ) {
             val icon = painterResource(id = R.drawable.futo_o)
+            val bgIconTint = MaterialTheme.colorScheme.outline
 
             Column(modifier = Modifier.drawBehind {
                 with(icon) {
                     translate(left = -icon.intrinsicSize.width/2, top = -icon.intrinsicSize.height/2) {
                         translate(left = size.width / 4, top = size.height / 3) {
-                            draw(icon.intrinsicSize)
-
+                            draw(icon.intrinsicSize, colorFilter = ColorFilter.tint(bgIconTint))
                         }
                     }
                 }
@@ -121,7 +113,7 @@ fun RecognizeLoadingPreview() {
 @Composable
 fun PreviewRecognizeViewLoaded() {
     RecognizeWindow(onClose = { }) {
-        InnerRecognize(onFinish = { })
+        InnerRecognize()
     }
 }
 @Preview
@@ -164,8 +156,8 @@ class RecognizeActivity : ComponentActivity() {
         }
 
         @Composable
-        override fun Window(onClose: () -> Unit, content: @Composable ColumnScope.() -> Unit) {
-            RecognizeWindow(onClose = onClose, onFinish = { finishRecognizerIfRecording() }) {
+        override fun Window(onClose: () -> Unit, allowClick: Boolean, onPauseVAD: (Boolean) -> Unit, onFinish: () -> Unit, content: @Composable ColumnScope.() -> Unit) {
+            RecognizeWindow(onClose = onClose, onPauseVAD = onPauseVAD, onFinish = onFinish, allowClick = allowClick) {
                 content()
             }
         }
@@ -180,6 +172,7 @@ class RecognizeActivity : ComponentActivity() {
         recognizer.reset()
         recognizer.init()
         scheduleUpdateCheckingJob(applicationContext)
+        scheduleModelMigrationJob(applicationContext)
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
     }
 

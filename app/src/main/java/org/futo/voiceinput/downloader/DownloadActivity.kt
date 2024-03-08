@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Warning
@@ -38,10 +37,11 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
 import org.futo.voiceinput.R
-import org.futo.voiceinput.Screen
 import org.futo.voiceinput.fileNeedsDownloading
-import org.futo.voiceinput.ui.theme.Typography
-import org.futo.voiceinput.ui.theme.WhisperVoiceInputTheme
+import org.futo.voiceinput.settings.ScreenTitle
+import org.futo.voiceinput.settings.ScrollableList
+import org.futo.voiceinput.theme.UixThemeAuto
+import org.futo.voiceinput.theme.Typography
 import java.io.File
 import java.io.IOException
 
@@ -74,7 +74,7 @@ val EXAMPLE_MODELS = listOf(
 
 @Composable
 fun ModelItem(model: ModelInfo, showProgress: Boolean) {
-    Column(modifier = Modifier.padding(4.dp)) {
+    Column(modifier = Modifier.padding(16.dp, 8.dp)) {
         val color = if (model.error) {
             MaterialTheme.colorScheme.errorContainer
         } else {
@@ -123,78 +123,71 @@ fun ModelItem(model: ModelInfo, showProgress: Boolean) {
 }
 
 @Composable
-@Preview
+@Preview(showBackground = true)
 fun DownloadPrompt(
     onContinue: () -> Unit = {},
     onCancel: () -> Unit = {},
     models: List<ModelInfo> = EXAMPLE_MODELS
 ) {
-    Screen(stringResource(R.string.download_required)) {
-        LazyColumn {
-            item {
-                Text(
-                    stringResource(R.string.download_required_body),
-                    style = Typography.bodyMedium
-                )
+    ScrollableList {
+        ScreenTitle(stringResource(R.string.download_required))
 
-                Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            stringResource(R.string.download_required_body),
+            modifier = Modifier.padding(16.dp, 0.dp),
+            style = Typography.bodyMedium
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        models.forEach { ModelItem(it, showProgress = false) }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Row {
+            Button(
+                onClick = onCancel, colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.secondary,
+                    contentColor = MaterialTheme.colorScheme.onSecondary
+                ), modifier = Modifier
+                    .padding(8.dp)
+                    .weight(1.0f)
+            ) {
+                Text(stringResource(R.string.cancel))
             }
-            items(models.size) {
-                ModelItem(models[it], showProgress = false)
-            }
-
-            item {
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Row {
-                    Button(
-                        onClick = onCancel, colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.secondary,
-                            contentColor = MaterialTheme.colorScheme.onSecondary
-                        ), modifier = Modifier
-                            .padding(8.dp)
-                            .weight(1.0f)
-                    ) {
-                        Text(stringResource(R.string.cancel))
-                    }
-                    Button(
-                        onClick = onContinue, modifier = Modifier
-                            .padding(8.dp)
-                            .weight(1.5f)
-                    ) {
-                        Text(stringResource(R.string.continue_))
-                    }
-                }
+            Button(
+                onClick = onContinue, modifier = Modifier
+                    .padding(8.dp)
+                    .weight(1.5f)
+            ) {
+                Text(stringResource(R.string.continue_))
             }
         }
     }
 }
 
 @Composable
-@Preview
+@Preview(showBackground = true)
 fun DownloadScreen(models: List<ModelInfo> = EXAMPLE_MODELS) {
-    Screen(stringResource(R.string.download_progress)) {
-        LazyColumn {
-            item {
-                if (models.any { it.error }) {
-                    Text(
-                        stringResource(R.string.download_failed),
-                        style = Typography.bodyMedium
-                    )
-                } else {
-                    Text(
-                        stringResource(R.string.download_in_progress),
-                        style = Typography.bodyMedium
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(8.dp))
-            }
-
-            items(models.size) {
-                ModelItem(models[it], showProgress = true)
-            }
+    ScrollableList {
+        ScreenTitle(stringResource(R.string.download_progress))
+        if (models.any { it.error }) {
+            Text(
+                stringResource(R.string.download_failed),
+                modifier = Modifier.padding(16.dp, 0.dp),
+                style = Typography.bodyMedium
+            )
+        } else {
+            Text(
+                stringResource(R.string.download_in_progress),
+                modifier = Modifier.padding(16.dp, 0.dp),
+                style = Typography.bodyMedium
+            )
         }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        models.forEach { ModelItem(it, showProgress = true) }
     }
 }
 
@@ -205,7 +198,7 @@ class DownloadActivity : ComponentActivity() {
 
     private fun updateContent() {
         setContent {
-            WhisperVoiceInputTheme {
+            UixThemeAuto {
                 // A surface container using the 'background' color from the theme
                 Surface(
                     modifier = Modifier.fillMaxSize(),

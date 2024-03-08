@@ -18,7 +18,7 @@ Currently this does not support the SpeechRecognizer API, which few apps seem to
 
 Keyboard support is touched on in the Help section of the app. In short, the following keyboards are supported:
 * **AOSP Keyboard**, which uses the IME
-* **OpenBoard**, which uses the IME
+* **OpenBoard/HeliBoard**, which uses the IME
 * **AnySoftKeyboard**, which uses the implicit intent. This keyboard has some voice input usability issues but this is being worked on
 * **Unexpected Keyboard** (v1.23+), which uses the IME
 

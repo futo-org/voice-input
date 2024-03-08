@@ -17,7 +17,7 @@
     -->
 
     <application
-        android:allowBackup="true"
+        android:allowBackup="false"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/ic_launcher"
@@ -35,6 +35,7 @@
             android:clearTaskOnLaunch="true"
             android:launchMode="singleInstance"
             android:visibleToInstantApps="true"
+            android:configChanges="orientation|screenLayout|screenSize|keyboardHidden|keyboard|uiMode|density"
             android:theme="@style/Theme.RecognizerInput">
 
             <intent-filter>
@@ -59,6 +60,14 @@
             android:name=".downloader.DownloadActivity"
             android:exported="false"
             android:label="@string/model_downloader"
+            android:clearTaskOnLaunch="true"
+            android:launchMode="singleTask"
+            android:theme="@style/Theme.WhisperVoiceInput" />
+
+        <activity
+            android:name=".migration.MigrationActivity"
+            android:exported="false"
+            android:label="@string/migration_screen"
             android:clearTaskOnLaunch="true"
             android:launchMode="singleTask"
             android:theme="@style/Theme.WhisperVoiceInput" />
@@ -109,6 +118,12 @@
         <service
             android:name=".updates.UpdateCheckingService"
             android:label="@string/update_checking_service"
+            android:permission="android.permission.BIND_JOB_SERVICE" >
+        </service>
+
+        <service
+            android:name=".migration.ModelMigrationJob"
+            android:label="@string/migration_screen"
             android:permission="android.permission.BIND_JOB_SERVICE" >
         </service>
 

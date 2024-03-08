@@ -13,7 +13,7 @@
     <string name="thanks_for_the_voice_activity_detection_to_stop_recognition_on_silence">Thanks for the voice activity detection to stop recognition on silence</string>
     <string name="thanks_for_the_android_bindings_to_webrtc_voice_activity_detection">Thanks for the Android bindings to WebRTC voice activity detection</string>
     <string name="thanks_for_the_http_client_used_for_downloading_models">Thanks for the HTTP client, used for downloading models</string>
-    <string name="thanks_for_icon">Thanks for the microphone icon</string>
+    <string name="thanks_for_icon">Thanks for the icons used within the app</string>
     <string name="view_other_dependencies">View Other Dependencies</string>
     <string name="name_legal">The authors, contributors or copyright holders listed above are not affiliated with this product and do not endorse or promote this product. Reference to the authors, contributors or copyright holders is solely for attribution purposes. Mention of their names does not imply approval or endorsement.</string>
     <string name="just_a_demonstration">This is just a demonstration of how Voice Input looks</string>
@@ -25,7 +25,8 @@
     <string name="once_you_re_done_talking_you_can_hit_the_microphone_button_to_stop">Once you\'re done talking, you can hit the microphone button to stop</string>
     <string name="help_paragraph_3">You can use one of the following open-source keyboards that are tested to work:</string>
     <string name="aosp_keyboard_included_in_aosp_based_roms">• AOSP Keyboard, included in AOSP-based ROMs</string>
-    <string name="openboard_available_on_f_droid">• OpenBoard, available on F-Droid</string>
+    <string name="openboard_available_on_f_droid">• OpenBoard, available on F-Droid (note: no longer maintained, has some issues after reboot)</string>
+    <string name="heliboard_info">• HeliBoard, a fork of OpenBoard</string>
     <string name="anysoftkeyboard_available_on_f_droid_and_google_play">• AnySoftKeyboard, available on F-Droid and Google Play</string>
     <string name="help_paragraph_5">Everything you type is seen by your keyboard app, and proprietary commercial keyboards often have lengthy and complicated privacy policies. Choose carefully!</string>
     <string name="help_paragraph_6">The following proprietary keyboards may also work, but they are not recommended as they may not respect your privacy:</string>
@@ -50,7 +51,7 @@
     <string name="futo_voice_input_settings">FUTO Voice Input Settings</string>
     <string name="help">Help</string>
     <string name="languages">Languages</string>
-    <string name="models">Models</string>
+    <string name="model">Model</string>
     <string name="sounds">Sounds</string>
     <string name="animations">Animations</string>
     <string name="will_play_a_sound_when_started_cancelled">Will play a sound when started / cancelled</string>
@@ -88,6 +89,7 @@
     <string name="intent_was_cancelled">Intent was cancelled</string>
     <string name="unknown_intent_result">Unknown intent result</string>
     <string name="model_picker">Model Picker</string>
+    <string name="model_options">Model Options</string>
     <string name="parameter_count_tip">Tip: The number is the model\'s parameter count in millions. More parameters = slower and more accurate</string>
     <string name="english_model">English Model</string>
     <string name="multilingual_model">Multilingual Model</string>
@@ -99,7 +101,7 @@
     <string name="purchase_will_help_body">Your purchase will help continued development of Voice Input, and other FUTO projects.</string>
     <string name="thank_you">Thank you</string>
     <string name="payment_pending">Payment Pending</string>
-    <string name="payment_failed_body">Unfortunately, your payment has failed for one reason or another. Please contact us if you need help. You can reach us at voiceinput@futo.org, with the button below, or with Send Feedback at the main screen.</string>
+    <string name="payment_failed_body">Unfortunately, your payment has failed for one reason or another. Please contact us if you need help. You can reach us at voiceinput@futo.org, with the button below, or with Send Feedback in Help</string>
     <string name="payment_failed_body_ex">There may have been a problem with your payment. If it did go through, you should receive an email with a license key. Please contact us if you need help. You can reach us at voiceinput@futo.org, with the button below, or with Share Feedback at the main screen.</string>
     <string name="continue_">Continue</string>
     <string name="pay_via_x">Pay via <xliff:g name="paymentMethod" example="Play Store">%s</xliff:g></string>
@@ -157,9 +159,9 @@
     <string name="issue_tracker">Public Issue Tracker</string>
     <string name="contact_support">Contact Support</string>
     <string name="only_language_enabled">Enable another language to disable this one</string>
-    <string name="input_options">Input Options</string>
+    <string name="input_options">Input</string>
     <string name="stop_on_silence">Automatically stop on silence</string>
-    <string name="stop_on_silence_info">If you speak with pauses, you may wish to disable the option below. You can always manually stop recording by tapping the microphone icon while it\'s listening.</string>
+    <string name="stop_on_silence_info">If you speak with pauses, you may wish to disable the option below. You can also pause automatic stopping temporarily by tapping and holding.</string>
     <string name="use_language_specific_models">Use language-specific models</string>
     <string name="use_language_specific_models_info">Language-specific models may be more accurate, but take extra time to switch after detecting the language. Currently only has effect with English.</string>
     <string name="ending_soon_30s">Ending soon - 30s limit</string>
@@ -169,4 +171,36 @@
     <string name="language_unsupported_warning_1000">Languages below are likely to not work well. You have enabled the option to see them anyway. Use at your own risk.</string>
     <string name="language_unsupported_warning_100">Languages below are certain to not work well. You have enabled the option to see them anyway. Use at your own risk.</string>
     <string name="out_of_memory_error">Out of Memory error, will retry…</string>
+    <string name="manually_select_language">Enable manual language selection</string>
+
+    <string name="amoled_dark_theme_name">AMOLED Dark Purple</string>
+    <string name="classic_material_dark_theme_name">AOSP Material Dark</string>
+    <string name="classic_material_light_theme_name">AOSP Material Light</string>
+    <string name="voice_input_theme_name">FUTO VI Theme</string>
+    <string name="dev_theme_name">Dev Theme Yellow</string>
+
+    <string name="dynamic_system_theme_name">Dynamic System</string>
+    <string name="dynamic_light_theme_name">Dynamic Light</string>
+    <string name="dynamic_dark_theme_name">Dynamic Dark</string>
+    <string name="theme">Theme</string>
+    <string name="migration_screen">Migration Screen</string>
+    <string name="model_update_notice">Updated model files are available to make FUTO Voice Input better and faster.</string>
+    <string name="model_update_features_1">Better: Personal Dictionary feature\nFaster: up to ~6x faster depending on speaking length</string>
+    <string name="support_thank_you_notice">Thank you for supporting FUTO Voice Input!</string>
+    <string name="model_update_finish">Update has finished! To use the personal dictionary feature, visit the Model settings. If you have any feedback about the update, feel free to contact us.</string>
+    <string name="model_update">Model Update</string>
+    <string name="update_requires_your_attention">Update requires your attention</string>
+    <string name="model_update_question">Would you like to update them now or later?\n(This may incur data fees if you\'re using mobile data instead of Wi-Fi)</string>
+    <string name="update_later">Later</string>
+    <string name="update_now">Update now</string>
+    <string name="model_update_network_error_1">There was a network error attempting to fetch the new model info. If you don\'t have internet right now, you can return to this screen later.</string>
+    <string name="model_update_network_error_2">If you\'ve blocked network permission for the app, please re-enable it temporarily to do the model update.</string>
+    <string name="check_permissions">Check permissions</string>
+    <string name="use_beam_search">Use beam search</string>
+    <string name="recommended">Recommended</string>
+    <string name="new_model_features_tip">Models have been updated for better accuracy and faster performance. You can now also add words/phrases in the personal dictionary. If you have any issues or feedback after this change please contact us.</string>
+    <string name="personal_dictionary_placeholder">John Doe, Jane Smith, TensorFlow, bobble, type anything you want voice input to recognize more often here!</string>
+    <string name="personal_dictionary">Personal Dictionary</string>
+    <string name="manual_language_selection_toggle_subtitle">Avoids model switching delay if you have multiple languages enabled</string>
+
 </resources>
