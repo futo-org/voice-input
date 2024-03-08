@@ -44,11 +44,11 @@ class WhisperGGML(
     // 1 language = will force that language
     // 2 or more languages = autodetect between those languages
     @Throws(BailLanguageException::class)
-    suspend fun infer(samples: FloatArray, prompt: String, languages: Array<String>, bailLanguages: Array<String>, decodingMode: DecodingMode): String = withContext(inferenceContext) {
+    suspend fun infer(samples: FloatArray, prompt: String, languages: Array<String>, bailLanguages: Array<String>, decodingMode: DecodingMode, suppressNonSpeechTokens: Boolean): String = withContext(inferenceContext) {
         if(handle == 0L) {
             throw IllegalStateException("WhisperGGML has already been closed, cannot infer")
         }
-        val result = inferNative(handle, samples, prompt, languages, bailLanguages, decodingMode.value).trim()
+        val result = inferNative(handle, samples, prompt, languages, bailLanguages, decodingMode.value, suppressNonSpeechTokens).trim()
 
         if(result.contains("<>CANCELLED<>")) {
             val language = result.split("lang=")[1]
@@ -67,6 +67,6 @@ class WhisperGGML(
 
     private external fun openNative(path: String): Long
     private external fun openFromBufferNative(buffer: Buffer): Long
-    private external fun inferNative(handle: Long, samples: FloatArray, prompt: String, languages: Array<String>, bailLanguages: Array<String>, decodingMode: Int): String
+    private external fun inferNative(handle: Long, samples: FloatArray, prompt: String, languages: Array<String>, bailLanguages: Array<String>, decodingMode: Int, suppressNonSpeechTokens: Boolean): String
     private external fun closeNative(handle: Long)
 }

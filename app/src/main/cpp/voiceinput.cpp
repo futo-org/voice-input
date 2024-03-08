@@ -64,7 +64,7 @@ static jlong WhisperGGML_openFromBuffer(JNIEnv *env, jclass clazz, jobject buffe
     return reinterpret_cast<jlong>(state);
 }
 
-static jstring WhisperGGML_infer(JNIEnv *env, jobject instance, jlong handle, jfloatArray samples_array, jstring prompt, jobjectArray languages, jobjectArray bail_languages, jint decoding_mode) {
+static jstring WhisperGGML_infer(JNIEnv *env, jobject instance, jlong handle, jfloatArray samples_array, jstring prompt, jobjectArray languages, jobjectArray bail_languages, jint decoding_mode, jboolean suppress_non_speech_tokens) {
     auto *state = reinterpret_cast<WhisperModelState *>(handle);
 
     std::vector<int> allowed_languages;
@@ -117,7 +117,7 @@ static jstring WhisperGGML_infer(JNIEnv *env, jobject instance, jlong handle, jf
 
 
     wparams.suppress_blank = false;
-    wparams.suppress_non_speech_tokens = true;
+    wparams.suppress_non_speech_tokens = suppress_non_speech_tokens;
     wparams.no_timestamps = true;
 
     if(allowed_languages.size() == 0) {
@@ -230,7 +230,7 @@ static const JNINativeMethod sMethods[] = {
         },
         {
                 const_cast<char *>("inferNative"),
-                const_cast<char *>("(J[FLjava/lang/String;[Ljava/lang/String;[Ljava/lang/String;I)Ljava/lang/String;"),
+                const_cast<char *>("(J[FLjava/lang/String;[Ljava/lang/String;[Ljava/lang/String;IZ)Ljava/lang/String;"),
                 reinterpret_cast<void *>(WhisperGGML_infer)
         },
         {

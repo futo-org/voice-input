@@ -515,12 +515,14 @@ class WhisperModelWrapper(
             // TODO: Early exiting from native code if cancelled
             return try {
                 yield()
+                onStatusUpdate(RunState.ProcessingEncoder)
                 primaryModelGGML!!.infer(
                     samples,
                     prompt,
                     languagesOrLanguage,
                     bailLanguages,
-                    decodingMode
+                    decodingMode,
+                    suppressNonSpeech
                 )
             }catch(e: BailLanguageException) {
                 yield()
@@ -528,7 +530,7 @@ class WhisperModelWrapper(
                 assert(e.language == "en")
 
                 if(fallbackModelGGML != null) {
-                    fallbackModelGGML!!.infer(samples, prompt, languagesOrLanguage, arrayOf(), decodingMode)
+                    fallbackModelGGML!!.infer(samples, prompt, languagesOrLanguage, arrayOf(), decodingMode, suppressNonSpeech)
                 } else {
                     val mel = WhisperModel.extractor.melSpectrogram(samples.toDoubleArray())
                     fallbackModelLegacy!!.run(
@@ -554,7 +556,7 @@ class WhisperModelWrapper(
             } catch (e: DecodingEnglishException) {
                 yield()
                 if(fallbackModelGGML != null) {
-                    fallbackModelGGML!!.infer(samples, prompt, languagesOrLanguage, bailLanguages, decodingMode)
+                    fallbackModelGGML!!.infer(samples, prompt, languagesOrLanguage, arrayOf(), decodingMode, suppressNonSpeech)
                 } else {
                     fallbackModelLegacy!!.run(
                         mel,
