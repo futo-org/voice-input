@@ -3,6 +3,7 @@ package org.futo.voiceinput.settings.pages
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -105,9 +106,17 @@ fun PersonalDictionaryEditor(disabled: Boolean) {
     
     ScreenTitle(title = stringResource(R.string.personal_dictionary))
 
-    TextField(value = textFieldValue.value, onValueChange = {
-        textFieldValue.value = it
-    }, placeholder = { Text(stringResource(R.string.personal_dictionary_placeholder)) }, modifier = Modifier.fillMaxWidth(), enabled = !disabled)
+    TextField(
+        value = textFieldValue.value,
+        onValueChange = {
+            textFieldValue.value = it
+        },
+        placeholder = { Text(stringResource(R.string.personal_dictionary_placeholder)) },
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp, 4.dp),
+        enabled = !disabled
+    )
 
 }
 
