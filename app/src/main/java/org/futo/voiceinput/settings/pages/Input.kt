@@ -81,6 +81,8 @@ fun InputScreen(
                 stringResource(R.string.use_language_specific_models),
                 USE_LANGUAGE_SPECIFIC_MODELS
             )
+
+            SettingToggleDataStore(stringResource(R.string.manually_select_language), MANUALLY_SELECT_LANGUAGE, subtitle = stringResource(R.string.manual_language_selection_toggle_subtitle))
         }
     }
 }

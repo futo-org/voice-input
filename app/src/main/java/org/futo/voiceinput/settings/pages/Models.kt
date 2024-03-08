@@ -158,7 +158,13 @@ fun ModelsScreen(
             Tip(stringResource(R.string.new_model_features_tip), onDismiss = { dismissMigrationTip.setValue(true) })
         }
 
-        SettingToggleDataStore(stringResource(R.string.manually_select_language), MANUALLY_SELECT_LANGUAGE, subtitle = stringResource(R.string.manual_language_selection_toggle_subtitle))
+        if(languages.size > 1) {
+            SettingToggleDataStore(
+                stringResource(R.string.manually_select_language),
+                MANUALLY_SELECT_LANGUAGE,
+                subtitle = stringResource(R.string.manual_language_selection_toggle_subtitle)
+            )
+        }
 
         if(!needsUpdate) {
             PersonalDictionaryEditor(disabled = false)
