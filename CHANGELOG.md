@@ -1,3 +1,6 @@
+# v1.3.3
+* Fixed a bug causing infinite processing
+
 # v1.3.2
 * Replaced tflite with whisper.cpp (tflite still works for a transition period, but is unsupported and will later be removed)
 * Now using fine-tuned models that make use of whisper.cpp audio_ctx parameter for speedup (thanks to whisper.cpp)
