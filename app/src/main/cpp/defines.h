@@ -58,7 +58,12 @@
             free(strs);
         }
     #else
-        #include <cassert>
+        #ifdef __cplusplus
+            #include <cassert>
+        #else
+            #include <assert.h>
+        #endif
+
         #define DO_ASSERT_TEST
         #define ASSERT(success) assert(success)
         #define SHOW_STACK_TRACE
@@ -81,9 +86,11 @@
     #define TIME_END(name)
 #endif
 
+#ifdef __cplusplus
 // TODO: Use size_t instead of int.
 // Disclaimer: You will see a compile error if you use this macro against a variable-length array.
 // Sorry for the inconvenience. It isn't supported.
 template <typename T, int N>
 char (&ArraySizeHelper(T (&array)[N]))[N];
 #define NELEMS(x) (sizeof(ArraySizeHelper(x)))
+#endif

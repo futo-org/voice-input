@@ -5,6 +5,7 @@ import android.util.Log
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.newSingleThreadContext
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.yield
 import org.futo.voiceinput.AudioFeatureExtraction
@@ -461,7 +462,9 @@ class WhisperModelWrapper(
         try {
             primaryModelGGML = loadGGMLModel(context, primaryModel, onPartialDecode)
         } catch(e: Exception) {
-            primaryModelGGML?.close()
+            runBlocking {
+                primaryModelGGML?.close()
+            }
 
             when(e) {
                 is IOException, is IllegalArgumentException -> {
@@ -476,7 +479,9 @@ class WhisperModelWrapper(
             try {
                 fallbackModelGGML = loadGGMLModel(context, fallbackEnglishModel, onPartialDecode)
             } catch(e: Exception) {
-                fallbackModelGGML?.close()
+                runBlocking {
+                    fallbackModelGGML?.close()
+                }
 
                 when(e) {
                     is IOException, is IllegalArgumentException -> {
