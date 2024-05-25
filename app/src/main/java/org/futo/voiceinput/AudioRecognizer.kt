@@ -283,7 +283,7 @@ abstract class AudioRecognizer {
         permissionRejected()
     }
 
-    private fun startRecording() {
+    private fun startRecording(numTries: Int = 0) {
         if (isRecording) {
             throw IllegalStateException("Start recording when already recording")
         }
@@ -295,7 +295,7 @@ abstract class AudioRecognizer {
                 MediaRecorder.AudioSource.VOICE_RECOGNITION,
                 16000,
                 AudioFormat.CHANNEL_IN_MONO,
-                AudioFormat.ENCODING_PCM_FLOAT,
+                AudioFormat.ENCODING_PCM_16BIT,
                 16000 * 2 * 5
             )
 
@@ -304,7 +304,12 @@ abstract class AudioRecognizer {
                 recorder = null
 
                 println("Failed to initialize AudioRecord, retrying")
-                return startRecording()
+
+                if(numTries > 32) {
+                    throw IllegalStateException("AudioRecord could not be initialized in 32 tries")
+                }
+
+                return startRecording(numTries + 1)
             }
 
             try {
@@ -350,7 +355,7 @@ abstract class AudioRecognizer {
                     var numConsecutiveNonSpeech = 0
                     var numConsecutiveSpeech = 0
 
-                    val samples = FloatArray(1600)
+                    val samples = ShortArray(1600)
 
                     while(isRecording && recorder!!.recordingState == AudioRecord.RECORDSTATE_RECORDING){
                         yield()
@@ -387,7 +392,7 @@ abstract class AudioRecognizer {
 
                                 val samplesToRead = min(min(remainingSamples, 480), vadSampleBuffer.remaining())
                                 for(i in 0 until samplesToRead) {
-                                    vadSampleBuffer.put((samples[offset] * 32768.0).toInt().toShort())
+                                    vadSampleBuffer.put(samples[offset])
                                     offset += 1
                                     remainingSamples -= 1
                                 }
@@ -396,7 +401,7 @@ abstract class AudioRecognizer {
                             numConsecutiveNonSpeech = 0
                         }
 
-                        floatSamples.put(samples.sliceArray(0 until nRead))
+                        floatSamples.put(samples.sliceArray(0 until nRead).map { it.toFloat() / Short.MAX_VALUE.toFloat() }.toFloatArray())
 
                         // Don't set hasTalked if the start sound may still be playing, otherwise on some
                         // devices the rms just explodes and `hasTalked` is always true
@@ -406,7 +411,7 @@ abstract class AudioRecognizer {
                             numConsecutiveNonSpeech = 0
                         }
 
-                        val rms = sqrt(samples.sumOf { (it * it).toDouble() } / samples.size).toFloat()
+                        val rms = sqrt(samples.sumOf { ((it.toFloat() / Short.MAX_VALUE.toFloat()).pow(2)).toDouble() } / samples.size).toFloat()
 
                         if(startSoundPassed && ((rms > 0.01) || (numConsecutiveSpeech > 8))) hasTalked = true
 
@@ -458,7 +463,7 @@ abstract class AudioRecognizer {
                                     withContext(Dispatchers.Main){ finishRecognizer() }
                                     break
                                 }
-                                floatSamples.put(samples.sliceArray(0 until nRead2))
+                                floatSamples.put(samples.sliceArray(0 until nRead2).map { it.toFloat() / Short.MAX_VALUE.toFloat() }.toFloatArray())
                             } else {
                                 break
                             }
