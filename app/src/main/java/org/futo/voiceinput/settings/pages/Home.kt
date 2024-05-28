@@ -63,7 +63,7 @@ fun ShareFeedbackOption(title: String = stringResource(R.string.send_feedback)) 
             }
         }
     }) {
-        Icon(Icons.Default.Send, contentDescription = stringResource(R.string.go))
+        Icon(Icons.Default.Send, contentDescription = null)
     }
 }
 

@@ -49,7 +49,7 @@ fun ScreenTitle(title: String, showBack: Boolean = false, navController: NavHost
     val rowModifier = if(showBack) {
         Modifier
             .fillMaxWidth()
-            .clickable { navController.navigateUp() }
+            .clickable(onClickLabel = "Navigate back") { navController.navigateUp() }
     } else {
         Modifier.fillMaxWidth()
     }
@@ -57,7 +57,7 @@ fun ScreenTitle(title: String, showBack: Boolean = false, navController: NavHost
         Spacer(modifier = Modifier.width(16.dp))
 
         if(showBack) {
-            Icon(Icons.Default.ArrowBack, contentDescription = "Back", modifier = Modifier.align(CenterVertically))
+            Icon(Icons.Default.ArrowBack, contentDescription = null, modifier = Modifier.align(CenterVertically))
             Spacer(modifier = Modifier.width(18.dp))
         }
         Text(title, style = Typography.titleLarge, modifier = Modifier
@@ -328,7 +328,7 @@ fun NavigationItem(title: String, style: NavigationItemStyle, navigate: () -> Un
         }
     ) {
         when(style) {
-            NavigationItemStyle.Misc -> Icon(Icons.Default.ArrowForward, contentDescription = "Go")
+            NavigationItemStyle.Misc -> Icon(Icons.Default.ArrowForward, contentDescription = null)
             else -> {}
         }
     }
