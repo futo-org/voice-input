@@ -5,6 +5,9 @@ import android.media.AudioAttributes
 import android.media.AudioAttributes.CONTENT_TYPE_SONIFICATION
 import android.media.AudioAttributes.USAGE_ASSISTANCE_SONIFICATION
 import android.media.SoundPool
+import android.os.SystemClock
+import android.view.accessibility.AccessibilityEvent
+import android.view.accessibility.AccessibilityManager
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.indication
@@ -43,7 +46,6 @@ import androidx.compose.runtime.withFrameMillis
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
-import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.painterResource
@@ -318,6 +320,21 @@ abstract class RecognizerView {
         }
 
         override fun finished(result: String) {
+            val manager = context.getSystemService(Context.ACCESSIBILITY_SERVICE) as AccessibilityManager
+            if(manager.isEnabled) {
+                val event = AccessibilityEvent.obtain();
+
+                event.setPackageName(RecognizerView::class.java.`package`.name)
+                event.setClassName(RecognizerView::class.java.name)
+                event.setEventTime(SystemClock.uptimeMillis())
+                event.setEnabled(true)
+                event.text.add(result)
+
+                event.setEventType(AccessibilityEvent.TYPE_ANNOUNCEMENT)
+
+                manager.sendAccessibilityEvent(event)
+
+            }
             sendResult(result)
         }
 
