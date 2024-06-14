@@ -202,5 +202,15 @@
     <string name="personal_dictionary_placeholder">John Doe, Jane Smith, TensorFlow, bobble, type anything you want voice input to recognize more often here!</string>
     <string name="personal_dictionary">Personal Dictionary</string>
     <string name="manual_language_selection_toggle_subtitle">Avoids model switching delay if you have multiple languages enabled</string>
+    <string name="unpaid_futo_voice_input">Unpaid FUTO Voice Input</string>
+    <string name="pay_for_futo_voice_input">Pay for FUTO Voice Input</string>
+    <string name="already_paid_title">Already paid?</string>
+    <string name="already_paid_body">If you already paid for FUTO Keyboard or FUTO Voice Input, tap below.</string>
+    <string name="remind_later">Remind later</string>
+    <string name="remind_later_body">This will hide the reminder for the period of days entered.</string>
+    <string name="sustainable_development_title">Sustainable Development</string>
+    <string name="sustainable_development_body">FUTO\'s mission is for open-source software and non-malicious software business practices to become a sustainable income source for projects and their developers. For this reason, we are in favor of users actually paying for software.</string>
+    <string name="commitment_to_privacy_title">Commitment to Privacy</string>
+    <string name="commitment_to_privacy_body">This app will never serve you ads or sell your data. We are not in the business of doing that.</string>
 
 </resources>
