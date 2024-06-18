@@ -1,3 +1,9 @@
+# v1.3.4
+* Fixed a compatibility issue with some devices causing a crash when used
+* Improvements for TalkBack
+* Updated the payment page design
+* Updated license
+
 # v1.3.3
 * Fixed a bug causing infinite processing
 
