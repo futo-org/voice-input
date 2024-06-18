@@ -73,7 +73,7 @@ Some prebuilt binaries are included in the `libs` directory to make the build fa
 
 ## License
 
-This code is currently licensed under the [FUTO Temporary License](FTL_LICENSE.md)
+This code is currently licensed under the [FUTO Source First License 1.0](LICENSE.md)
 
 ## Credits
 
