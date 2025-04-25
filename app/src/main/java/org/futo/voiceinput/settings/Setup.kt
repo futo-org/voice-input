@@ -13,22 +13,19 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment.Companion.CenterHorizontally
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -42,41 +39,42 @@ import org.futo.voiceinput.theme.Typography
 @Composable
 fun SetupContainer(inner: @Composable () -> Unit) {
     Column(modifier = Modifier.fillMaxSize()) {
-        ScrollableList {
-
-            Spacer(modifier = Modifier.height(48.dp))
-
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(0.75f)
+        ) {
             Icon(
-                painter = painterResource(id = R.drawable.futo_logo),
-                contentDescription = stringResource(R.string.futo_logo),
+                painter = painterResource(id = R.drawable.ic_launcher_foreground),
+                contentDescription = null,
                 modifier = Modifier
-                    .size(
-                        LocalConfiguration.current.screenWidthDp.dp * 0.75f,
-                        LocalConfiguration.current.screenHeightDp.dp * 0.2f
-                    )
-                    .align(CenterHorizontally),
-                tint = MaterialTheme.colorScheme.onSurface
+                    .matchParentSize()
+                    .align(Alignment.Center),
+                tint = MaterialTheme.colorScheme.onBackground
             )
+        }
 
-            Box(modifier = Modifier.align(CenterHorizontally)) {
-                // If the system font size is way big, the content may be big enough to overlap
-                // with the FUTO logo, so just block the logo with a surface to keep text readable
-                Surface(
-                    color = MaterialTheme.colorScheme.background,
-                    modifier = Modifier
-                        .padding(16.dp)
-                        .fillMaxSize()
-                ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .align(Alignment.CenterVertically)
+                    .padding(32.dp)
+            ) {
+                Box(modifier = Modifier.align(Alignment.CenterVertically)) {
                     Column {
                         inner()
                     }
                 }
             }
-
         }
+
+        Spacer(modifier = Modifier.weight(0.25f))
     }
 }
-
 
 @Composable
 fun Step(fraction: Float, text: String) {
