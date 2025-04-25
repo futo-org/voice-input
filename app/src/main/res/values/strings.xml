@@ -25,7 +25,6 @@
     <string name="once_you_re_done_talking_you_can_hit_the_microphone_button_to_stop">Once you\'re done talking, you can hit the microphone button to stop</string>
     <string name="help_paragraph_3">You can use one of the following open-source keyboards that are tested to work:</string>
     <string name="aosp_keyboard_included_in_aosp_based_roms">• AOSP Keyboard, included in AOSP-based ROMs</string>
-    <string name="openboard_available_on_f_droid">• OpenBoard, available on F-Droid (note: no longer maintained, has some issues after reboot)</string>
     <string name="heliboard_info">• HeliBoard, a fork of OpenBoard</string>
     <string name="anysoftkeyboard_available_on_f_droid_and_google_play">• AnySoftKeyboard, available on F-Droid and Google Play</string>
     <string name="help_paragraph_5">Everything you type is seen by your keyboard app, and proprietary commercial keyboards often have lengthy and complicated privacy policies. Choose carefully!</string>
