@@ -6,6 +6,10 @@ To download the application, visit the [FUTO Voice Input page](https://voiceinpu
 
 If you have any feedback, issues are welcomed on the [public issue tracker](https://github.com/futo-org/voice-input/issues). Private inquiries are welcomed at the support email listed on the [website](https://voiceinput.futo.org/), or via the Send Feedback button in-app.
 
+## Status
+
+Development has largely shifted focus to the [FUTO Keyboard app](https://keyboard.futo.org/), which has voice input built-in. However, FUTO Voice Input will remain available if you prefer to use it with another keyboard.
+
 ## API support
 
 The following APIs are supported:
@@ -17,17 +21,19 @@ Currently this does not support the SpeechRecognizer API, which few apps seem to
 ## Keyboard support
 
 Keyboard support is touched on in the Help section of the app. In short, the following keyboards are supported:
-* **AOSP Keyboard**, which uses the IME
-* **OpenBoard/HeliBoard**, which uses the IME
-* **AnySoftKeyboard**, which uses the implicit intent. This keyboard has some voice input usability issues but this is being worked on
-* **Unexpected Keyboard** (v1.23+), which uses the IME
+* [**FUTO Keyboard**](https://keyboard.futo.org/) has FUTO Voice Input built-in; if you want to force it to use the external app you have to disable built-in voice input in its settings
+* [**HeliBoard**](https://github.com/Helium314/HeliBoard)
+* [**FlorisBoard**](https://github.com/florisboard/florisboard) supports it on newer releases
+* [**AnySoftKeyboard**](https://github.com/AnySoftKeyboard/AnySoftKeyboard)
+* [**Unexpected Keyboard**](https://github.com/Julow/Unexpected-Keyboard) (v1.23+)
+* **AOSP Keyboard** available in LineageOS and others
 
 If you're okay with using proprietary keyboards, the following are supported:
 * **Grammarly Keyboard**, which uses the IME
 * **Microsoft SwiftKey**, which uses the implicit intent
 
 Incompatible keyboards:
-* **Gboard** - has its own thing
+* **Gboard** - hardcoded to use Google's voice input, does not support third-party options
 * **Samsung Keyboard** - hardcoded to only allow either Samsung Voice Input, or Google Voice Input
 * **Simple Keyboard** by Raimondas Rimkus - [no voice button](https://github.com/rkkr/simple-keyboard/issues/133)
 * **Simple Keyboard** by Simple Mobile Tools - [no voice button](https://github.com/SimpleMobileTools/Simple-Keyboard/issues/201)
