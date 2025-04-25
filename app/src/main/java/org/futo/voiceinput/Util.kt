@@ -263,7 +263,6 @@ val ENGLISH_MODELS = listOf(
             decoder_file = "tiny-en-decoder.tflite",
 
             vocab_file = "tinyenvocab.json",
-            vocab_raw_asset = R.raw.tinyenvocab,
 
             digests = ModelDigests("", "", ""),
 

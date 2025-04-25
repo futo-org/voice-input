@@ -29,22 +29,17 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
-import org.futo.voiceinput.ENGLISH_MODELS
-import org.futo.voiceinput.MULTILINGUAL_MODELS
 import org.futo.voiceinput.R
 import org.futo.voiceinput.downloader.DownloadScreen
 import org.futo.voiceinput.downloader.EXAMPLE_MODELS
 import org.futo.voiceinput.downloader.ModelInfo
 import org.futo.voiceinput.downloader.ModelItem
-import org.futo.voiceinput.fileNeedsDownloading
-import org.futo.voiceinput.getLanguageModelMap
 import org.futo.voiceinput.isUsingTfliteLegacy
 import org.futo.voiceinput.settings.IS_ALREADY_PAID
 import org.futo.voiceinput.settings.MODELS_MIGRATED
@@ -55,7 +50,6 @@ import org.futo.voiceinput.settings.ScrollableList
 import org.futo.voiceinput.settings.useDataStore
 import org.futo.voiceinput.theme.Typography
 import org.futo.voiceinput.theme.UixThemeAuto
-import java.io.File
 import java.io.IOException
 
 

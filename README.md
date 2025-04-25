@@ -87,7 +87,8 @@ The microphone icon was taken from [Feather Icons](https://feathericons.com/), a
 
 Thanks to the following projects for making this possible:
 * OpenAI - [OpenAI Whisper](https://github.com/openai/whisper/)
-* TensorFlow Authors - [TensorFlow Lite](https://mvnrepository.com/artifact/org.tensorflow/tensorflow-lite)
+* Georgi Gerganov - [whisper.cpp](https://github.com/ggerganov/whisper.cpp)
+* TensorFlow Authors - [TensorFlow Lite](https://mvnrepository.com/artifact/org.tensorflow/tensorflow-lite) (tflite was used in the past, it's no longer used)
 * Max-Planck-Society - [PocketFFT](https://gitlab.mpcdf.mpg.de/mtr/pocketfft/-/blob/master/LICENSE.md)
 * The WebRTC project authors - [WebRTC VAD](https://github.com/abb128/android-vad/blob/main/vad/src/main/jni/webrtc_vad/LICENSE)
 * Georgiy Konovalov - [android-vad](https://github.com/abb128/android-vad)
