@@ -63,7 +63,7 @@ import org.futo.voiceinput.updates.scheduleUpdateCheckingJob
 
 @Composable
 fun RecognizerInputMethodWindow(switchBack: (() -> Unit)? = null, allowClick: Boolean = false, onPauseVAD: (Boolean) -> Unit = { }, onFinish: () -> Unit = { }, content: @Composable ColumnScope.() -> Unit) {
-    UixThemeAuto {
+    UixThemeAuto(false) {
         Surface(
             modifier = Modifier
                 .recognizerSurfaceClickable(disabled = !allowClick, onPauseVAD = onPauseVAD, onFinish = onFinish)

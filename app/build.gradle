@@ -11,12 +11,12 @@ licenseList {
 
 android {
     namespace 'org.futo.voiceinput'
-    compileSdk 33
+    compileSdk 35
 
     defaultConfig {
         applicationId "org.futo.voiceinput"
         minSdk 24
-        targetSdk 33
+        targetSdk 35
         versionCode 25
         versionName "1.3.4"
 

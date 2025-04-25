@@ -3,12 +3,16 @@ package org.futo.voiceinput.theme
 import android.app.Activity
 import android.content.Context
 import android.view.WindowManager
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
@@ -78,7 +82,7 @@ fun UixThemeWrapper(colorScheme: ColorScheme, content: @Composable () -> Unit) {
 }
 
 @Composable
-fun UixThemeAuto(content: @Composable () -> Unit) {
+fun UixThemeAuto(useSafeDrawingPadding: Boolean = true, content: @Composable () -> Unit) {
     val context = LocalContext.current
 
     val initialSetting = remember { runBlocking { context.getSetting(THEME_KEY.key, THEME_KEY.default) } }
@@ -96,5 +100,13 @@ fun UixThemeAuto(content: @Composable () -> Unit) {
     println("Ok theme is ${theme.key}")
     val colors = remember(theme.key) { theme.obtainColors(context) }
 
-    UixThemeWrapper(colorScheme = colors, content)
+    UixThemeWrapper(colorScheme = colors, {
+        Box(if(useSafeDrawingPadding) {
+            Modifier.background(colors.background).safeDrawingPadding()
+        } else {
+            Modifier
+        }) {
+            content()
+        }
+    })
 }

@@ -37,9 +37,9 @@ add_library(${CMAKE_PROJECT_NAME} SHARED
         ggml/ggml-quants.c
         jni_common.cpp)
 
-#if(ANDROID_ABI STREQUAL armeabi-v7a)
-set_target_properties(${CMAKE_PROJECT_NAME} PROPERTIES COMPILE_FLAGS -mfpu=neon)
-#endif()
+if(ANDROID_ABI STREQUAL armeabi-v7a)
+    set_target_properties(${CMAKE_PROJECT_NAME} PROPERTIES COMPILE_FLAGS -mfpu=neon)
+endif()
 
 
 # Specifies libraries CMake should link to your target library. You
