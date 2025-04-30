@@ -1,3 +1,10 @@
+# v1.3.5
+* Updated Android SDK to latest
+* Support for window insets
+* Updated setup menu
+* Removed deprecated Tensorflow module
+* Fixed a UTF-8 related JNI crash
+
 # v1.3.4
 * Fixed a compatibility issue with some devices causing a crash when used
 * Improvements for TalkBack
