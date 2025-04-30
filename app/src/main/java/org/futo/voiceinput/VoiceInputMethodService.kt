@@ -1,6 +1,7 @@
 package org.futo.voiceinput
 
 import android.content.Context
+import android.content.res.Configuration
 import android.inputmethodservice.InputMethodService
 import android.os.Build
 import android.text.InputType
@@ -13,9 +14,11 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
@@ -34,11 +37,14 @@ import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.core.view.WindowCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleCoroutineScope
 import androidx.lifecycle.LifecycleOwner
@@ -59,6 +65,17 @@ import org.futo.voiceinput.migration.scheduleModelMigrationJob
 import org.futo.voiceinput.settings.pages.ConditionalUnpaidNoticeInVoiceInputWindow
 import org.futo.voiceinput.theme.UixThemeAuto
 import org.futo.voiceinput.updates.scheduleUpdateCheckingJob
+
+val SupportsNavbarExtension = Build.VERSION.SDK_INT >= 28
+
+@Composable
+fun navBarHeight(): Dp = with(LocalDensity.current) {
+    if(SupportsNavbarExtension) {
+        WindowInsets.systemBars.getBottom(this).toDp()
+    } else {
+        0.dp
+    }
+}
 
 
 @Composable
@@ -117,6 +134,7 @@ fun RecognizerInputMethodWindow(switchBack: (() -> Unit)? = null, allowClick: Bo
                 }
 
                 content()
+                Spacer(Modifier.height(navBarHeight()))
             }
         }
     }
@@ -296,6 +314,7 @@ class VoiceInputMethodService : InputMethodService(), LifecycleOwner, ViewModelS
             this@VoiceInputMethodService.setOwners()
         }
 
+        updateNavigationBarVisibility()
         return composeView!!
     }
 
@@ -303,6 +322,14 @@ class VoiceInputMethodService : InputMethodService(), LifecycleOwner, ViewModelS
         // The candidates view shows potential word corrections or suggestions for the user to select.
         // Return null, as the voice input does not need this.
         return null
+    }
+
+    private fun updateNavigationBarVisibility() {
+        if(SupportsNavbarExtension) {
+            window.window?.let { window ->
+                WindowCompat.setDecorFitsSystemWindows(window, false)
+            }
+        }
     }
 
     private var needsInitialization = true
@@ -348,6 +375,11 @@ class VoiceInputMethodService : InputMethodService(), LifecycleOwner, ViewModelS
 
     override fun onCurrentInputMethodSubtypeChanged(newSubtype: InputMethodSubtype) {
         super.onCurrentInputMethodSubtypeChanged(newSubtype)
+    }
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        updateNavigationBarVisibility()
     }
 
     override fun onDestroy() {
