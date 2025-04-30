@@ -8,9 +8,13 @@
 #include "jni_common.h"
 
 std::string jstring2string(JNIEnv *env, jstring jStr) {
+    if(jStr == nullptr) {
+        AKLOGE("jstring is null!");
+        return "";
+    }
+
     const jsize stringUtf8Length = env->GetStringUTFLength(jStr);
     if (stringUtf8Length <= 0) {
-        AKLOGE("Can't get jStr");
         return "";
     }
     char stringChars[stringUtf8Length + 1];
@@ -18,6 +22,24 @@ std::string jstring2string(JNIEnv *env, jstring jStr) {
     stringChars[stringUtf8Length] = '\0';
 
     return {stringChars};
+}
+
+jstring string2jstring(JNIEnv *env, const char *str) {
+    jobject bb = env->NewDirectByteBuffer((void *)str, strlen(str));
+
+    jclass cls_Charset = env->FindClass("java/nio/charset/Charset");
+    jmethodID mid_Charset_forName = env->GetStaticMethodID(cls_Charset, "forName", "(Ljava/lang/String;)Ljava/nio/charset/Charset;");
+    jobject charset = env->CallStaticObjectMethod(cls_Charset, mid_Charset_forName, env->NewStringUTF("UTF-8"));
+
+    jmethodID mid_Charset_decode = env->GetMethodID(cls_Charset, "decode", "(Ljava/nio/ByteBuffer;)Ljava/nio/CharBuffer;");
+    jobject cb = env->CallObjectMethod(charset, mid_Charset_decode, bb);
+    env->DeleteLocalRef(bb);
+
+    jclass cls_CharBuffer = env->FindClass("java/nio/CharBuffer");
+    jmethodID mid_CharBuffer_toString = env->GetMethodID(cls_CharBuffer, "toString", "()Ljava/lang/String;");
+    jstring s = (jstring)env->CallObjectMethod(cb, mid_CharBuffer_toString);
+
+    return s;
 }
 
 
@@ -160,7 +182,7 @@ static jstring WhisperGGML_infer(JNIEnv *env, jobject instance, jlong handle, jf
 
         auto *wstate = reinterpret_cast<WhisperModelState *>(user_data);
 
-        jstring pjstr = wstate->env->NewStringUTF(partial.c_str());
+        jstring pjstr = string2jstring(wstate->env, partial.c_str());
         wstate->env->CallVoidMethod(wstate->partial_result_instance, wstate->partial_result_method, pjstr);
         wstate->env->DeleteLocalRef(pjstr);
     };
@@ -203,7 +225,7 @@ static jstring WhisperGGML_infer(JNIEnv *env, jobject instance, jlong handle, jf
         output = "<>CANCELLED<> lang=" + std::string(whisper_lang_str(whisper_full_lang_id(state->context)));
     }
 
-    jstring jstr = env->NewStringUTF(output.c_str());
+    jstring jstr = string2jstring(env, output.c_str());
     return jstr;
 }
 
