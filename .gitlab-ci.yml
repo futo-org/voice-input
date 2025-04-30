@@ -1,5 +1,5 @@
 default:
-  image: "docker.io/abb128/android-build:latest@sha256:8df16e2badb5e42d2f5e3862683c7ff0ebdcc348affe059385e42eebef79302f"
+  image: "gitlab.futo.org:5050/keyboard/latinime/gradle:latest"
 
 variables:
   GIT_SUBMODULE_STRATEGY: recursive
@@ -15,7 +15,7 @@ unit-test-job:
   tags:
     - docker
   script:
-    - gradle testDevDebugUnitTest -s
+    - ggradle testDevDebugUnitTest -s
   artifacts:
     reports:
       junit:
