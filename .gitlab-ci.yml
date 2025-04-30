@@ -15,7 +15,7 @@ unit-test-job:
   tags:
     - docker
   script:
-    - gradle testDevDebugUnitTest -s
+    - ./gradlew testDevDebugUnitTest -s
   artifacts:
     reports:
       junit:
@@ -27,7 +27,7 @@ buildDev:
     - docker
   script:
     - ./setUpPropertiesCI.sh
-    - gradle assembleDevRelease -s
+    - ./gradlew assembleDevRelease -s
     - mv app/build/outputs/apk/dev/release/app-dev-release.apk ./app-release-$CI_COMMIT_SHORT_SHA.apk
   artifacts:
     name: "app-release-$CI_COMMIT_SHORT_SHA"
@@ -41,9 +41,9 @@ buildRelease:
     - docker
   script:
     - ./setUpPropertiesCI.sh
-    - gradle bundlePlayStoreRelease -s
-    - gradle assembleStandaloneRelease -s
-    - gradle assembleFDroidRelease -s
+    - ./gradlew bundlePlayStoreRelease -s
+    - ./gradlew assembleStandaloneRelease -s
+    - ./gradlew assembleFDroidRelease -s
     - mv app/build/outputs/bundle/playStoreRelease/app-playStore-release.aab ./playStore.aab
     - mv app/build/outputs/apk/standalone/release/app-standalone-release.apk ./standalone.apk
     - mv app/build/outputs/apk/fDroid/release/app-fDroid-release.apk ./fdroid.apk
