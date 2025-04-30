@@ -15,7 +15,7 @@ unit-test-job:
   tags:
     - docker
   script:
-    - ggradle testDevDebugUnitTest -s
+    - gradle testDevDebugUnitTest -s
   artifacts:
     reports:
       junit:
