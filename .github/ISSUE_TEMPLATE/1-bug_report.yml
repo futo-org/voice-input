@@ -10,7 +10,7 @@ body:
       value: |
         # Thank you for taking the time to fill out this bug report.
 
-        The [android-keyboard](https://github.com/futo-org/android-keyboard) issue tracker is reserved for issues relating to the FUTO Keyboard Android Application
+        The [voice-input](https://github.com/futo-org/voice-input) issue tracker is reserved for issues relating to the FUTO Voice Input Android Application
 
         For general usage questions, please see the [FUTO Keyboard Zulip Channel](https://chat.futo.org/#narrow/stream/53-Keyboard) or the [FUTO Keyboard Discord](https://keyboard.futo.org/discord)
 
@@ -28,9 +28,9 @@ body:
       label: Reproduction steps
       description: Please provide us with the steps to reproduce the issue if possible. This step makes a big difference if we are going to be able to fix it so be as precise as possible.
       placeholder: |
-        1. Open Keyboard settings
-        2. Go to Theme settings
-        3. Change theme to AOSP Material Dark
+        1. Open FUTO Voice Input application
+        2. Go to "Testing Menu"
+        3. Trigger voice input
         4. Application crashes
     validations:
       required: true
@@ -54,11 +54,11 @@ body:
       required: true
 
   - type: input
-    id: keyboard-version
+    id: voice-input-version
     attributes:
-      label: Keyboard Version
-      description: Open the FUTO Keyboard settings and look for the version name at the bottom, or in the Help & Feedback menu. Please make sure you're up-to-date before filing a bug report. Reports from outdated versions may be closed.
-      placeholder: "0.1.22"
+      label: Voice Input Version
+      description: Open the FUTO Voice Input application and look for the version name at the top-right. Please make sure you're up-to-date before filing a bug report. Reports from outdated versions may be closed.
+      placeholder: "1.3.5"
     validations:
       required: true
 
