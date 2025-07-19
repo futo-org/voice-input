@@ -1,3 +1,9 @@
+# v1.3.6
+* Updated Google Play billing SDK to latest
+* Updated some other dependencies
+* Added notice in payment menu about development status of the app
+* Ported keyboard changes to allow inputs longer than 30 seconds
+
 # v1.3.5
 * Updated Android SDK to latest
 * Support for window insets
