@@ -349,7 +349,7 @@ abstract class AudioRecognizer {
 
             recorderJob = lifecycleScope.launch {
                 withContext(Dispatchers.Default) {
-                    canExpandSpace = context.getSetting(ENABLE_30S_LIMIT)
+                    canExpandSpace = context.getSetting(ENABLE_30S_LIMIT) == false
 
                     var hasTalked = false
                     var anyNoiseAtAll = false
