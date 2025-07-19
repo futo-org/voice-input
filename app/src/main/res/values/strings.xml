@@ -4,6 +4,7 @@
     <string name="support_email" translatable="false">voiceinput@futo.org</string>
     <string name="suppress_non_speech_annotations">Suppress non-speech annotations</string>
     <string name="suppress_non_speech_annotations_subtitle">[cough], [music], etc</string>
+    <string name="re_enable_30s_limit">Re-enable legacy 30-second limit</string>
     <string name="testing_menu">Testing Menu</string>
     <string name="verbose_mode">Verbose Mode</string>
     <string name="go">Go</string>

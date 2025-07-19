@@ -1,5 +1,6 @@
 #include <string>
 #include <vector>
+#include <map>
 #include <jni.h>
 #include <bits/sysconf.h>
 #include "ggml/whisper.h"
@@ -51,6 +52,7 @@ struct WhisperModelState {
     struct whisper_context *context = nullptr;
 
     std::vector<int> last_forbidden_languages;
+    std::map<int, std::string> partial_results;
 };
 
 static jlong WhisperGGML_open(JNIEnv *env, jclass clazz, jstring model_dir) {
@@ -124,7 +126,7 @@ static jstring WhisperGGML_infer(JNIEnv *env, jobject instance, jlong handle, jf
     wparams.max_tokens = 256;
     wparams.n_threads = (int)num_procs;
 
-    wparams.audio_ctx = std::min(1500, (int)ceil((double)num_samples / (double)(320.0)) + 16);
+    wparams.audio_ctx = std::min(1500, (int)ceil((double)num_samples / (double)(320.0)) + 32);
     wparams.temperature_inc = 0.0f;
 
     // Replicates old tflite behavior
@@ -140,7 +142,7 @@ static jstring WhisperGGML_infer(JNIEnv *env, jobject instance, jlong handle, jf
 
     wparams.suppress_blank = false;
     wparams.suppress_non_speech_tokens = suppress_non_speech_tokens;
-    wparams.no_timestamps = true;
+    wparams.no_timestamps = num_samples < 16000 * 25;
 
     if(allowed_languages.size() == 0) {
         wparams.language = nullptr;
@@ -167,22 +169,40 @@ static jstring WhisperGGML_infer(JNIEnv *env, jobject instance, jlong handle, jf
     wparams.partial_text_callback = [](struct whisper_context * ctx, struct whisper_state * state, const whisper_token_data *tokens, size_t n_tokens, void * user_data) {
         std::string partial;
         for(size_t i=0; i < n_tokens; i++) {
+            bool skipping = false;
             if(tokens[i].id == whisper_token_beg(ctx) ||
-                tokens[i].id == whisper_token_eot(ctx) ||
-                tokens[i].id == whisper_token_nosp(ctx) ||
-                tokens[i].id == whisper_token_not(ctx) ||
-                tokens[i].id == whisper_token_prev(ctx) ||
-                tokens[i].id == whisper_token_solm(ctx) ||
-                tokens[i].id == whisper_token_sot(ctx) ||
-                tokens[i].id == whisper_token_transcribe(ctx) ||
-                tokens[i].id == whisper_token_translate(ctx)) continue;
+               tokens[i].id == whisper_token_eot(ctx) ||
+               tokens[i].id == whisper_token_nosp(ctx) ||
+               tokens[i].id == whisper_token_not(ctx) ||
+               tokens[i].id == whisper_token_prev(ctx) ||
+               tokens[i].id == whisper_token_solm(ctx) ||
+               tokens[i].id == whisper_token_sot(ctx) ||
+               tokens[i].id == whisper_token_transcribe(ctx) ||
+               tokens[i].id == whisper_token_translate(ctx)) skipping = true;
 
+            // Skip timestamp token
+            if(tokens[i].id >= whisper_token_beg(ctx)
+               && tokens[i].id <= whisper_token_beg(ctx)+1500) {
+                skipping = true;
+            }
+
+            if(skipping) continue;
             partial += whisper_token_to_str(ctx, tokens[i].id);
         }
 
         auto *wstate = reinterpret_cast<WhisperModelState *>(user_data);
+        wstate->partial_results[whisper_full_n_segments_from_state(state)] = partial;
 
-        jstring pjstr = string2jstring(wstate->env, partial.c_str());
+        // Add previous segment partials
+        std::string final_partial;
+        for(int i=0; i<whisper_full_n_segments_from_state(state); i++) {
+            if(wstate->partial_results.count(i))
+                final_partial.append(wstate->partial_results[i]);
+        }
+
+        final_partial.append(partial);
+
+        jstring pjstr = string2jstring(wstate->env, final_partial.c_str());
         wstate->env->CallVoidMethod(wstate->partial_result_instance, wstate->partial_result_method, pjstr);
         wstate->env->DeleteLocalRef(pjstr);
     };
@@ -215,7 +235,8 @@ static jstring WhisperGGML_infer(JNIEnv *env, jobject instance, jlong handle, jf
     const int n_segments = whisper_full_n_segments(state->context);
 
     for (int i = 0; i < n_segments; i++) {
-        auto seg = whisper_full_get_segment_text(state->context, i);
+        auto seg = std::string(whisper_full_get_segment_text(state->context, i));
+        if(seg == " you" && i == n_segments - 1) continue;
         output.append(seg);
     }
 

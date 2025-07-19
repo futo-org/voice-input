@@ -112,6 +112,7 @@ val ENABLE_ANIMATIONS = SettingsKey(booleanPreferencesKey("enable_animations"), 
 val VERBOSE_PROGRESS = SettingsKey(booleanPreferencesKey("verbose_progress"), false)
 val ENABLE_MULTILINGUAL = SettingsKey(booleanPreferencesKey("enable_multilingual"), false)
 val DISALLOW_SYMBOLS = SettingsKey(booleanPreferencesKey("disallow_symbols"), true)
+val ENABLE_30S_LIMIT = SettingsKey(booleanPreferencesKey("enable_30s_limit"), false)
 
 val ENGLISH_MODEL_INDEX = SettingsKey(intPreferencesKey("english_model_index"), 0)
 

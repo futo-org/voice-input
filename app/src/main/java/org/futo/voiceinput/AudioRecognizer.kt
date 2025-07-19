@@ -31,6 +31,7 @@ import org.futo.voiceinput.ml.RunState
 import org.futo.voiceinput.ml.WhisperModelWrapper
 import org.futo.voiceinput.settings.BEAM_SEARCH
 import org.futo.voiceinput.settings.DISALLOW_SYMBOLS
+import org.futo.voiceinput.settings.ENABLE_30S_LIMIT
 import org.futo.voiceinput.settings.ENABLE_MULTILINGUAL
 import org.futo.voiceinput.settings.ENGLISH_MODEL_INDEX
 import org.futo.voiceinput.settings.IS_VAD_ENABLED
@@ -64,10 +65,22 @@ abstract class AudioRecognizer {
 
     private var model: WhisperModelWrapper? = null
 
-    private val floatSamples: FloatBuffer = FloatBuffer.allocate(16000 * 30)
+    private var floatSamples: FloatBuffer = FloatBuffer.allocate(16000 * 30)
     private var recorderJob: Job? = null
     private var modelJob: Job? = null
     private var loadModelJob: Job? = null
+
+    private var canExpandSpace = true
+    private fun expandSpaceIfAllowed(): Boolean {
+        if(canExpandSpace) {
+            // Allocate an extra 30 seconds
+            val newSampleBuffer = FloatBuffer.allocate(floatSamples.capacity() + 16000 * 30)
+            newSampleBuffer.put(floatSamples.array(), 0, floatSamples.capacity() - floatSamples.remaining())
+            floatSamples = newSampleBuffer
+            return true
+        }
+        return false
+    }
 
 
     protected abstract val context: Context
@@ -336,6 +349,8 @@ abstract class AudioRecognizer {
 
             recorderJob = lifecycleScope.launch {
                 withContext(Dispatchers.Default) {
+                    canExpandSpace = context.getSetting(ENABLE_30S_LIMIT)
+
                     var hasTalked = false
                     var anyNoiseAtAll = false
                     var isMicBlocked = false
@@ -366,7 +381,7 @@ abstract class AudioRecognizer {
 
                         if(!isRecording || recorder!!.recordingState != AudioRecord.RECORDSTATE_RECORDING) break
 
-                        if(floatSamples.remaining() < 1600) {
+                        if(floatSamples.remaining() < 1600 && !expandSpaceIfAllowed()) {
                             withContext(Dispatchers.Main){ finishRecognizer() }
                             break
                         }
@@ -433,7 +448,7 @@ abstract class AudioRecognizer {
 
                         val magnitude = (1.0f - 0.1f.pow(24.0f * rms))
 
-                        val state = if (floatSamples.remaining() < (16000 * 5)) {
+                        val state = if (!canExpandSpace && floatSamples.remaining() < (16000 * 5)) {
                             MagnitudeState.ENDING_SOON_30S
                         } else if(hasTalked && shouldUseVad && (numConsecutiveNonSpeech > 33)) {
                             MagnitudeState.ENDING_SOON_VAD
@@ -459,7 +474,8 @@ abstract class AudioRecognizer {
                             yield()
                             val nRead2 = recorder!!.read(samples, 0, 1600, AudioRecord.READ_NON_BLOCKING)
                             if(nRead2 > 0) {
-                                if(floatSamples.remaining() < nRead2){
+                                if(floatSamples.remaining() < nRead2 && !expandSpaceIfAllowed()){
+                                    yield()
                                     withContext(Dispatchers.Main){ finishRecognizer() }
                                     break
                                 }

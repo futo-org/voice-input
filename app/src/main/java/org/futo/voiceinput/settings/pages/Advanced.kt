@@ -13,6 +13,7 @@ import org.futo.voiceinput.settings.ALLOW_UNDERTRAINED_LANGUAGES
 import org.futo.voiceinput.settings.BEAM_SEARCH
 import org.futo.voiceinput.settings.DISALLOW_SYMBOLS
 import org.futo.voiceinput.settings.DevOnlySettings
+import org.futo.voiceinput.settings.ENABLE_30S_LIMIT
 import org.futo.voiceinput.settings.MULTILINGUAL_MODEL_INDEX
 import org.futo.voiceinput.settings.NavigationItem
 import org.futo.voiceinput.settings.NavigationItemStyle
@@ -68,6 +69,11 @@ fun AdvancedScreen(
             title = stringResource(R.string.open_input_method_settings),
             style = NavigationItemStyle.Misc,
             navigate = { openImeOptions(context) }
+        )
+
+        SettingToggleDataStore(
+            stringResource(R.string.re_enable_30s_limit),
+            ENABLE_30S_LIMIT,
         )
 
         DevOnlySettings()
