@@ -118,6 +118,8 @@ fun PaymentText(verbose: Boolean) {
             title = stringResource(R.string.commitment_to_privacy_title),
             body = stringResource(R.string.commitment_to_privacy_body)
         )
+
+        ParagraphText(stringResource(R.string.payment_dev_notice))
     } else {
         ParagraphText(stringResource(R.string.payment_text_2))
     }

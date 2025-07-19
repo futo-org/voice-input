@@ -94,6 +94,7 @@
     <string name="multilingual_model">Multilingual Model</string>
     <string name="payment_text_1">You\'ve been using FUTO Voice Input for <xliff:g name="days" example="30">%d</xliff:g> days. If you find this app useful, please consider paying to support future development of FUTO software.</string>
     <string name="payment_text_1_alt">Thank you for trying out FUTO Voice Input! If you find this app useful, please consider paying to support future development of FUTO software.</string>
+    <string name="payment_dev_notice">NOTE: Development has largely shifted to FUTO Keyboard and this app is not expected to receive any major updates at this time. Nevertheless, we would appreciate your support.</string>
     <string name="payment_text_2">FUTO is dedicated to making good software that doesn\'t abuse you. This app will never serve you ads or collect your personal data.</string>
     <string name="thank_you_for_purchasing_voice_input">Thank you for purchasing Voice Input!</string>
     <string name="payment_pending_body">Your payment is still pending, but it should clear soon.</string>
