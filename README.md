@@ -66,6 +66,9 @@ Language support and accuracy may expand in the future with better optimization 
 
 You can develop this app by opening it in Android Studio. Otherwise, you can use Gradle to build the app like so:
 ```bash
+#After cloning cd into voice-input, then Download client-libraries 
+git clone https://gitlab.futo.org/alex/futopayclientlibraries dep/futopay/
+#Build the app
 ./gradlew assembleStandaloneRelease
 ```
 
