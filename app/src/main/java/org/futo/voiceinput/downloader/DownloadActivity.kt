@@ -19,9 +19,13 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ProgressIndicatorDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -49,33 +53,33 @@ import java.io.IOException
 data class ModelInfo(
     val name: String,
     val url: String,
-    var size: Long?,
-    var progress: Float = 0.0f,
-    var error: Boolean = false,
-    var finished: Boolean = false
+    val size: MutableState<Long?> = mutableStateOf(null),
+    val progress: MutableState<Float> = mutableStateOf(0.0f),
+    val error: MutableState<Boolean> = mutableStateOf(false),
+    val finished: MutableState<Boolean> = mutableStateOf(false)
 )
 
 val EXAMPLE_MODELS = listOf(
     ModelInfo(
         name = "tiny-encoder-xatn.tflite",
         url = "example.com",
-        size = 56L * 1024L * 1024L,
-        progress = 0.5f,
-        error = true
+        size = mutableStateOf(56L * 1024L * 1024L),
+        progress = mutableStateOf(0.5f),
+        error = mutableStateOf(true)
     ),
     ModelInfo(
         name = "tiny-decoder.tflite",
         url = "example.com",
-        size = 73L * 1024L * 1024L,
-        progress = 0.3f,
-        error = false
+        size = mutableStateOf(73L * 1024L * 1024L),
+        progress = mutableStateOf(0.3f),
+        error = mutableStateOf(false)
     ),
 )
 
 @Composable
 fun ModelItem(model: ModelInfo, showProgress: Boolean) {
     Column(modifier = Modifier.padding(16.dp, 8.dp)) {
-        val color = if (model.error) {
+        val color = if (model.error.value) {
             MaterialTheme.colorScheme.errorContainer
         } else {
             MaterialTheme.colorScheme.primaryContainer
@@ -86,7 +90,7 @@ fun ModelItem(model: ModelInfo, showProgress: Boolean) {
                     .fillMaxWidth()
                     .padding(8.dp)
             ) {
-                if (model.error) {
+                if (model.error.value) {
                     Icon(
                         Icons.Default.Warning, contentDescription = "Failed", modifier = Modifier
                             .align(CenterVertically)
@@ -94,11 +98,9 @@ fun ModelItem(model: ModelInfo, showProgress: Boolean) {
                     )
                 }
 
-                val size = if (model.size != null) {
-                    "%.1f".format(model.size!!.toFloat() / 1000000.0f)
-                } else {
-                    "?"
-                }
+                val size = model.size.value?.let {
+                    "%.1f".format(it.toFloat() / 1000000.0f)
+                } ?: "?"
 
                 Column {
                     Text(model.name, style = Typography.bodyLarge)
@@ -107,12 +109,13 @@ fun ModelItem(model: ModelInfo, showProgress: Boolean) {
                         style = Typography.bodySmall,
                         color = MaterialTheme.colorScheme.outline
                     )
-                    if (showProgress && !model.error) {
+                    if (showProgress && !model.error.value) {
                         LinearProgressIndicator(
-                            progress = model.progress, modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(0.dp, 8.dp),
-                            color = MaterialTheme.colorScheme.onPrimary
+                            progress = { model.progress.value },
+                            modifier = Modifier.fillMaxWidth().padding(0.dp, 8.dp),
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            trackColor = ProgressIndicatorDefaults.linearTrackColor,
+                            strokeCap = ProgressIndicatorDefaults.LinearStrokeCap,
                         )
                     }
                 }
@@ -171,7 +174,7 @@ fun DownloadPrompt(
 fun DownloadScreen(models: List<ModelInfo> = EXAMPLE_MODELS) {
     ScrollableList {
         ScreenTitle(stringResource(R.string.download_progress))
-        if (models.any { it.error }) {
+        if (models.any { it.error.value }) {
             Text(
                 stringResource(R.string.download_failed),
                 modifier = Modifier.padding(16.dp, 0.dp),
@@ -192,9 +195,9 @@ fun DownloadScreen(models: List<ModelInfo> = EXAMPLE_MODELS) {
 }
 
 class DownloadActivity : ComponentActivity() {
-    private lateinit var modelsToDownload: List<ModelInfo>
+    private val modelsToDownload: MutableList<ModelInfo> = mutableStateListOf()
     private val httpClient = OkHttpClient()
-    private var isDownloading = false
+    private val isDownloading = mutableStateOf(false)
 
     private fun updateContent() {
         setContent {
@@ -204,7 +207,7 @@ class DownloadActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    if (isDownloading) {
+                    if (isDownloading.value) {
                         DownloadScreen(models = modelsToDownload)
                     } else {
                         DownloadPrompt(
@@ -219,23 +222,20 @@ class DownloadActivity : ComponentActivity() {
     }
 
     private fun startDownload() {
-        isDownloading = true
-        updateContent()
+        isDownloading.value = true
 
         modelsToDownload.forEach {
             val request = Request.Builder().method("GET", null).url(it.url).build()
 
             httpClient.newCall(request).enqueue(object : Callback {
                 override fun onFailure(call: Call, e: IOException) {
-                    it.error = true
-                    updateContent()
+                    it.error.value = true
                 }
 
                 override fun onResponse(call: Call, response: Response) {
                     response.body?.source()?.let { source ->
-
                         try {
-                            it.size = response.headers["content-length"]!!.toLong()
+                            it.size.value = response.headers["content-length"]!!.toLong()
                         } catch (e: Exception) {
                             println("url failed ${it.url}")
                             println(response.headers)
@@ -259,25 +259,19 @@ class DownloadActivity : ComponentActivity() {
 
                             downloaded += read
 
-                            if (it.size != null) {
-                                it.progress = downloaded.toFloat() / it.size!!.toFloat()
-                            }
-
-                            lifecycleScope.launch {
-                                withContext(Dispatchers.Main) {
-                                    updateContent()
-                                }
-                            }
+                            it.progress.value = it.size.value?.let {
+                                downloaded.toFloat() / it.toFloat()
+                            } ?: 0.0f
                         }
 
-                        it.finished = true
-                        it.progress = 1.0f
+                        it.finished.value = true
+                        it.progress.value = 1.0f
                         os.flush()
                         os.close()
 
                         assert(file.renameTo(File(this@DownloadActivity.filesDir, it.name)))
 
-                        if (modelsToDownload.all { a -> a.finished }) {
+                        if (modelsToDownload.all { a -> a.finished.value }) {
                             downloadsFinished()
                         }
                     }
@@ -306,25 +300,23 @@ class DownloadActivity : ComponentActivity() {
 
             httpClient.newCall(request).enqueue(object : Callback {
                 override fun onFailure(call: Call, e: IOException) {
-                    it.error = true
-                    updateContent()
+                    it.error.value = true
                 }
 
                 override fun onResponse(call: Call, response: Response) {
                     try {
-                        it.size = response.headers["content-length"]!!.toLong()
+                        it.size.value = response.headers["content-length"]!!.toLong()
                     } catch (e: Exception) {
                         println("url failed ${it.url}")
                         println(response.headers)
                         e.printStackTrace()
-                        it.error = true
+                        it.error.value = true
                     }
 
                     if (response.code != 200) {
                         println("Bad response code ${response.code}")
-                        it.error = true
+                        it.error.value = true
                     }
-                    updateContent()
                 }
             })
         }
@@ -336,21 +328,22 @@ class DownloadActivity : ComponentActivity() {
         val models = intent.getStringArrayListExtra("models")
             ?: throw IllegalStateException("intent extra `models` must be specified for DownloadActivity")
 
-        modelsToDownload = models.filter { this.fileNeedsDownloading(it) }.map {
+        modelsToDownload.clear()
+
+        updateContent()
+
+        modelsToDownload.addAll(models.filter { this.fileNeedsDownloading(it) }.map {
             ModelInfo(
                 name = it,
-                url = "https://voiceinput.futo.org/VoiceInput/${it}",
-                size = null,
-                progress = 0.0f
+                url = "https://voiceinput.futo.org/VoiceInput/${it}"
             )
-        }
+        })
 
         if (modelsToDownload.isEmpty()) {
             cancel()
         }
 
-        isDownloading = false
-        updateContent()
+        isDownloading.value = false
 
         obtainModelSizes()
     }
