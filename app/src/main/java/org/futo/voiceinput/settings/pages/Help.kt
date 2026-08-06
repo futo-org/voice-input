@@ -61,19 +61,21 @@ fun HelpScreen(navController: NavHostController = rememberNavController()) {
         Column(modifier = Modifier.fillMaxWidth()) {
             Box(modifier = Modifier.align(CenterHorizontally)) {
                 RecognizeWindow(onClose = showAntiConfusionToast, forceNoUnpaidNotice = true) {
-                    Text(
-                        stringResource(R.string.voice_input_will_look_like_this),
-                        modifier = Modifier.align(CenterHorizontally),
-                        textAlign = TextAlign.Center
-                    )
-                    Text(
-                        stringResource(R.string.look_for_the_big_off_center_futo_logo_in_the_background),
-                        style = Typography.bodyMedium,
-                        modifier = Modifier
-                            .padding(2.dp, 4.dp)
-                            .align(CenterHorizontally),
-                        textAlign = TextAlign.Center
-                    )
+                    Column {
+                        Text(
+                            stringResource(R.string.voice_input_will_look_like_this),
+                            modifier = Modifier.align(CenterHorizontally),
+                            textAlign = TextAlign.Center
+                        )
+                        Text(
+                            stringResource(R.string.look_for_the_big_off_center_futo_logo_in_the_background),
+                            style = Typography.bodyMedium,
+                            modifier = Modifier
+                                .padding(2.dp, 4.dp)
+                                .align(CenterHorizontally),
+                            textAlign = TextAlign.Center
+                        )
+                    }
                 }
             }
         }
@@ -83,26 +85,28 @@ fun HelpScreen(navController: NavHostController = rememberNavController()) {
         Column(modifier = Modifier.fillMaxWidth()) {
             Box(modifier = Modifier.align(CenterHorizontally)) {
                 RecognizeWindow(onClose = showAntiConfusionToast, forceNoUnpaidNotice = true) {
-                    IconButton(
-                        onClick = showAntiConfusionToast,
-                        modifier = Modifier.align(CenterHorizontally)
-                    ) {
-                        Icon(
-                            painter = painterResource(R.drawable.mic_2_),
-                            contentDescription = stringResource(R.string.stop_recording),
-                            modifier = Modifier.size(48.dp),
-                            tint = MaterialTheme.colorScheme.onPrimaryContainer
+                    Column {
+                        IconButton(
+                            onClick = showAntiConfusionToast,
+                            modifier = Modifier.align(CenterHorizontally)
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.mic_2_),
+                                contentDescription = stringResource(R.string.stop_recording),
+                                modifier = Modifier.size(48.dp),
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            stringResource(R.string.once_you_re_done_talking_you_can_hit_the_microphone_button_to_stop),
+                            style = Typography.bodyMedium,
+                            modifier = Modifier
+                                .padding(2.dp, 4.dp)
+                                .align(CenterHorizontally),
+                            textAlign = TextAlign.Center
                         )
                     }
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        stringResource(R.string.once_you_re_done_talking_you_can_hit_the_microphone_button_to_stop),
-                        style = Typography.bodyMedium,
-                        modifier = Modifier
-                            .padding(2.dp, 4.dp)
-                            .align(CenterHorizontally),
-                        textAlign = TextAlign.Center
-                    )
                 }
             }
         }

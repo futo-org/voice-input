@@ -87,6 +87,7 @@ android {
         compose true
         viewBinding true
         mlModelBinding true
+        buildConfig true
     }
     composeOptions {
         kotlinCompilerExtensionVersion '1.4.6'
@@ -196,6 +197,7 @@ android {
 }
 
 dependencies {
+    implementation project(':shared')
     implementation 'androidx.core:core-ktx:1.10.1'
     implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.6.1'
     implementation 'androidx.lifecycle:lifecycle-runtime:2.6.1'

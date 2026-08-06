@@ -19,17 +19,11 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
-import org.futo.voiceinput.ENGLISH_MODELS
-import org.futo.voiceinput.MULTILINGUAL_MODELS
 import org.futo.voiceinput.R
-import org.futo.voiceinput.migration.ConditionalModelUpdate
-import org.futo.voiceinput.migration.NeedsMigration
-import org.futo.voiceinput.settings.DISMISS_MIGRATION_TIP
 import org.futo.voiceinput.settings.ENABLE_MULTILINGUAL
 import org.futo.voiceinput.settings.ENGLISH_MODEL_INDEX
 import org.futo.voiceinput.settings.LANGUAGE_TOGGLES
 import org.futo.voiceinput.settings.MANUALLY_SELECT_LANGUAGE
-import org.futo.voiceinput.settings.MODELS_MIGRATED
 import org.futo.voiceinput.settings.MULTILINGUAL_MODEL_INDEX
 import org.futo.voiceinput.settings.PERSONAL_DICTIONARY
 import org.futo.voiceinput.settings.ScreenTitle
@@ -39,8 +33,9 @@ import org.futo.voiceinput.settings.SettingToggleDataStore
 import org.futo.voiceinput.settings.SettingsViewModel
 import org.futo.voiceinput.settings.Tip
 import org.futo.voiceinput.settings.USE_LANGUAGE_SPECIFIC_MODELS
-import org.futo.voiceinput.settings.getSettingBlocking
 import org.futo.voiceinput.settings.useDataStore
+import org.futo.voiceinput.shared.ENGLISH_MODELS
+import org.futo.voiceinput.shared.MULTILINGUAL_MODELS
 import org.futo.voiceinput.startModelDownloadActivity
 
 @Composable
@@ -94,11 +89,8 @@ fun modelsSubtitle(): String? {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PersonalDictionaryEditor(disabled: Boolean) {
-    val context = LocalContext.current
-
     val personalDict = useDataStore(PERSONAL_DICTIONARY)
-    val textFieldValue = remember { mutableStateOf(context.getSettingBlocking(
-        PERSONAL_DICTIONARY.key, PERSONAL_DICTIONARY.default)) }
+    val textFieldValue = remember { mutableStateOf(personalDict.value) }
 
     LaunchedEffect(textFieldValue.value) {
         personalDict.setValue(textFieldValue.value)
@@ -135,10 +127,6 @@ fun ModelsScreen(
     val (useLanguageSpecificModels, _) = useDataStore(USE_LANGUAGE_SPECIFIC_MODELS)
 
     val context = LocalContext.current
-    val needsUpdate = NeedsMigration()
-
-    val wasMigrated = useDataStore(setting = MODELS_MIGRATED)
-    val dismissMigrationTip = useDataStore(setting = DISMISS_MIGRATION_TIP)
 
     val launchDownloaderIfNecessary = {
         if (useMultilingual) {
@@ -161,12 +149,6 @@ fun ModelsScreen(
     ScrollableList {
         ScreenTitle(stringResource(R.string.model_options), showBack = true, navController = navController)
 
-        ConditionalModelUpdate()
-
-        if(wasMigrated.value && !dismissMigrationTip.value) {
-            Tip(stringResource(R.string.new_model_features_tip), onDismiss = { dismissMigrationTip.setValue(true) })
-        }
-
         if(languages.size > 1) {
             SettingToggleDataStore(
                 stringResource(R.string.manually_select_language),
@@ -175,17 +157,15 @@ fun ModelsScreen(
             )
         }
 
-        if(!needsUpdate) {
-            PersonalDictionaryEditor(disabled = false)
+        PersonalDictionaryEditor(disabled = false)
 
-            Spacer(modifier = Modifier.height(32.dp))
-        }
+        Spacer(modifier = Modifier.height(32.dp))
 
         if (useMultilingual) {
             SettingRadio(
                 stringResource(R.string.multilingual_model),
                 MULTILINGUAL_MODELS.indices.toList(),
-                MULTILINGUAL_MODELS.map { it.name },
+                MULTILINGUAL_MODELS.map { stringResource(it.name) },
                 MULTILINGUAL_MODEL_INDEX
             )
         }
@@ -194,7 +174,7 @@ fun ModelsScreen(
             SettingRadio(
                 stringResource(R.string.english_model),
                 ENGLISH_MODELS.indices.toList(),
-                ENGLISH_MODELS.map { it.name },
+                ENGLISH_MODELS.map { stringResource(it.name) },
                 ENGLISH_MODEL_INDEX
             )
         }

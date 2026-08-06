@@ -14,7 +14,6 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.Job
 import org.futo.voiceinput.LANGUAGE_LIST
-import org.futo.voiceinput.MULTILINGUAL_MODELS
 import org.futo.voiceinput.R
 import org.futo.voiceinput.settings.ALLOW_UNDERTRAINED_LANGUAGES
 import org.futo.voiceinput.settings.ENABLE_MULTILINGUAL
@@ -26,6 +25,7 @@ import org.futo.voiceinput.settings.SettingToggleRaw
 import org.futo.voiceinput.settings.SettingsViewModel
 import org.futo.voiceinput.settings.Tip
 import org.futo.voiceinput.settings.useDataStore
+import org.futo.voiceinput.shared.MULTILINGUAL_MODELS
 import org.futo.voiceinput.startModelDownloadActivity
 
 

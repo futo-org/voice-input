@@ -7,7 +7,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
-import org.futo.voiceinput.MULTILINGUAL_MODELS
 import org.futo.voiceinput.R
 import org.futo.voiceinput.settings.ALLOW_UNDERTRAINED_LANGUAGES
 import org.futo.voiceinput.settings.BEAM_SEARCH
@@ -24,6 +23,7 @@ import org.futo.voiceinput.settings.SettingsViewModel
 import org.futo.voiceinput.settings.VERBOSE_PROGRESS
 import org.futo.voiceinput.settings.openImeOptions
 import org.futo.voiceinput.settings.useDataStore
+import org.futo.voiceinput.shared.MULTILINGUAL_MODELS
 
 @Composable
 @Preview

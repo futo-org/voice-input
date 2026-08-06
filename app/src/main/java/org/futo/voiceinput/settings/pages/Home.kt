@@ -29,7 +29,6 @@ import org.futo.voiceinput.R
 import org.futo.voiceinput.openURI
 import org.futo.voiceinput.theme.Typography
 import org.futo.voiceinput.BuildConfig
-import org.futo.voiceinput.migration.ConditionalModelUpdate
 import org.futo.voiceinput.settings.ConditionalUpdate
 import org.futo.voiceinput.settings.ENABLE_MULTILINGUAL
 import org.futo.voiceinput.settings.IS_ALREADY_PAID
@@ -115,7 +114,6 @@ fun HomeScreen(
 
         ConditionalUnpaidNoticeWithNav(navController)
         ConditionalUpdate()
-        ConditionalModelUpdate()
 
         SettingsSeparator(stringResource(R.string.options))
         NavigationItem(

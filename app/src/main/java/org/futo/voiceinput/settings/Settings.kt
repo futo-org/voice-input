@@ -7,14 +7,18 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
+import androidx.datastore.preferences.core.preferencesOf
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.take
@@ -25,58 +29,41 @@ import org.futo.voiceinput.BuildConfig
 import org.futo.voiceinput.theme.presets.DevThemeYellow
 import org.futo.voiceinput.theme.presets.VoiceInputTheme
 
-suspend fun <T> Context.getSetting(key: Preferences.Key<T>, default: T): T {
-    val valueFlow: Flow<T> =
-        this.dataStore.data.map { preferences -> preferences[key] ?: default }.take(1)
+class DataStoreHelper {
+    @OptIn(DelicateCoroutinesApi::class)
+    companion object {
+        private var initialized: Boolean = false
+        private var currentPreferences: Preferences = preferencesOf()
 
-    return valueFlow.first()
-}
+        @JvmStatic
+        fun init(context: Context) {
+            if(initialized) return
+            initialized = true
 
-fun <T> Context.getSettingFlow(key: Preferences.Key<T>, default: T): Flow<T> {
-    return dataStore.data.map { preferences -> preferences[key] ?: default }.take(1)
-}
+            runBlocking {
+                context.dataStore.data.first().let {
+                    currentPreferences = it
+                }
+            }
 
-suspend fun <T> Context.setSetting(key: Preferences.Key<T>, value: T) {
-    this.dataStore.edit { preferences ->
-        preferences[key] = value
-    }
-}
-
-
-fun <T> Context.getSettingBlocking(key: Preferences.Key<T>, default: T): T {
-    val context = this
-
-    return runBlocking {
-        context.getSetting(key, default)
-    }
-}
-
-fun <T> Context.setSettingBlocking(key: Preferences.Key<T>, value: T) {
-    val context = this
-    runBlocking {
-        context.setSetting(key, value)
-    }
-}
-
-fun <T> LifecycleOwner.deferGetSetting(key: Preferences.Key<T>, default: T, onObtained: (T) -> Unit): Job {
-    val context = (this as Context)
-    return lifecycleScope.launch {
-        withContext(Dispatchers.Default) {
-            val value = context.getSetting(key, default)
-
-            withContext(Dispatchers.Main) {
-                onObtained(value)
+            GlobalScope.launch {
+                context.dataStore.data.collect {
+                    currentPreferences = it
+                }
             }
         }
-    }
-}
 
-fun <T> LifecycleOwner.deferSetSetting(key: Preferences.Key<T>, value: T): Job {
-    val context = (this as Context)
-    return lifecycleScope.launch {
-        withContext(Dispatchers.Default) {
-            context.setSetting(key, value)
-        }
+        @JvmStatic
+        fun<T> getSettingOrNull(key: Preferences.Key<T>): T? = currentPreferences[key]
+
+        @JvmStatic
+        fun<T> getSetting(key: Preferences.Key<T>, default: T): T = getSettingOrNull(key) ?: default
+
+        @JvmStatic
+        fun<T> getSettingOrNull(setting: SettingsKey<T>): T? = getSettingOrNull(setting.key)
+
+        @JvmStatic
+        fun<T> getSetting(setting: SettingsKey<T>): T = getSettingOrNull(setting.key) ?: setting.default
     }
 }
 
@@ -85,7 +72,15 @@ data class SettingsKey<T>(
     val default: T
 )
 
-suspend fun <T> Context.getSetting(key: SettingsKey<T>): T {
+fun <T> Context.getSetting(key: Preferences.Key<T>, default: T): T {
+    return DataStoreHelper.getSetting(key, default)
+}
+
+fun <T> Context.getSettingFlow(key: Preferences.Key<T>, default: T): Flow<T> {
+    return dataStore.data.map { preferences -> preferences[key] ?: default }.distinctUntilChanged()
+}
+
+fun <T> Context.getSetting(key: SettingsKey<T>): T {
     return getSetting(key.key, key.default)
 }
 
@@ -93,16 +88,14 @@ fun <T> Context.getSettingFlow(key: SettingsKey<T>): Flow<T> {
     return getSettingFlow(key.key, key.default)
 }
 
+suspend fun <T> Context.setSetting(key: Preferences.Key<T>, value: T) {
+    this.dataStore.edit { preferences ->
+        preferences[key] = value
+    }
+}
+
 suspend fun <T> Context.setSetting(key: SettingsKey<T>, value: T) {
     return setSetting(key.key, value)
-}
-
-fun <T> LifecycleOwner.deferGetSetting(key: SettingsKey<T>, onObtained: (T) -> Unit): Job {
-    return deferGetSetting(key.key, key.default, onObtained)
-}
-
-fun <T> LifecycleOwner.deferSetSetting(key: SettingsKey<T>, value: T): Job {
-    return deferSetSetting(key.key, value)
 }
 
 
@@ -148,5 +141,3 @@ val THEME_KEY = SettingsKey(
 )
 
 val BEAM_SEARCH = SettingsKey(key = booleanPreferencesKey("use_beam_search"), default = true)
-val MODELS_MIGRATED = SettingsKey(key = booleanPreferencesKey("models_migrated_1"), default = false)
-val DISMISS_MIGRATION_TIP = SettingsKey(key = booleanPreferencesKey("dismiss_migration_tip"), default = false)

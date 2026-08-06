@@ -1,0 +1,133 @@
+plugins {
+    id 'com.android.library' version '8.10.1'
+    id 'org.jetbrains.kotlin.android' version '2.1.0'
+    id 'org.jetbrains.kotlin.plugin.compose' version '2.1.0'
+}
+
+final def translationsWithoutEngValues = { final String path ->
+    final def sourceDir = file(path)
+    final def taskNameSuffix = sourceDir.name.capitalize()
+
+    final def destDir = file("$buildDir/generated/res-translations-filtered/${taskNameSuffix}")
+
+    tasks.register("prepareResFilter${taskNameSuffix}", Copy) {
+        from(sourceDir) {
+            include 'values-*/**'
+
+            filter { String line ->
+                def matcher = line =~ /<string name="([^"]+)"[^>]*>(.+)<\/string>/
+
+                if (matcher.find()) {
+                    var stringName = matcher.group(1)
+                    var content = matcher.group(2)
+
+                    content = content
+                    // Fix duplicate string tags
+                            .replaceAll(/<!\[CDATA\[<string [^>]+>(.+)<\\/string>\]\]>/, '$1')
+                            .replaceAll(/<string [^>]+>(.+)<\\/string>/, '$1')
+                            .replaceAll(/&lt;string [^&]+&gt;(.+)&lt;\\/string&gt;/, '$1')
+                    // Remove xliff:g tags entirely, keep only the content
+                            .replaceAll(/<xliff:g [^>]+>(.+?)<\/xliff:g>/, '$1')
+                            .replaceAll(/&lt;xliff:g [^&]+&gt;(.+?)&lt;\/xliff:g&gt;/, '$1')
+                    // Fix escaped quotes
+                            .replaceAll(/&amp;quot;/, '"')
+                            .replaceAll(/&quot;/, '"')
+                            .replaceAll(/\\+/, "\\\\")
+                            .replaceAll(/\\"/, '"')
+                            .replaceAll(/\\'/, "'")
+
+                    if (content.startsWith("&quot;")) {
+                        content = content.substring(6)
+                    } else if (content.startsWith('\\"')) {
+                        content = content.substring(2)
+                    } else if (content.startsWith('"')) {
+                        content = content.substring(1)
+                    }
+                    if (content.endsWith("&quot;")) {
+                        content = content.substring(0, content.length() - 6)
+                    } else if (content.endsWith('\\"')) {
+                        content = content.substring(0, content.length() - 2)
+                    } else if (content.endsWith('"')) {
+                        content = content.substring(0, content.length() - 1)
+                    }
+
+                    content = content.replaceAll('"', '\\\\"')
+
+                    "    <string name=\"" + stringName + "\">\"" + content + "\"</string>\n"
+                } else {
+                    line
+                }
+            }
+        }
+        into(destDir)
+        includeEmptyDirs = false
+    }
+
+    // Ensure it runs before build
+    preBuild.dependsOn("prepareResFilter${taskNameSuffix}")
+
+    destDir
+}
+
+android {
+    namespace 'org.futo.voiceinput.shared'
+    compileSdk 35
+
+    defaultConfig {
+        minSdk 24
+        targetSdk 35
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        consumerProguardFiles "consumer-rules.pro"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    sourceSets {
+        main {
+            res.srcDirs = ['src/main/res']
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+    buildFeatures {
+        compose true
+        viewBinding true
+        mlModelBinding true
+    }
+}
+
+dependencies {
+    implementation 'androidx.core:core-ktx:1.13.1'
+    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.8.4'
+    implementation 'androidx.lifecycle:lifecycle-runtime:2.8.4'
+    implementation 'androidx.lifecycle:lifecycle-runtime-compose:2.8.4'
+    implementation 'androidx.lifecycle:lifecycle-viewmodel-compose:2.8.4'
+    implementation 'androidx.activity:activity-compose:1.9.1'
+    implementation platform('androidx.compose:compose-bom:2024.06.00')
+    implementation 'androidx.compose.ui:ui'
+    implementation 'androidx.compose.ui:ui-graphics'
+    implementation 'androidx.compose.ui:ui-tooling-preview'
+    implementation 'androidx.compose.material3:material3'
+    implementation 'com.google.android.material:material:1.12.0'
+    implementation 'androidx.appcompat:appcompat:1.7.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    implementation 'androidx.navigation:navigation-compose:2.7.7'
+    implementation 'androidx.datastore:datastore-preferences:1.1.1'
+
+    implementation(name:'vad-release', ext:'aar')
+
+    implementation 'org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.1'
+}

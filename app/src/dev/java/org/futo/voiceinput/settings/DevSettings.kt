@@ -15,10 +15,6 @@ import androidx.navigation.compose.rememberNavController
 import com.android.billingclient.api.BillingClient
 import com.android.billingclient.api.ConsumeParams
 import com.android.billingclient.api.QueryPurchasesParams
-import kotlinx.coroutines.runBlocking
-import org.futo.voiceinput.ENGLISH_MODELS
-import org.futo.voiceinput.MULTILINGUAL_MODELS
-import org.futo.voiceinput.downloader.DownloadActivity
 import org.futo.voiceinput.payments.PRODUCT_ID
 import org.futo.voiceinput.payments.PlayBilling
 import org.futo.voiceinput.settings.pages.SettingsSeparator
@@ -62,30 +58,6 @@ fun DevOnlySettings() {
     )
 
     val context = LocalContext.current
-    SettingItem(title = "Force legacy tflite", subtitle="Delete GGML models and download tflite", onClick = {
-
-        runBlocking {
-            context.setSetting(DISMISS_MIGRATION_TIP, false)
-            context.setSetting(MODELS_MIGRATED, false)
-        }
-
-        context.filesDir.listFiles()?.forEach { it.delete() }
-
-        val intent = Intent(context, DownloadActivity::class.java)
-        intent.putStringArrayListExtra("models", ArrayList(listOf(ENGLISH_MODELS[1], MULTILINGUAL_MODELS[1]).map { model ->
-            arrayListOf(
-                model.legacy.decoder_file,
-                model.legacy.encoder_xatn_file,
-                model.legacy.vocab_file,
-            )
-        }.flatten()))
-
-        if(context !is Activity) {
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        }
-
-        context.startActivity(intent)
-    }) { }
 
     val navigator = rememberNavController()
     val consumeProduct = {
