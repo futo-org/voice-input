@@ -208,6 +208,10 @@
     <string name="transcription_history_hint">Tap a transcription to copy it to the clipboard.</string>
     <string name="transcription_history_empty">No transcriptions yet. After you dictate, your most recent transcriptions appear here so a lost one can be copied.</string>
     <string name="clear_transcription_history">Clear history</string>
+    <string name="repair_service_label">Voice Input insertion repair</string>
+    <string name="repair_service_description">Some keyboards silently lose the dictated text: they write it into a text-input connection the app has already torn down, and nothing notices. When enabled, this service checks the text field shortly after each dictation and inserts the transcription directly if it never arrived. It does nothing when the keyboard\'s own insertion worked, reads only the focused text field, and never sends data anywhere.</string>
+    <string name="repair_service_setting">Insertion repair service</string>
+    <string name="repair_service_setting_subtitle">If the keyboard loses a dictation, insert it into the text field directly. Requires enabling the accessibility service — tap to open Accessibility settings.</string>
     <string name="new_model_features_tip">Models have been updated for better accuracy and faster performance. You can now also add words/phrases in the personal dictionary. If you have any issues or feedback after this change please contact us.</string>
     <string name="personal_dictionary_placeholder">John Doe, Jane Smith, TensorFlow, bobble, type anything you want voice input to recognize more often here!</string>
     <string name="personal_dictionary">Personal Dictionary</string>
