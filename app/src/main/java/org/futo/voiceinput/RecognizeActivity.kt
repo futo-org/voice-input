@@ -194,6 +194,18 @@ class RecognizeActivity : ComponentActivity() {
         scheduleUpdateCheckingJob(applicationContext)
         scheduleModelMigrationJob(applicationContext)
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+
+        // Stay out of the input-method pipeline entirely. Without this flag, this window becoming
+        // focused makes it the IME target, which deactivates the calling editor's InputConnection
+        // for the whole dictation. The editor is only reactivated after we finish() and it regains
+        // window focus - but keyboards deliver our RESULT_OK and insert the text within a few
+        // dozen milliseconds of finish(), racing that reactivation. When the insert loses the
+        // race, the app-side InputConnection silently discards it and the transcription is lost
+        // (observed as e.g. "beginBatchEdit on inactive InputConnection" from the target app).
+        // With this flag the editor's InputConnection stays active while the recognizer is up, so
+        // the keyboard's insert always lands no matter the timing. This window has no text input
+        // of its own, so opting out of the IME costs nothing.
+        window.addFlags(WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM)
     }
 
     override fun onDestroy() {
