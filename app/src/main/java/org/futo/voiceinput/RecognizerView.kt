@@ -403,10 +403,6 @@ abstract class RecognizerView {
                 saveToHistory(result)
             }
 
-            // No-op unless the user enabled the accessibility repair service. Must be scheduled
-            // before sendResult so the service knows what text to expect in the field.
-            VoiceRepairAccessibilityService.scheduleRepair(result)
-
             val manager = context.getSystemService(Context.ACCESSIBILITY_SERVICE) as AccessibilityManager
             if(manager.isEnabled) {
                 val event = AccessibilityEvent.obtain();
