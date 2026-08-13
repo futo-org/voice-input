@@ -157,6 +157,14 @@ fun HomeScreen(
             icon = painterResource(R.drawable.edit)
         )
 
+        NavigationItem(
+            title = stringResource(R.string.transcription_history),
+            subtitle = stringResource(R.string.transcription_history_home_subtitle),
+            style = NavigationItemStyle.Misc,
+            navigate = { navController.navigate("history") },
+            icon = painterResource(R.drawable.edit)
+        )
+
         UnpaidNoticeCondition(showOnlyIfReminder = true) {
             NavigationItem(
                 title = stringResource(R.string.payment),

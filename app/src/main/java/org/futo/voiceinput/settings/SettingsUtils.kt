@@ -41,6 +41,7 @@ import org.futo.voiceinput.settings.pages.AdvancedScreen
 import org.futo.voiceinput.settings.pages.CreditsScreen
 import org.futo.voiceinput.settings.pages.DependenciesScreen
 import org.futo.voiceinput.settings.pages.HelpScreen
+import org.futo.voiceinput.settings.pages.HistoryScreen
 import org.futo.voiceinput.settings.pages.HomeScreen
 import org.futo.voiceinput.settings.pages.InputScreen
 import org.futo.voiceinput.settings.pages.LanguagesScreen
@@ -142,6 +143,7 @@ fun SettingsMain(
     ) {
         composable("home") { HomeScreen(settingsViewModel, navController) }
         composable("advanced") { AdvancedScreen(settingsViewModel, navController) }
+        composable("history") { HistoryScreen(settingsViewModel, navController) }
         composable("help") { HelpScreen(navController) }
         composable("languages") { LanguagesScreen(settingsViewModel, navController) }
         composable("testing") { TestScreen(settingsUiState.intentResultText, navController) }

@@ -149,6 +149,13 @@ val PERSONAL_DICTIONARY = SettingsKey(stringPreferencesKey("personal_dict"), "")
 // system "copied" overlay on every clipboard write, which is intrusive on every dictation.
 val COPY_RESULT_TO_CLIPBOARD = SettingsKey(booleanPreferencesKey("copy_result_to_clipboard"), false)
 
+// Silent counterpart to the clipboard fallback: the last few transcriptions are kept on-device
+// (newest first, JSON array of {time, text}) and can be copied from the settings app, so a
+// dropped dictation is recoverable without a clipboard write on every single result.
+val ENABLE_TRANSCRIPTION_HISTORY = SettingsKey(booleanPreferencesKey("enable_transcription_history"), true)
+val TRANSCRIPTION_HISTORY = SettingsKey(stringPreferencesKey("transcription_history"), "")
+const val TRANSCRIPTION_HISTORY_MAX_ENTRIES = 20
+
 val THEME_KEY = SettingsKey(
     key = stringPreferencesKey("activeThemeOption"),
     default = if(BuildConfig.FLAVOR == "dev" || BuildConfig.FLAVOR == "devSameId") { DevThemeYellow.key } else { VoiceInputTheme.key }

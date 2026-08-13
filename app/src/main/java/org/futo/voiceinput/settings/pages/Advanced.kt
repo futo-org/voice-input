@@ -12,6 +12,7 @@ import org.futo.voiceinput.R
 import org.futo.voiceinput.settings.ALLOW_UNDERTRAINED_LANGUAGES
 import org.futo.voiceinput.settings.BEAM_SEARCH
 import org.futo.voiceinput.settings.COPY_RESULT_TO_CLIPBOARD
+import org.futo.voiceinput.settings.ENABLE_TRANSCRIPTION_HISTORY
 import org.futo.voiceinput.settings.DISALLOW_SYMBOLS
 import org.futo.voiceinput.settings.DevOnlySettings
 import org.futo.voiceinput.settings.ENABLE_30S_LIMIT
@@ -58,6 +59,12 @@ fun AdvancedScreen(
             stringResource(R.string.copy_result_to_clipboard),
             COPY_RESULT_TO_CLIPBOARD,
             subtitle = stringResource(R.string.copy_result_to_clipboard_subtitle)
+        )
+
+        SettingToggleDataStore(
+            stringResource(R.string.enable_transcription_history),
+            ENABLE_TRANSCRIPTION_HISTORY,
+            subtitle = stringResource(R.string.enable_transcription_history_subtitle)
         )
 
         SettingToggleDataStore(
