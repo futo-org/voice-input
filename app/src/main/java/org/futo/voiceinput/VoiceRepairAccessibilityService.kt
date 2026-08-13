@@ -28,10 +28,19 @@ class VoiceRepairAccessibilityService : AccessibilityService() {
         // Note the clock starts before the recognizer window has even finished closing.
         private const val FIRST_CHECK_DELAY_MS = 500L
         private const val RETRY_INTERVAL_MS = 300L
-        private const val MAX_ATTEMPTS = 4
+
+        // One retry only: a legitimately repairable field is found on the first or second look.
+        // Anything later risks acting on a different screen than the one that was dictated into.
+        private const val MAX_ATTEMPTS = 2
 
         /** How long after a dictation a repair is still considered relevant. */
-        private const val PENDING_EXPIRY_MS = 6000L
+        private const val PENDING_EXPIRY_MS = 2500L
+
+        /**
+         * Window-state changes within this time of the dictation are the recognizer/keyboard
+         * windows tearing down, not the user going somewhere else.
+         */
+        private const val NAVIGATION_GRACE_MS = 1200L
 
         private var instance: VoiceRepairAccessibilityService? = null
 
@@ -49,6 +58,7 @@ class VoiceRepairAccessibilityService : AccessibilityService() {
     private var pendingText: String? = null
     private var pendingSince: Long = 0L
     private var attempts: Int = 0
+    private var pendingPackage: CharSequence? = null
 
     override fun onServiceConnected() {
         super.onServiceConnected()
@@ -63,7 +73,19 @@ class VoiceRepairAccessibilityService : AccessibilityService() {
         super.onDestroy()
     }
 
-    override fun onAccessibilityEvent(event: AccessibilityEvent?) {}
+    override fun onAccessibilityEvent(event: AccessibilityEvent?) {
+        // The user navigated somewhere (new screen, new conversation, new app) while a repair was
+        // pending: abort it. The transcription belongs to the field that was being dictated into,
+        // and any field found from here on is the wrong one - repairing into it is how a
+        // transcription ends up pasted into a second chat thread. Early events are the dictation
+        // UI itself tearing down and must not count as navigation.
+        if (event?.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED &&
+            pendingText != null &&
+            SystemClock.uptimeMillis() - pendingSince > NAVIGATION_GRACE_MS
+        ) {
+            cancelPending()
+        }
+    }
 
     override fun onInterrupt() {}
 
@@ -72,16 +94,32 @@ class VoiceRepairAccessibilityService : AccessibilityService() {
         pendingText = text
         pendingSince = SystemClock.uptimeMillis()
         attempts = 0
+        pendingPackage = null
         handler.postDelayed({ attemptRepair() }, FIRST_CHECK_DELAY_MS)
+    }
+
+    private fun cancelPending() {
+        pendingText = null
+        pendingPackage = null
+        handler.removeCallbacksAndMessages(null)
     }
 
     private fun attemptRepair() {
         val text = pendingText ?: return
         if (SystemClock.uptimeMillis() - pendingSince > PENDING_EXPIRY_MS) {
-            pendingText = null
+            cancelPending()
             return
         }
         attempts += 1
+
+        // If the foreground app changed between checks, the dictation target is gone.
+        val currentPackage = rootInActiveWindow?.packageName
+        if (pendingPackage == null) {
+            pendingPackage = currentPackage
+        } else if (currentPackage != null && currentPackage != pendingPackage) {
+            cancelPending()
+            return
+        }
 
         val target = findTargetField()
         if (target == null) {
@@ -91,7 +129,7 @@ class VoiceRepairAccessibilityService : AccessibilityService() {
             if (attempts < MAX_ATTEMPTS) {
                 handler.postDelayed({ attemptRepair() }, RETRY_INTERVAL_MS)
             } else {
-                pendingText = null
+                cancelPending()
             }
             return
         }
@@ -99,7 +137,7 @@ class VoiceRepairAccessibilityService : AccessibilityService() {
         val existing = existingText(target)
         if (normalized(existing).contains(normalized(text))) {
             // The keyboard's own insert won the race - nothing to repair.
-            pendingText = null
+            cancelPending()
             return
         }
 
@@ -115,7 +153,7 @@ class VoiceRepairAccessibilityService : AccessibilityService() {
             repaired
         )
         target.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, args)
-        pendingText = null
+        cancelPending()
     }
 
     /**
