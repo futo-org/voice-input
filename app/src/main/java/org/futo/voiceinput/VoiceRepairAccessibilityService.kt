@@ -23,11 +23,8 @@ import android.view.accessibility.AccessibilityNodeInfo
  */
 class VoiceRepairAccessibilityService : AccessibilityService() {
     companion object {
-        // Long enough that the keyboard's own insert (observed well under 200ms after result
-        // delivery) has happened when we look, short enough to feel responsive when it didn't.
-        // Note the clock starts before the recognizer window has even finished closing.
-        private const val FIRST_CHECK_DELAY_MS = 500L
-        private const val RETRY_INTERVAL_MS = 300L
+        private const val FIRST_CHECK_DELAY_MS = 800L
+        private const val RETRY_INTERVAL_MS = 500L
         private const val MAX_ATTEMPTS = 4
 
         /** How long after a dictation a repair is still considered relevant. */
@@ -127,8 +124,7 @@ class VoiceRepairAccessibilityService : AccessibilityService() {
 
         val focused = root.findFocus(AccessibilityNodeInfo.FOCUS_INPUT)
         if (focused != null && focused.isEditable) {
-            // Never write into (or reason about) password fields.
-            return if (focused.isPassword) null else focused
+            return focused
         }
 
         val editables = ArrayList<AccessibilityNodeInfo>()
@@ -137,7 +133,7 @@ class VoiceRepairAccessibilityService : AccessibilityService() {
     }
 
     private fun collectEditable(node: AccessibilityNodeInfo, out: MutableList<AccessibilityNodeInfo>) {
-        if (node.isEditable && node.isVisibleToUser && !node.isPassword) {
+        if (node.isEditable && node.isVisibleToUser) {
             out.add(node)
         }
         for (i in 0 until node.childCount) {
