@@ -195,17 +195,23 @@ class RecognizeActivity : ComponentActivity() {
         scheduleModelMigrationJob(applicationContext)
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
-        // Stay out of the input-method pipeline entirely. Without this flag, this window becoming
-        // focused makes it the IME target, which deactivates the calling editor's InputConnection
-        // for the whole dictation. The editor is only reactivated after we finish() and it regains
-        // window focus - but keyboards deliver our RESULT_OK and insert the text within a few
-        // dozen milliseconds of finish(), racing that reactivation. When the insert loses the
-        // race, the app-side InputConnection silently discards it and the transcription is lost
-        // (observed as e.g. "beginBatchEdit on inactive InputConnection" from the target app).
-        // With this flag the editor's InputConnection stays active while the recognizer is up, so
-        // the keyboard's insert always lands no matter the timing. This window has no text input
-        // of its own, so opting out of the IME costs nothing.
-        window.addFlags(WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM)
+        // Never take window focus. If this window becomes focused, three separate things break
+        // the calling editor's connection to its keyboard, all observed in logcat on device:
+        //   1. This window becomes the IME target, deactivating the editor's InputConnection for
+        //      the whole dictation ("beginBatchEdit on inactive InputConnection" when the
+        //      keyboard inserts the result too early).
+        //   2. When the editor regains window focus it restarts its input, replacing the
+        //      connection object; a keyboard that inserts the result around that moment writes
+        //      into the stale one and the text is silently discarded.
+        //   3. Some editors (Compose fields in particular) clear the text field's focus outright
+        //      when their window loses focus, so the result has nowhere to go until the user
+        //      taps the field again - upstream issue #77's symptom.
+        // A non-focusable window sidesteps all three: the editor behind keeps window focus, view
+        // focus, and its live InputConnection for the entire dictation. This window needs no key
+        // input - every interaction is a tap, which non-focusable windows still receive. (Note
+        // FLAG_ALT_FOCUSABLE_IM must NOT be combined with this flag: for a non-focusable window
+        // it inverts to mean "may use the IME" - see WindowManager.LayoutParams.mayUseInputMethod.)
+        window.addFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE)
     }
 
     override fun onDestroy() {
