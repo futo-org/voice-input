@@ -3,6 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools" >
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
@@ -28,12 +29,25 @@
         android:name=".CrashLoggingApplication"
         android:largeHeap="true"
         tools:targetApi="31" >
+        <!--
+        RecognizeActivity is always started with startActivityForResult (that is the
+        ACTION_RECOGNIZE_SPEECH contract), so it must run inside the caller's task. It used to be
+        declared singleInstance/clearTaskOnLaunch, which forces it into a task of its own; Android
+        does not reliably deliver activity results across tasks, and even when the result does
+        arrive the caller's task has to be re-resumed asynchronously after finish(). That makes the
+        caller's onActivityResult race the target editor regaining focus, so a keyboard that
+        commits the text as soon as the result arrives commits into an InputConnection that is no
+        longer active and the text is silently dropped.
+
+        Single-instance behaviour (only one recognizer window at a time) is enforced in
+        RecognizeActivity.onCreate instead.
+        -->
         <activity
             android:name=".RecognizeActivity"
             android:exported="true"
             android:label="@string/recognize_activity"
-            android:clearTaskOnLaunch="true"
-            android:launchMode="singleInstance"
+            android:launchMode="standard"
+            android:excludeFromRecents="true"
             android:visibleToInstantApps="true"
             android:configChanges="orientation|screenLayout|screenSize|keyboardHidden|keyboard|uiMode|density"
             android:theme="@style/Theme.RecognizerInput">
@@ -100,6 +114,7 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="futo-voice-input" />
+                <data android:scheme="futo-keyboard" />
             </intent-filter>
         </activity>
 

@@ -40,6 +40,7 @@ import org.futo.voiceinput.migration.scheduleModelMigrationJob
 import org.futo.voiceinput.settings.pages.ConditionalUnpaidNoticeInVoiceInputWindow
 import org.futo.voiceinput.theme.UixThemeAuto
 import org.futo.voiceinput.updates.scheduleUpdateCheckingJob
+import java.lang.ref.WeakReference
 
 
 @Composable
@@ -125,6 +126,14 @@ fun PreviewRecognizeViewNoMic() {
 }
 
 class RecognizeActivity : ComponentActivity() {
+    companion object {
+        // This activity used to be declared launchMode="singleInstance" to guarantee there is only
+        // ever one recognizer window. That is incompatible with startActivityForResult, which is
+        // how every ACTION_RECOGNIZE_SPEECH caller starts us (see the comment in the manifest), so
+        // the guarantee is enforced here instead: a new recognizer tears down the previous one.
+        private var currentInstance: WeakReference<RecognizeActivity>? = null
+    }
+
     private val recognizer = object : RecognizerView() {
         override val context: Context
             get() = this@RecognizeActivity
@@ -169,6 +178,17 @@ class RecognizeActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Stop any recognizer that is still up before we grab the microphone, otherwise the old
+        // AudioRecord is still holding it when startRecording runs.
+        currentInstance?.get()?.let { previous ->
+            if (previous !== this && !previous.isFinishing) {
+                previous.recognizer.reset()
+                previous.finish()
+            }
+        }
+        currentInstance = WeakReference(this)
+
         recognizer.reset()
         recognizer.init()
         scheduleUpdateCheckingJob(applicationContext)
@@ -178,6 +198,10 @@ class RecognizeActivity : ComponentActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
+
+        if (currentInstance?.get() === this) {
+            currentInstance = null
+        }
 
         recognizer.reset()
     }
