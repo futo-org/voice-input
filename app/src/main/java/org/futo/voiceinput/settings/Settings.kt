@@ -142,6 +142,12 @@ val MANUALLY_SELECT_LANGUAGE = SettingsKey(booleanPreferencesKey("manually_selec
 
 val PERSONAL_DICTIONARY = SettingsKey(stringPreferencesKey("personal_dict"), "")
 
+// Safety net for the case where the recognized text never reaches the editor - the keyboard's
+// commit can be silently dropped if the editor's InputConnection is no longer active by the time
+// the result arrives. With this on, the text is always also on the clipboard so it can be pasted
+// by hand instead of being lost.
+val COPY_RESULT_TO_CLIPBOARD = SettingsKey(booleanPreferencesKey("copy_result_to_clipboard"), true)
+
 val THEME_KEY = SettingsKey(
     key = stringPreferencesKey("activeThemeOption"),
     default = if(BuildConfig.FLAVOR == "dev" || BuildConfig.FLAVOR == "devSameId") { DevThemeYellow.key } else { VoiceInputTheme.key }

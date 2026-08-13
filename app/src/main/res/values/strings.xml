@@ -199,6 +199,8 @@
     <string name="check_permissions">Check permissions</string>
     <string name="use_beam_search">Use beam search</string>
     <string name="recommended">Recommended</string>
+    <string name="copy_result_to_clipboard">Copy result to clipboard</string>
+    <string name="copy_result_to_clipboard_subtitle">Every transcription is also placed on the clipboard, so it can be pasted by hand if it does not reach the text field. Note that this overwrites whatever you last copied.</string>
     <string name="new_model_features_tip">Models have been updated for better accuracy and faster performance. You can now also add words/phrases in the personal dictionary. If you have any issues or feedback after this change please contact us.</string>
     <string name="personal_dictionary_placeholder">John Doe, Jane Smith, TensorFlow, bobble, type anything you want voice input to recognize more often here!</string>
     <string name="personal_dictionary">Personal Dictionary</string>
