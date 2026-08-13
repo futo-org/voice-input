@@ -4,6 +4,8 @@ import android.content.Context
 import android.content.res.Configuration
 import android.inputmethodservice.InputMethodService
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import android.text.InputType
 import android.view.View
 import android.view.WindowManager
@@ -168,6 +170,11 @@ fun PreviewRecognizeViewNoMicIME() {
 val punctuationChars = setOf('!', '?', '.', ',')
 class VoiceInputMethodService : InputMethodService(), LifecycleOwner, ViewModelStoreOwner,
     SavedStateRegistryOwner {
+    companion object {
+        private const val COMMIT_RETRY_INTERVAL_MS = 50L
+        private const val COMMIT_TIMEOUT_MS = 1000L
+    }
+
     private val mSavedStateRegistryController = SavedStateRegistryController.create(this)
 
     override val savedStateRegistry: SavedStateRegistry
@@ -197,6 +204,11 @@ class VoiceInputMethodService : InputMethodService(), LifecycleOwner, ViewModelS
         scheduleModelMigrationJob(applicationContext)
     }
 
+    private val mainHandler = Handler(Looper.getMainLooper())
+
+    /** Recognized text we have not managed to commit yet, if any. */
+    private var pendingCommitText: String? = null
+
     private val recognizer = object : RecognizerView() {
         override val context: Context
             get() = this@VoiceInputMethodService
@@ -216,60 +228,58 @@ class VoiceInputMethodService : InputMethodService(), LifecycleOwner, ViewModelS
         override fun onCancel() {
             needsInitialization = true
             reset()
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                switchToPreviousInputMethod()
-            } else {
-                inputMethodManager.switchToLastInputMethod(window.window!!.attributes.token)
-            }
+            pendingCommitText = null
+            mainHandler.removeCallbacksAndMessages(null)
+            switchBackToPreviousInputMethod()
         }
 
         var prevText: CharSequence? = null
         var nextText: CharSequence? = null
         override fun decodingStarted() {
-            this@VoiceInputMethodService.currentInputConnection.also {
+            // Note: nothing emits RunState.StartedDecoding at the moment, so this never runs and
+            // prevText/nextText stay null - the auto-space-after-punctuation path below is
+            // currently dead.
+            this@VoiceInputMethodService.currentInputConnection?.also {
                 prevText = it.getTextBeforeCursor(1, 0)
                 nextText = it.getTextAfterCursor(1, 0)
             }
         }
 
         override fun sendResult(result: String) {
-            this@VoiceInputMethodService.currentInputConnection.also {
-                var modifiedResult = result
+            var modifiedResult = result
 
-                // Insert space automatically if ended at punctuation
-                // TODO: Could send text before cursor as whisper prompt
+            // Insert space automatically if ended at punctuation
+            // TODO: Could send text before cursor as whisper prompt
 
-                if(!prevText.isNullOrBlank()) {
-                    val lastChar = prevText?.last()
+            if(!prevText.isNullOrBlank()) {
+                val lastChar = prevText?.last()
 
-                    if (punctuationChars.contains(lastChar)) {
-                        modifiedResult = " $result"
-                    }
+                if (punctuationChars.contains(lastChar)) {
+                    modifiedResult = " $result"
                 }
-
-                /*
-                if(!nextText.isNullOrBlank()) {
-                    val oldPunctuation = nextText?.first()
-                    val newPunctuation = result.last()
-
-                    if (punctuationChars.contains(oldPunctuation) && punctuationChars.contains(newPunctuation)) {
-                        it.deleteSurroundingText(0, 1)
-                    }
-                }
-                */
-
-                it.commitText(modifiedResult, 1)
             }
-            onCancel()
+
+            /*
+            if(!nextText.isNullOrBlank()) {
+                val oldPunctuation = nextText?.first()
+                val newPunctuation = result.last()
+
+                if (punctuationChars.contains(oldPunctuation) && punctuationChars.contains(newPunctuation)) {
+                    it.deleteSurroundingText(0, 1)
+                }
+            }
+            */
+
+            commitRecognizedText(modifiedResult)
+
+            needsInitialization = true
+            reset()
         }
 
         override fun sendPartialResult(result: String): Boolean {
-            if(this@VoiceInputMethodService.currentInputConnection != null) {
-                this@VoiceInputMethodService.currentInputConnection.setComposingText(result, 1)
-                return true
-            } else {
-                return false
-            }
+            val ic = this@VoiceInputMethodService.currentInputConnection ?: return false
+            ic.setComposingText(result, 1)
+            return true
         }
 
         override fun requestPermission() {
@@ -285,6 +295,68 @@ class VoiceInputMethodService : InputMethodService(), LifecycleOwner, ViewModelS
                 content()
             }
         }
+    }
+
+    private fun switchBackToPreviousInputMethod() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            switchToPreviousInputMethod()
+        } else {
+            window.window?.attributes?.token?.let {
+                inputMethodManager.switchToLastInputMethod(it)
+            }
+        }
+    }
+
+    /**
+     * Commit recognized text into the editor, then switch back to the previous keyboard.
+     *
+     * The editor's InputConnection is not necessarily usable the moment recognition finishes: the
+     * target app may still be settling after the voice window came up, or input may have been
+     * finished while we were decoding. commitText cannot tell us that - on the IME side it returns
+     * as soon as the call is queued, and the app silently discards it if its InputConnection has
+     * already been finished, which is how recognized text ends up disappearing without any error.
+     *
+     * So we do not rely on the return value. We only commit while we hold a connection that still
+     * accepts a batch edit, retry briefly if we do not, and switch input methods only afterwards -
+     * switching tears the connection down and would otherwise race the commit we just queued.
+     */
+    private fun commitRecognizedText(text: String, waitedMs: Long = 0L) {
+        pendingCommitText = text
+
+        val ic = currentInputConnection
+        if (ic != null) {
+            // beginBatchEdit returns false once the connection has been finished, which is the only
+            // synchronous liveness signal an IME gets. Past the timeout we commit anyway rather
+            // than throw the text away.
+            val batched = ic.beginBatchEdit()
+            if (batched || waitedMs >= COMMIT_TIMEOUT_MS) {
+                pendingCommitText = null
+                try {
+                    // No finishComposingText() first: partial results are shown with
+                    // setComposingText and commitText already replaces the composing region.
+                    // Finishing it separately would leave the partial text behind and duplicate it.
+                    ic.commitText(text, 1)
+                } finally {
+                    if (batched) ic.endBatchEdit()
+                }
+
+                mainHandler.post { switchBackToPreviousInputMethod() }
+                return
+            }
+        }
+
+        if (waitedMs >= COMMIT_TIMEOUT_MS) {
+            println("Voice input: no usable InputConnection after ${waitedMs}ms, recognized text was not committed")
+            pendingCommitText = null
+            switchBackToPreviousInputMethod()
+            return
+        }
+
+        mainHandler.postDelayed({
+            if (pendingCommitText == text) {
+                commitRecognizedText(text, waitedMs + COMMIT_RETRY_INTERVAL_MS)
+            }
+        }, COMMIT_RETRY_INTERVAL_MS)
     }
 
     private fun setOwners() {
@@ -384,6 +456,9 @@ class VoiceInputMethodService : InputMethodService(), LifecycleOwner, ViewModelS
 
     override fun onDestroy() {
         super.onDestroy()
+
+        pendingCommitText = null
+        mainHandler.removeCallbacksAndMessages(null)
 
         println("Destroy")
         handleLifecycleEvent(Lifecycle.Event.ON_DESTROY)
