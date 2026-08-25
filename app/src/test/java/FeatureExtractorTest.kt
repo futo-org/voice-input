@@ -88,5 +88,5 @@ fun Array<Array<Double>>.as2DDoubleArray(): Array<DoubleArray> {
 }
 
 class FeatureExtractorTest {
-
+    @Test fun dummy() {}
 }

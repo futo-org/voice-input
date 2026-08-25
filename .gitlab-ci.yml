@@ -17,7 +17,7 @@ unit-test-job:
   before_script:
     - git fetch origin $CI_COMMIT_BRANCH:$CI_COMMIT_BRANCH
     - export VERSION_NAME=`git describe --tags --dirty`
-    - export VERSION_CODE=`git rev-list --first-parent --count $GIT_BRANCH`
+    - export VERSION_CODE=`git rev-list --first-parent --count $CI_COMMIT_BRANCH`
     - echo $VERSION_CODE $VERSION_NAME
     - ./setUpPropertiesCI.sh
   script:
@@ -34,12 +34,12 @@ buildDev:
   before_script:
     - git fetch origin $CI_COMMIT_BRANCH:$CI_COMMIT_BRANCH
     - export VERSION_NAME=`git describe --tags --dirty`
-    - export VERSION_CODE=`git rev-list --first-parent --count $GIT_BRANCH`
+    - export VERSION_CODE=`git rev-list --first-parent --count $CI_COMMIT_BRANCH`
     - echo $VERSION_CODE $VERSION_NAME
     - ./setUpPropertiesCI.sh
   script:
-    - gradle signingReport
-    - gradle assembleDevRelease -s
+    - ./gradlew signingReport
+    - ./gradlew assembleDevRelease -s
     - mv app/build/outputs/apk/dev/release/app-dev-release.apk ./voice-input-nightly-$VERSION_NAME.apk
     - touch VERSION_CODE_$VERSION_CODE.txt
     - touch VERSION_NAME_$VERSION_NAME.txt
