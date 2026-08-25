@@ -39,9 +39,13 @@ Incompatible keyboards:
 * **Simple Keyboard** by Simple Mobile Tools - [no voice button](https://github.com/SimpleMobileTools/Simple-Keyboard/issues/201)
 * **TypeWise** - no voice button [but suggestion filed in 2019](https://suggestions.typewise.app/suggestions/65517/voice-to-text-dictation)
 
+## Model  support
+
+Whisper, Parakeet, asr4all are currently supported, with more coming.
+
 ## Language support
 
-FUTO Voice Input is currently based on the OpenAI Whisper model, and could theoretically support all of the languages that OpenAI Whisper supports. However, in practice, the smaller models tend to not perform too good with languages that had fewer training hours. To avoid presenting something worse than nothing, only languages with more than 1,000 training hours are included as options in the UI:
+For multilingual input we use OpenAI Whisper model, and could theoretically support all of the languages that OpenAI Whisper supports. However, in practice, the smaller models tend to not perform too good with languages that had fewer training hours. To avoid presenting something worse than nothing, only languages with more than 1,000 training hours are included as options in the UI:
 * English
 * Chinese (currently has some weird behavior between traditional/simplified)
 * German
