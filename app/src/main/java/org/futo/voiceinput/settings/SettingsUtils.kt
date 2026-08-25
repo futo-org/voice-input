@@ -189,6 +189,11 @@ fun SetupOrMain(settingsViewModel: SettingsViewModel = viewModel(), billing: Bil
                 details = stringResource(R.string.gboard_incompatible_details),
                 dismiss = stringResource(R.string.gboard_incompatible_accept)
             ),
+            BlacklistedInputMethod(
+                "com.touchtype.swiftkey/com.touchtype.swiftkey.SwiftKey",
+                details = stringResource(R.string.swiftkey_incompatible_details),
+                dismiss = stringResource(R.string.swiftkey_incompatible_accept)
+            ),
             BlacklistedInputMethod( // Issue: https://suggestions.typewise.app/suggestions/65517/voice-to-text-dictation
                 "ch.icoaching.typewise/ch.icoaching.wrio.Wrio",
                 details = stringResource(R.string.typewise_incompatible_details),
@@ -226,11 +231,17 @@ fun SetupOrMain(settingsViewModel: SettingsViewModel = viewModel(), billing: Bil
     val acknowledgedWrongDefaultWarning = rememberSaveable { mutableStateOf(false) }
     val defaultVoiceInputIntent = useDefaultVoiceInputIntent(settingsUiState.numberOfResumes)
 
-    if(defaultVoiceInputIntent.value.kind == DefaultVoiceInputIntentKind.OTHER && defaultVoiceInputIntent.value.name != null && !acknowledgedWrongDefaultWarning.value) {
+    val acknowledgedKeyboardSwitch = rememberSaveable { mutableStateOf(false) }
+
+    if(defaultIME.value.startsWith("org.futo.inputmethod.latin") && !acknowledgedKeyboardSwitch.value) {
+        SetupFUTOKeyboardConflict {
+            acknowledgedKeyboardSwitch.value = true
+        }
+    } else if(defaultVoiceInputIntent.value.kind == DefaultVoiceInputIntentKind.OTHER && defaultVoiceInputIntent.value.name != null && !acknowledgedWrongDefaultWarning.value) {
         SetupWrongDefaultWarning(
             defaultVoiceInputIntent.value
         ) { acknowledgedWrongDefaultWarning.value = true }
-    }else if (blacklistedKeyboardInfo != null && !acknowledgedBlacklistedWarning.value) {
+    } else if (blacklistedKeyboardInfo != null && !acknowledgedBlacklistedWarning.value) {
         SetupBlacklistedKeyboardWarning(
             blacklistedKeyboardInfo
         ) { acknowledgedBlacklistedWarning.value = true }

@@ -35,8 +35,8 @@ import org.futo.voiceinput.settings.IS_ALREADY_PAID
 import org.futo.voiceinput.settings.NavigationItem
 import org.futo.voiceinput.settings.NavigationItemStyle
 import org.futo.voiceinput.settings.ScreenTitle
-import org.futo.voiceinput.settings.ScrollableList
 import org.futo.voiceinput.settings.SettingItem
+import org.futo.voiceinput.settings.SettingsRootList
 import org.futo.voiceinput.settings.SettingsViewModel
 import org.futo.voiceinput.settings.useDataStore
 
@@ -82,7 +82,7 @@ fun IssueTrackerOption(title: String = stringResource(R.string.issue_tracker)) {
 @Composable
 fun SettingsSeparator(text: String) {
     Spacer(modifier = Modifier.height(16.dp))
-    Text(text, style = Typography.labelMedium, modifier = Modifier.padding(16.dp, 0.dp))
+    Text(text, style = Typography.Small, modifier = Modifier.padding(16.dp, 0.dp))
 }
 
 @Composable
@@ -99,12 +99,12 @@ fun HomeScreen(
         null
     }
 
-    ScrollableList {
+    SettingsRootList {
         Spacer(modifier = Modifier.height(24.dp))
         ScreenTitle(stringResource(R.string.futo_voice_input_settings))
         Text(
-            "v${BuildConfig.VERSION_NAME}",
-            style = Typography.labelSmall,
+            "${BuildConfig.VERSION_NAME}",
+            style = Typography.Small,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(24.dp, 4.dp),
@@ -193,7 +193,7 @@ fun HomeScreen(
         if (isAlreadyPaid.value) {
             Text(
                 stringResource(R.string.thank_you_for_using_the_paid_version_of_futo_voice_input),
-                style = Typography.bodyMedium,
+                style = Typography.Small,
                 modifier = Modifier.fillMaxWidth(),
                 textAlign = TextAlign.Center
             )

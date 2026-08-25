@@ -83,6 +83,8 @@
     <string name="incompatible_keyboard">Incompatible keyboard</string>
     <string name="gboard_incompatible_details">You appear to be using Gboard. This keyboard is incompatible with FUTO Voice Input.\n\nGboard relies on its own voice typing system and does not appear to integrate with standard Android APIs for voice input at this time. You will need to use a different keyboard if you want to use FUTO Voice Input with your keyboard.\n\nPlease visit the Help page in settings for more information.</string>
     <string name="gboard_incompatible_accept">I understand Gboard is incompatible</string>
+    <string name="swiftkey_incompatible_details">You appear to be using SwiftKey. Please be sure to disable \"Rich voice input\" in SwiftKey settings in order to make it use FUTO Voice Input.\n\nSome users have experienced bugs due to SwiftKey, so you may want to consider using a different keyboard.</string>
+    <string name="swiftkey_incompatible_accept">I\'ve disabled the toggle and understand</string>
     <string name="typewise_incompatible_details">You appear to be using Typewise. This keyboard does not have a voice input button at this time, so you will need to use a different keyboard if you want to use FUTO Voice Input with your keyboard.</string>
     <string name="typewise_incompatible_accept">I understand Typewise is incompatible</string>
     <string name="intent_result_is_null_or_empty">Intent result is null or empty</string>
@@ -211,4 +213,30 @@
     <string name="commitment_to_privacy_title">Commitment to Privacy</string>
     <string name="commitment_to_privacy_body">This app will never serve you ads or sell your data. We are not in the business of doing that.</string>
 
+    <string name="setup_which_voice_input_to_use">Which voice input do you want to use?</string>
+    <string name="setup_which_voice_input_to_use_info">ℹ️ You\'re using FUTO Keyboard, which already has voice input included. You can use this app for newer and experimental models, or keep using the keyboard\'s included voice input.</string>
+    <string name="setup_which_voice_input_to_use_keyboard">FUTO Keyboard</string>
+    <string name="setup_which_voice_input_to_use_keyboard_details_1">Already has voice input included (Whisper, 2022)</string>
+    <string name="setup_which_voice_input_to_use_keyboard_details_2">Completely offline app</string>
+    <string name="setup_which_voice_input_to_use_keyboard_details_3">Same privacy: your data stays on your device</string>
+    <string name="setup_which_voice_input_to_use_keyboard_use">Keep using included voice input</string>
+    <string name="setup_which_voice_input_to_use_voice">FUTO Voice Input</string>
+    <string name="setup_which_voice_input_to_use_voice_details_1">Has newer, more experimental models (Parakeet, 2025; Asr4All, 2026; and more)</string>
+    <string name="setup_which_voice_input_to_use_voice_details_2">Internet access for downloads and updates</string>
+    <string name="setup_which_voice_input_to_use_voice_details_3">Same privacy: your data stays on your device</string>
+    <string name="setup_which_voice_input_to_use_voice_use">Switch voice input</string>
+
+    <string name="setup_scroll_down_indicator">More options below</string>
+
+    <string name="setup_which_voice_input_to_use_keep_using">To keep using FUTO Keyboard\'s included voice input, you don\'t need this app. You can safely quit and uninstall it. Otherwise, if you do want to use this app, go back and select the option to switch.</string>
+    <string name="setup_which_voice_input_to_use_keep_using_back">Back</string>
+    <string name="setup_which_voice_input_to_use_keep_using_quit">Quit</string>
+
+    <string name="setup_which_voice_input_to_use_switch">After switching, FUTO Keyboard will remain your keyboard, but its voice input button will open this app.</string>
+    <string name="setup_which_voice_input_to_use_switch_back">Back</string>
+    <string name="setup_which_voice_input_to_use_switch_continue">Proceed</string>
+
+    <string name="setup_which_voice_input_to_use_switch_manual">To switch, please open FUTO Keyboard Settings -> Voice Input -> toggle on \"Disable built-in voice input\", then tap done.</string>
+    <string name="setup_which_voice_input_to_use_switch_settings">Settings</string>
+    <string name="setup_which_voice_input_to_use_switch_finished">Done</string>
 </resources>

@@ -1,3 +1,4 @@
+// TODO: Does langauge selector even work here?
 package org.futo.voiceinput
 
 import android.content.Context
@@ -63,6 +64,7 @@ import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.findViewTreeSavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import org.futo.voiceinput.settings.pages.ConditionalUnpaidNoticeInVoiceInputWindow
+import org.futo.voiceinput.shared.ModelDoesNotExistException
 import org.futo.voiceinput.shared.RecognizerView
 import org.futo.voiceinput.shared.RecognizerViewListener
 import org.futo.voiceinput.shared.ui.MicrophoneDeviceState
@@ -79,7 +81,6 @@ fun navBarHeight(): Dp = with(LocalDensity.current) {
         0.dp
     }
 }
-
 
 @Composable
 fun RecognizerInputMethodWindow(switchBack: (() -> Unit)? = null, allowClick: Boolean = false, onPauseVAD: (Boolean) -> Unit = { }, onFinish: () -> Unit = { }, content: @Composable () -> Unit) {
@@ -186,34 +187,42 @@ class VoiceInputMethodService : InputMethodService(), LifecycleOwner, ViewModelS
     private var onPermissionRejected: () -> Unit = {}
 
     fun initRecognizerView() {
-        recognizer = RecognizerView(
-            context = this@VoiceInputMethodService,
-            listener = object : RecognizerViewListener {
-                override fun cancelled() {
-                    needsInitialization = true
-                    recognizer!!.reset()
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                        if(!switchToPreviousInputMethod()) {
-                            switchToNextInputMethod(false)
-                        }
-                    } else {
-                        if(!inputMethodManager.switchToLastInputMethod(window.window!!.attributes.token)) {
-                            inputMethodManager.switchToNextInputMethod(window.window!!.attributes.token, false)
-                        }
+        val cancelSelf = {
+            needsInitialization = true
+            recognizer?.reset()
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                if (!switchToPreviousInputMethod()) {
+                    switchToNextInputMethod(false)
+                }
+            } else {
+                if (!inputMethodManager.switchToLastInputMethod(window.window!!.attributes.token)) {
+                    inputMethodManager.switchToNextInputMethod(
+                        window.window!!.attributes.token,
+                        false
+                    )
+                }
+            }
+        }
+        val settings = loadRecognizerSettings()
+        try {
+            recognizer = RecognizerView(
+                context = this@VoiceInputMethodService,
+                listener = object : RecognizerViewListener {
+                    override fun cancelled() {
+                        cancelSelf()
                     }
-                }
 
-                override fun recordingStarted(device: MicrophoneDeviceState) {
+                    override fun recordingStarted(device: MicrophoneDeviceState) {
 
-                }
+                    }
 
-                override fun finished(result: String) {
-                    currentInputConnection.also {
-                        var modifiedResult = result
+                    override fun finished(result: String) {
+                        currentInputConnection.also {
+                            var modifiedResult = result
 
-                        // TODO: Insert space automatically if ended at punctuation by stealing the code from FUTO Keyboard
+                            // TODO: Insert space automatically if ended at punctuation by stealing the code from FUTO Keyboard
 
-                        /*if(!prevText.isNullOrBlank()) {
+                            /*if(!prevText.isNullOrBlank()) {
                             val lastChar = prevText?.last()
 
                             if (punctuationChars.contains(lastChar)) {
@@ -221,34 +230,43 @@ class VoiceInputMethodService : InputMethodService(), LifecycleOwner, ViewModelS
                             }
                         }*/
 
-                        it.commitText(modifiedResult, 1)
+                            it.commitText(modifiedResult, 1)
+                        }
+                        cancelled()
                     }
-                    cancelled()
-                }
 
-                override fun partialResult(result: String) {
-                    if(currentInputConnection != null) {
-                        currentInputConnection.setComposingText(result, 1)
+                    override fun partialResult(result: String) {
+                        if (currentInputConnection != null) {
+                            currentInputConnection.setComposingText(result, 1)
+                        }
                     }
-                }
 
-                override fun requestPermission(
-                    onGranted: () -> Unit,
-                    onRejected: () -> Unit
-                ): Boolean {
-                    // TODO: Launch activity to request permission, steal this code from keyboard
-                    return false
-                }
+                    override fun requestPermission(
+                        onGranted: () -> Unit,
+                        onRejected: () -> Unit
+                    ): Boolean {
+                        // TODO: Launch activity to request permission, steal this code from keyboard
+                        return false
+                    }
 
-                override fun openSettings() {
+                    override fun openSettings() {
 
-                }
+                    }
 
-            },
-            settings = loadRecognizerSettings(),
-            lifecycleScope = lifecycleScope,
-            modelManager = CrashLoggingApplication.getModelManager(this)!!,
-        )
+                },
+                settings = loadRecognizerSettings(),
+                lifecycleScope = lifecycleScope,
+                modelManager = CrashLoggingApplication.getModelManager(this)!!,
+            )
+        } catch(e: ModelDoesNotExistException) {
+            val models = listOf(
+                settings.modelRunConfiguration.primaryModel
+            ) + settings.modelRunConfiguration.languageSpecificModels.values
+
+            startModelDownloadActivity(models)
+
+            cancelSelf()
+        }
     }
 
     private fun setOwners() {
@@ -321,8 +339,10 @@ class VoiceInputMethodService : InputMethodService(), LifecycleOwner, ViewModelS
 
         if(needsInitialization) {
             needsInitialization = false
-            recognizer!!.reset()
-            recognizer!!.start()
+
+            if(recognizer == null) initRecognizerView()
+            recognizer?.reset()
+            recognizer?.start()
         } else {
             println("Continue due to config change / screen rotation")
             // TODO: Screen rotation
@@ -331,19 +351,19 @@ class VoiceInputMethodService : InputMethodService(), LifecycleOwner, ViewModelS
 
         composeView!!.setContent {
             RecognizerInputMethodWindow(
-                switchBack = { recognizer!!.cancel() },
-                onPauseVAD = { recognizer!!.inhibitAutoStop(it) },
-                onFinish = { recognizer!!.finish() },
-                allowClick = true
+                switchBack = { recognizer?.cancel() },
+                onPauseVAD = { recognizer?.inhibitAutoStop(it) },
+                onFinish = { recognizer?.finish() },
+                allowClick = recognizer?.isFinishable?.value ?: false
             ) {
-                recognizer!!.Content()
+                recognizer?.Content()
             }
         }
     }
 
     override fun onFinishInputView(finishingInput: Boolean) {
         println("Finish input view")
-        recognizer!!.reset()
+        recognizer?.reset()
 
         needsInitialization = true
     }

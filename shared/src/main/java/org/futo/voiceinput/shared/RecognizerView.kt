@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.State
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -27,6 +29,7 @@ import org.futo.voiceinput.shared.ui.MicrophoneDeviceState
 import org.futo.voiceinput.shared.ui.PartialDecodingResult
 import org.futo.voiceinput.shared.ui.RecognizeLoadingCircle
 import org.futo.voiceinput.shared.ui.RecognizeMicError
+import org.futo.voiceinput.shared.ui.SelectLanguage
 import org.futo.voiceinput.shared.whisper.DecodingConfiguration
 import org.futo.voiceinput.shared.whisper.ModelManager
 import org.futo.voiceinput.shared.whisper.MultiModelRunConfiguration
@@ -35,6 +38,8 @@ data class RecognizerViewSettings(
     val shouldShowVerboseFeedback: Boolean,
     val shouldShowInlinePartialResult: Boolean,
     val shouldAnimateBubble: Boolean,
+    val shouldShowLanguageSelector: Boolean,
+    val shouldPlaySounds: Boolean,
 
     val modelRunConfiguration: MultiModelRunConfiguration,
     val decodingConfiguration: DecodingConfiguration,
@@ -78,21 +83,34 @@ class RecognizerView(
     private val context: Context,
     private val listener: RecognizerViewListener,
     private val settings: RecognizerViewSettings,
-    lifecycleScope: LifecycleCoroutineScope,
-    modelManager: ModelManager
+    private val lifecycleScope: LifecycleCoroutineScope,
+    private val modelManager: ModelManager
 ) {
     private val magnitudeState = mutableFloatStateOf(0.0f)
     private val statusState = mutableStateOf(MagnitudeState.NOT_TALKED_YET)
 
     enum class CurrentView {
-        LoadingCircle, PartialDecodingResult, InnerRecognize, PermissionError, ModelError
+        LoadingCircle, PartialDecodingResult, InnerRecognize, PermissionError, ModelError,
+        SelectLanguage
+    }
+
+    private val soundPlayer = when {
+        settings.shouldPlaySounds -> SoundPlayer(context)
+        else -> null
     }
 
     private val loadingCircleText = mutableStateOf("")
     private val partialDecodingText = mutableStateOf("")
-    private val currentViewState = mutableStateOf(CurrentView.LoadingCircle)
+    private val currentViewState = mutableStateOf(when {
+        settings.shouldShowLanguageSelector -> CurrentView.SelectLanguage
+        else -> CurrentView.LoadingCircle
+    })
 
-    private val currentDeviceState = mutableStateOf(MicrophoneDeviceState(
+    val isFinishable = derivedStateOf {
+        currentViewState.value == CurrentView.InnerRecognize
+    }
+
+    val currentDeviceState = mutableStateOf(MicrophoneDeviceState(
         bluetoothAvailable = false,
         bluetoothActive = false,
         setBluetooth = { },
@@ -103,6 +121,12 @@ class RecognizerView(
     @Composable
     fun Content() {
         when (currentViewState.value) {
+            CurrentView.SelectLanguage -> {
+                SelectLanguage(settings.decodingConfiguration.languages) {
+                    initRecognizerWithLanguage(it)
+                }
+            }
+
             CurrentView.LoadingCircle -> {
                 Column {
                     RecognizeLoadingCircle(text = loadingCircleText.value)
@@ -125,7 +149,7 @@ class RecognizerView(
 
             CurrentView.PermissionError -> {
                 Column {
-                    RecognizeMicError(openSettings = { recognizer.openPermissionSettings() })
+                    RecognizeMicError(openSettings = { recognizer?.openPermissionSettings() })
                 }
             }
 
@@ -152,15 +176,18 @@ class RecognizerView(
     }
 
     fun finish() {
-        recognizer.finish()
+        recognizer?.finish()
+        startPending = false
     }
 
     fun cancel() {
-        recognizer.cancel()
+        recognizer?.cancel()
+        startPending = false
     }
 
     private val audioRecognizerListener = object : AudioRecognizerListener {
         override fun cancelled() {
+            soundPlayer?.playCancelSound()
             listener.cancelled()
         }
 
@@ -173,7 +200,7 @@ class RecognizerView(
         }
 
         override fun modelLoadingFailed() {
-            listener.cancelled()
+            cancelled()
             currentViewState.value = CurrentView.ModelError
         }
 
@@ -220,6 +247,7 @@ class RecognizerView(
         }
 
         override fun recordingStarted(device: MicrophoneDeviceState) {
+            soundPlayer?.playStartSound()
             updateMagnitude(0.0f, MagnitudeState.NOT_TALKED_YET)
             currentDeviceState.value = device
             listener.recordingStarted(device)
@@ -237,25 +265,54 @@ class RecognizerView(
         }
     }
 
-    private val recognizer: AudioRecognizer = AudioRecognizer(
+    private var recognizer: AudioRecognizer? = if(settings.shouldShowLanguageSelector) {
+        null
+    } else {
+        recognizerWithLanguage(null)
+    }
+
+    var startPending = false
+    private fun recognizerWithLanguage(language: Language?) = AudioRecognizer(
         context = context,
         lifecycleScope = lifecycleScope,
         modelManager = modelManager,
         listener = audioRecognizerListener,
         settings = AudioRecognizerSettings(
-            modelRunConfiguration = settings.modelRunConfiguration,
-            decodingConfiguration = settings.decodingConfiguration,
+            modelRunConfiguration = settings.modelRunConfiguration.let {
+                if(language != null) {
+                    val model = it.languageSpecificModels[language] ?: it.primaryModel
+                    it.copy(primaryModel = model, languageSpecificModels = emptyMap())
+                } else it
+            },
+            decodingConfiguration = settings.decodingConfiguration.let {
+                if(language != null) {
+                    it.copy(languages = setOf(language))
+                } else it
+            },
             recordingConfiguration = settings.recordingConfiguration
         )
     )
 
+    private fun initRecognizerWithLanguage(language: Language?) {
+        recognizer = recognizerWithLanguage(language)
+
+        if(startPending) {
+            recognizer!!.reset()
+            recognizer!!.start()
+            startPending = false
+        }
+    }
+
+
     fun reset() {
-        recognizer.reset()
+        recognizer?.reset()
+        startPending = false
     }
 
     fun start() {
-        recognizer.start()
+        recognizer?.start()
+        if(recognizer == null) startPending = true
     }
 
-    fun inhibitAutoStop(inhibit: Boolean) = recognizer.inhibitAutoStop(inhibit)
+    fun inhibitAutoStop(inhibit: Boolean) = recognizer?.inhibitAutoStop(inhibit)
 }

@@ -32,9 +32,9 @@ import org.futo.voiceinput.settings.FORCE_SHOW_NOTICE
 import org.futo.voiceinput.settings.NavigationItem
 import org.futo.voiceinput.settings.NavigationItemStyle
 import org.futo.voiceinput.settings.ScreenTitle
-import org.futo.voiceinput.settings.ScrollableList
 import org.futo.voiceinput.settings.SettingItem
 import org.futo.voiceinput.settings.SettingsActivity
+import org.futo.voiceinput.settings.SettingsRootList
 import org.futo.voiceinput.settings.openImeOptions
 import org.futo.voiceinput.settings.setSetting
 
@@ -63,7 +63,7 @@ fun TestScreen(
         }
     }
 
-    ScrollableList {
+    SettingsRootList {
         ScreenTitle(title = stringResource(R.string.input_testing), showBack = true, navController = navController)
         TextField(
             value = text,

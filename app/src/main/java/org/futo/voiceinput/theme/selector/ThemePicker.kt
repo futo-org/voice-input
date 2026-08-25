@@ -94,7 +94,7 @@ fun ThemePreview(theme: ThemeOption, isSelected: Boolean = false, onClick: () ->
                     .fillMaxWidth()
                     .padding(4.dp),
                 color = textColor,
-                style = Typography.labelSmall
+                style = Typography.Small
             )
 
             // Keyboard contents

@@ -12,6 +12,15 @@ cmake_minimum_required(VERSION 3.22.1)
 # build script scope).
 project("voiceinput")
 
+set(SKBUILD ON)
+
+# TODO: Double check this works on devices and doesn't crash if fp16 is unavailable
+if(ANDROID_ABI STREQUAL "armeabi-v7a")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mfpu=neon-fp16 -mfloat-abi=softfp")
+endif()
+
+add_subdirectory(transcribe.cpp)
+
 set(CMAKE_CXX_FLAGS "-O3 -Wall -Wextra -g3")
 
 # Creates and names a library, sets it as either STATIC
@@ -30,17 +39,17 @@ set(CMAKE_CXX_FLAGS "-O3 -Wall -Wextra -g3")
 add_library(${CMAKE_PROJECT_NAME} SHARED
     # List C/C++ source files with relative paths to this CMakeLists.txt.
     voiceinput.cpp
-        ggml/whisper.cpp
-        ggml/ggml.c
-        ggml/ggml-alloc.c
-        ggml/ggml-backend.c
-        ggml/ggml-quants.c
-        jni_common.cpp)
+    jni_common.cpp)
 
 if(ANDROID_ABI STREQUAL armeabi-v7a)
     set_target_properties(${CMAKE_PROJECT_NAME} PROPERTIES COMPILE_FLAGS -mfpu=neon)
 endif()
 
+
+target_include_directories(${CMAKE_PROJECT_NAME}
+PRIVATE
+    transcribe.cpp/include
+    transcribe.cpp/ggml/include)
 
 # Specifies libraries CMake should link to your target library. You
 # can link libraries from various origins, such as libraries defined in this
@@ -48,4 +57,6 @@ endif()
 target_link_libraries(${CMAKE_PROJECT_NAME}
     # List libraries link to the target library
     android
+    ggml
+    transcribe
     log)

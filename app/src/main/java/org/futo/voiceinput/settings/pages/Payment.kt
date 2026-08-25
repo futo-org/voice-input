@@ -63,7 +63,7 @@ import org.futo.voiceinput.settings.IS_PAYMENT_PENDING
 import org.futo.voiceinput.settings.NOTICE_REMINDER_TIME
 import org.futo.voiceinput.settings.PaymentActivity
 import org.futo.voiceinput.settings.ScreenTitle
-import org.futo.voiceinput.settings.ScrollableList
+import org.futo.voiceinput.settings.SettingsRootList
 import org.futo.voiceinput.settings.SettingsViewModel
 import org.futo.voiceinput.settings.setSetting
 import org.futo.voiceinput.settings.useDataStore
@@ -75,7 +75,7 @@ import kotlin.math.absoluteValue
 
 @Composable
 fun ParagraphText(it: String, modifier: Modifier = Modifier) {
-    Text(it, modifier = modifier.padding(16.dp, 8.dp), style = Typography.bodyMedium,
+    Text(it, modifier = modifier.padding(8.dp, 8.dp), style = Typography.SmallMl,
         color = LocalContentColor.current)
 }
 
@@ -85,11 +85,11 @@ fun IconText(icon: Painter, title: String, body: String) {
         Icon(icon, contentDescription = null, modifier = Modifier
             .align(Alignment.Top)
             .padding(8.dp, 10.dp)
-            .size(with(LocalDensity.current) { Typography.titleMedium.fontSize.toDp() }))
+            .size(with(LocalDensity.current) { Typography.Heading.Medium.fontSize.toDp() }))
         Column(modifier = Modifier.padding(6.dp)) {
-            Text(title, style = Typography.titleMedium)
+            Text(title, style = Typography.Body.Regular)
             Spacer(modifier = Modifier.height(4.dp))
-            Text(body, style = Typography.bodySmall, color = LocalContentColor.current.copy(alpha = 0.8f))
+            Text(body, style = Typography.SmallMl, color = LocalContentColor.current.copy(alpha = 0.8f))
         }
     }
 }
@@ -192,7 +192,7 @@ fun MediumTitle(text: String) {
     Text(
         text,
         modifier = Modifier.padding(8.dp),
-        style = Typography.titleMedium,
+        style = Typography.Body.MediumMl,
         color = LocalContentColor.current
     )
 }
@@ -214,8 +214,7 @@ fun PaymentSurface(isPrimary: Boolean, title: String, onClick: (() -> Unit)? = n
     Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Center) {
         Surface(
             color = containerColor,
-            border = BorderStroke(2.dp, contentColor.copy(alpha = 0.33f)),
-            shape = RoundedCornerShape(24.dp),
+            shape = RoundedCornerShape(16.dp),
             modifier = Modifier
                 .padding(16.dp)
                 .widthIn(Dp.Unspecified, 400.dp)
@@ -292,7 +291,7 @@ fun PaymentThankYouScreen(onExit: () -> Unit = { }) {
     val hasSeenPaidNotice = useDataStore(HAS_SEEN_PAID_NOTICE)
     val isPending = useDataStore(IS_PAYMENT_PENDING)
 
-    ScrollableList {
+    SettingsRootList {
         ScreenTitle(
             if (isPending.value) {
                 stringResource(R.string.payment_pending)
@@ -328,7 +327,7 @@ fun PaymentFailedScreen(onExit: () -> Unit = { }) {
 
     val context = LocalContext.current
 
-    ScrollableList {
+    SettingsRootList {
         ScreenTitle(stringResource(R.string.payment_error), showBack = false)
 
         @Suppress("KotlinConstantConditions")
@@ -384,7 +383,7 @@ fun PaymentScreen(
         billing.checkAlreadyOwnsProduct()
     }
 
-    ScrollableList {
+    SettingsRootList {
         ScreenTitle(stringResource(R.string.payment_title), showBack = true, navController = navController)
 
 
@@ -484,7 +483,7 @@ fun PaymentScreen(
                             .width(32.dp)
                             .border(Dp.Hairline, LocalContentColor.current)
                             .padding(4.dp),
-                        textStyle = Typography.bodyMedium.copy(color = LocalContentColor.current),
+                        textStyle = Typography.Body.Medium.copy(color = LocalContentColor.current),
                         cursorBrush = SolidColor(LocalContentColor.current),
                         keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number)
                     )

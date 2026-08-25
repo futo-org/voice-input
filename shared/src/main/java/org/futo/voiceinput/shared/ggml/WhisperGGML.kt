@@ -1,10 +1,11 @@
 package org.futo.voiceinput.shared.ggml
 
+
 import androidx.annotation.Keep
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.newSingleThreadContext
 import kotlinx.coroutines.withContext
-import java.nio.Buffer
+import java.io.File
 
 @OptIn(DelicateCoroutinesApi::class)
 val inferenceContext = newSingleThreadContext("whisper-ggml-inference")
@@ -20,11 +21,11 @@ class InvalidModelException : Exception("The Whisper model could not be loaded f
 
 @Keep
 class WhisperGGML(
-    modelBuffer: Buffer
+    file: File
 ) {
     private var handle: Long = 0L
     init {
-        handle = openFromBufferNative(modelBuffer)
+        handle = openNative(file.absolutePath)
 
         if(handle == 0L) {
             throw InvalidModelException()
@@ -56,7 +57,8 @@ class WhisperGGML(
         }
         this@WhisperGGML.partialResultCallback = partialResultCallback
 
-        val result = inferNative(handle, samples, prompt, languages, bailLanguages, decodingMode.value, suppressNonSpeechTokens).trim()
+        val result = inferNative(handle, samples, prompt, languages, bailLanguages, decodingMode.value, suppressNonSpeechTokens)?.trim()
+        if(result == null) throw IllegalStateException("Inference failed")
 
         if(result.contains("<>CANCELLED<>")) {
             if(result.contains("flag")) {
@@ -86,8 +88,7 @@ class WhisperGGML(
     }
 
     private external fun openNative(path: String): Long
-    private external fun openFromBufferNative(buffer: Buffer): Long
-    private external fun inferNative(handle: Long, samples: FloatArray, prompt: String, languages: Array<String>, bailLanguages: Array<String>, decodingMode: Int, suppressNonSpeechTokens: Boolean): String
+    private external fun inferNative(handle: Long, samples: FloatArray, prompt: String, languages: Array<String>, bailLanguages: Array<String>, decodingMode: Int, suppressNonSpeechTokens: Boolean): String?
     private external fun cancelNative(handle: Long)
     private external fun closeNative(handle: Long)
 }

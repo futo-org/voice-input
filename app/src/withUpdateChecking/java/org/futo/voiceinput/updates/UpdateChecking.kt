@@ -17,7 +17,7 @@ import org.futo.voiceinput.settings.LAST_UPDATE_CHECK_RESULT
 import org.futo.voiceinput.settings.getSetting
 import org.futo.voiceinput.settings.setSetting
 
-const val UPDATE_URL = "https://voiceinput.futo.org/VoiceInput/voice_input_version_${BuildConfig.FLAVOR}"
+const val UPDATE_URL = "https://dl.voiceinput.futo.org/VoiceInput/voice_input_version_${BuildConfig.FLAVOR}"
 
 suspend fun checkForUpdate(): UpdateResult? {
     return withContext(Dispatchers.IO) {
@@ -37,7 +37,10 @@ suspend fun checkForUpdate(): UpdateResult? {
                 val latestVersion = data[0].toInt()
                 val latestVersionUrl = data[1]
                 val latestVersionString = data[2]
-                if(latestVersionUrl.startsWith("https://voiceinput.futo.org/")){
+                if(latestVersionUrl.startsWith("https://dl.voiceinput.futo.tech/")
+                    || latestVersionUrl.startsWith("https://dl.voiceinput.futo.org/")
+                    || latestVersionUrl.startsWith("https://voiceinput.futo.tech/")
+                    || latestVersionUrl.startsWith("https://voiceinput.futo.org/")){
                     UpdateResult(
                         nextVersion = latestVersion,
                         apkUrl = latestVersionUrl,

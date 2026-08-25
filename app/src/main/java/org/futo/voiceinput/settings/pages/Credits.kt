@@ -28,7 +28,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import org.futo.voiceinput.R
 import org.futo.voiceinput.settings.ScreenTitle
-import org.futo.voiceinput.settings.ScrollableList
+import org.futo.voiceinput.settings.SettingsRootList
 import org.futo.voiceinput.theme.Typography
 
 
@@ -50,8 +50,8 @@ fun CreditItem(name: String, thanksFor: String, link: String, license: String, c
             addStyle(
                 style = SpanStyle(
                     color = MaterialTheme.colorScheme.onPrimaryContainer,
-                    fontSize = Typography.bodyMedium.fontSize,
-                    fontWeight = Typography.bodyMedium.fontWeight
+                    fontSize = Typography.Body.Medium.fontSize,
+                    fontWeight = Typography.Body.Medium.fontWeight
                 ),
                 start = 0,
                 end = fullString.length
@@ -64,8 +64,8 @@ fun CreditItem(name: String, thanksFor: String, link: String, license: String, c
             addStyle(
                 style = SpanStyle(
                     color = MaterialTheme.colorScheme.onPrimaryContainer,
-                    fontSize = Typography.titleLarge.fontSize,
-                    fontWeight = Typography.titleLarge.fontWeight,
+                    fontSize = Typography.Heading.Medium.fontSize,
+                    fontWeight = Typography.Heading.Medium.fontWeight,
                     textDecoration = TextDecoration.Underline
                 ),
                 start = start,
@@ -81,14 +81,14 @@ fun CreditItem(name: String, thanksFor: String, link: String, license: String, c
             append(fullString)
         }, onClick = {
             uriHandler.openUri(link)
-        }, modifier = Modifier.padding(8.dp), style = Typography.bodyLarge)
+        }, modifier = Modifier.padding(8.dp), style = Typography.Body.Regular)
     }
 }
 
 @Composable
 @Preview
 fun CreditsScreen(openDependencies: () -> Unit = {}, navController: NavHostController = rememberNavController()) {
-    ScrollableList {
+    SettingsRootList {
         ScreenTitle(title = stringResource(id = R.string.credits_title), showBack = true, navController = navController)
 
         CreditItem(
@@ -164,7 +164,7 @@ fun CreditsScreen(openDependencies: () -> Unit = {}, navController: NavHostContr
         }
         Text(
             stringResource(R.string.name_legal),
-            style = Typography.bodyMedium,
+            style = Typography.Body.Regular,
             modifier = Modifier.padding(8.dp)
         )
     }

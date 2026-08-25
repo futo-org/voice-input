@@ -27,9 +27,9 @@ import org.futo.voiceinput.settings.MANUALLY_SELECT_LANGUAGE
 import org.futo.voiceinput.settings.MULTILINGUAL_MODEL_INDEX
 import org.futo.voiceinput.settings.PERSONAL_DICTIONARY
 import org.futo.voiceinput.settings.ScreenTitle
-import org.futo.voiceinput.settings.ScrollableList
 import org.futo.voiceinput.settings.SettingRadio
 import org.futo.voiceinput.settings.SettingToggleDataStore
+import org.futo.voiceinput.settings.SettingsRootList
 import org.futo.voiceinput.settings.SettingsViewModel
 import org.futo.voiceinput.settings.Tip
 import org.futo.voiceinput.settings.USE_LANGUAGE_SPECIFIC_MODELS
@@ -146,7 +146,7 @@ fun ModelsScreen(
     }
 
 
-    ScrollableList {
+    SettingsRootList {
         ScreenTitle(stringResource(R.string.model_options), showBack = true, navController = navController)
 
         if(languages.size > 1) {

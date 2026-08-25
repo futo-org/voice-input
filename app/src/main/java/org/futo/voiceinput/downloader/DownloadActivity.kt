@@ -31,10 +31,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.lifecycleScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.OkHttpClient
@@ -43,9 +39,9 @@ import okhttp3.Response
 import org.futo.voiceinput.R
 import org.futo.voiceinput.fileNeedsDownloading
 import org.futo.voiceinput.settings.ScreenTitle
-import org.futo.voiceinput.settings.ScrollableList
-import org.futo.voiceinput.theme.UixThemeAuto
+import org.futo.voiceinput.settings.SettingsRootList
 import org.futo.voiceinput.theme.Typography
+import org.futo.voiceinput.theme.UixThemeAuto
 import java.io.File
 import java.io.IOException
 
@@ -103,10 +99,10 @@ fun ModelItem(model: ModelInfo, showProgress: Boolean) {
                 } ?: "?"
 
                 Column {
-                    Text(model.name, style = Typography.bodyLarge)
+                    Text(model.name, style = Typography.Body.RegularMl)
                     Text(
                         "$size MB",
-                        style = Typography.bodySmall,
+                        style = Typography.Body.RegularMl,
                         color = MaterialTheme.colorScheme.outline
                     )
                     if (showProgress && !model.error.value) {
@@ -127,18 +123,18 @@ fun ModelItem(model: ModelInfo, showProgress: Boolean) {
 
 @Composable
 @Preview(showBackground = true)
-fun DownloadPrompt(
+fun DownloadPromptScreen(
     onContinue: () -> Unit = {},
     onCancel: () -> Unit = {},
     models: List<ModelInfo> = EXAMPLE_MODELS
 ) {
-    ScrollableList {
+    SettingsRootList {
         ScreenTitle(stringResource(R.string.download_required))
 
         Text(
             stringResource(R.string.download_required_body),
             modifier = Modifier.padding(16.dp, 0.dp),
-            style = Typography.bodyMedium
+            style = Typography.Body.RegularMl
         )
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -172,19 +168,19 @@ fun DownloadPrompt(
 @Composable
 @Preview(showBackground = true)
 fun DownloadScreen(models: List<ModelInfo> = EXAMPLE_MODELS) {
-    ScrollableList {
+    SettingsRootList {
         ScreenTitle(stringResource(R.string.download_progress))
         if (models.any { it.error.value }) {
             Text(
                 stringResource(R.string.download_failed),
                 modifier = Modifier.padding(16.dp, 0.dp),
-                style = Typography.bodyMedium
+                style = Typography.Body.RegularMl
             )
         } else {
             Text(
                 stringResource(R.string.download_in_progress),
                 modifier = Modifier.padding(16.dp, 0.dp),
-                style = Typography.bodyMedium
+                style = Typography.Body.RegularMl
             )
         }
 
@@ -210,7 +206,7 @@ class DownloadActivity : ComponentActivity() {
                     if (isDownloading.value) {
                         DownloadScreen(models = modelsToDownload)
                     } else {
-                        DownloadPrompt(
+                        DownloadPromptScreen(
                             onContinue = { startDownload() },
                             onCancel = { cancel() },
                             models = modelsToDownload
@@ -335,7 +331,7 @@ class DownloadActivity : ComponentActivity() {
         modelsToDownload.addAll(models.filter { this.fileNeedsDownloading(it) }.map {
             ModelInfo(
                 name = it,
-                url = "https://voiceinput.futo.org/VoiceInput/${it}"
+                url = "https://dl.voiceinput.futo.org/VoiceInput/${it}"
             )
         })
 

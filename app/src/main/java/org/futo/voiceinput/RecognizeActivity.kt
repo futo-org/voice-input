@@ -35,6 +35,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.lifecycleScope
 import org.futo.voiceinput.settings.pages.ConditionalUnpaidNoticeInVoiceInputWindow
+import org.futo.voiceinput.shared.ModelDoesNotExistException
 import org.futo.voiceinput.shared.RecognizerView
 import org.futo.voiceinput.shared.RecognizerViewListener
 import org.futo.voiceinput.shared.ui.MicrophoneDeviceState
@@ -65,7 +66,17 @@ fun RecognizeWindow(forceNoUnpaidNotice: Boolean = false, allowClick: Boolean = 
                         }
                     }
                 }
-            }){
+            }){}
+
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                contentAlignment = Alignment.Center
+            ) {
+                content()
+            }
+
+            Column {
                 Box(modifier = Modifier.fillMaxWidth()) {
                     if(!forceNoUnpaidNotice) {
                         Box(modifier = Modifier.align(Alignment.CenterStart)) {
@@ -92,13 +103,6 @@ fun RecognizeWindow(forceNoUnpaidNotice: Boolean = false, allowClick: Boolean = 
             }
 
 
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth(),
-                contentAlignment = Alignment.Center
-            ) {
-                content()
-            }
         }
     }
 }
@@ -109,44 +113,54 @@ class RecognizeActivity : ComponentActivity() {
     private var onPermissionRejected: () -> Unit = {}
 
     fun initRecognizerView() {
-        recognizer = RecognizerView(
-            context = this@RecognizeActivity,
-            listener = object : RecognizerViewListener {
-                override fun cancelled() {
-                    onCancel()
-                }
+        val settings = loadRecognizerSettings(inlinePartialResult = true)
+        try {
+            recognizer = RecognizerView(
+                context = this@RecognizeActivity,
+                listener = object : RecognizerViewListener {
+                    override fun cancelled() {
+                        onCancel()
+                    }
 
-                override fun recordingStarted(device: MicrophoneDeviceState) {
+                    override fun recordingStarted(device: MicrophoneDeviceState) {
 
-                }
+                    }
 
-                override fun finished(result: String) {
-                    this@RecognizeActivity.sendResult(result)
-                }
+                    override fun finished(result: String) {
+                        this@RecognizeActivity.sendResult(result)
+                    }
 
-                override fun partialResult(result: String) {
+                    override fun partialResult(result: String) {
 
-                }
+                    }
 
-                override fun requestPermission(
-                    onGranted: () -> Unit,
-                    onRejected: () -> Unit
-                ): Boolean {
-                    this@RecognizeActivity.onPermissionGranted = onGranted
-                    this@RecognizeActivity.onPermissionRejected = onRejected
-                    this@RecognizeActivity.requestPermission()
-                    return true
-                }
+                    override fun requestPermission(
+                        onGranted: () -> Unit,
+                        onRejected: () -> Unit
+                    ): Boolean {
+                        this@RecognizeActivity.onPermissionGranted = onGranted
+                        this@RecognizeActivity.onPermissionRejected = onRejected
+                        this@RecognizeActivity.requestPermission()
+                        return true
+                    }
 
-                override fun openSettings() {
+                    override fun openSettings() {
 
-                }
+                    }
 
-            },
-            settings = loadRecognizerSettings(inlinePartialResult = true),
-            lifecycleScope = this@RecognizeActivity.lifecycleScope,
-            modelManager = CrashLoggingApplication.getModelManager(this@RecognizeActivity)!!,
-        )
+                },
+                settings = settings,
+                lifecycleScope = this@RecognizeActivity.lifecycleScope,
+                modelManager = CrashLoggingApplication.getModelManager(this@RecognizeActivity)!!,
+            )
+        } catch(e: ModelDoesNotExistException) {
+            val models = listOf(
+                settings.modelRunConfiguration.primaryModel
+            ) + settings.modelRunConfiguration.languageSpecificModels.values
+
+            startModelDownloadActivity(models)
+            onCancel()
+        }
     }
 
     private fun onCancel() {
@@ -166,7 +180,7 @@ class RecognizeActivity : ComponentActivity() {
             //forceNoUnpaidNotice: Boolean = false, allowClick: Boolean = false, onClose: (() -> Unit)?, onPauseVAD: (Boolean) -> Unit = { }, onFinish: () -> Unit = { }, content: @Composable ColumnScope.() -> Unit
             RecognizeWindow(
                 forceNoUnpaidNotice = false,
-                allowClick = true,
+                allowClick = recognizer!!.isFinishable.value,
                 onClose = { recognizer!!.cancel() },
                 onPauseVAD = { v ->
                     recognizer!!.inhibitAutoStop(v)

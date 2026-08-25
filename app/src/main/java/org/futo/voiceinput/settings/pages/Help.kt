@@ -26,10 +26,8 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import org.futo.voiceinput.R
 import org.futo.voiceinput.RecognizeWindow
-import org.futo.voiceinput.settings.NavigationItem
-import org.futo.voiceinput.settings.NavigationItemStyle
 import org.futo.voiceinput.settings.ScreenTitle
-import org.futo.voiceinput.settings.ScrollableList
+import org.futo.voiceinput.settings.SettingsRootList
 import org.futo.voiceinput.settings.Tip
 import org.futo.voiceinput.settings.openImeOptions
 import org.futo.voiceinput.theme.Typography
@@ -39,7 +37,7 @@ import org.futo.voiceinput.theme.Typography
 @Preview
 fun HelpScreen(navController: NavHostController = rememberNavController()) {
     val textItem: @Composable (text: String) -> Unit = { text ->
-        Text(text, style = Typography.bodyMedium, modifier = Modifier.padding(16.dp, 4.dp))
+        Text(text, style = Typography.Body.Regular, modifier = Modifier.padding(16.dp, 4.dp))
     }
 
     val context = LocalContext.current
@@ -53,7 +51,7 @@ fun HelpScreen(navController: NavHostController = rememberNavController()) {
         toast.show()
     }
 
-    ScrollableList {
+    SettingsRootList {
         ScreenTitle(title = stringResource(id = R.string.help_title), showBack = true, navController = navController)
 
         textItem(stringResource(R.string.help_paragraph_1))
@@ -69,7 +67,7 @@ fun HelpScreen(navController: NavHostController = rememberNavController()) {
                         )
                         Text(
                             stringResource(R.string.look_for_the_big_off_center_futo_logo_in_the_background),
-                            style = Typography.bodyMedium,
+                            style = Typography.Body.Regular,
                             modifier = Modifier
                                 .padding(2.dp, 4.dp)
                                 .align(CenterHorizontally),
@@ -100,7 +98,7 @@ fun HelpScreen(navController: NavHostController = rememberNavController()) {
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
                             stringResource(R.string.once_you_re_done_talking_you_can_hit_the_microphone_button_to_stop),
-                            style = Typography.bodyMedium,
+                            style = Typography.Body.Regular,
                             modifier = Modifier
                                 .padding(2.dp, 4.dp)
                                 .align(CenterHorizontally),

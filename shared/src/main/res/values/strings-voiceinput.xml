@@ -35,11 +35,18 @@
     <string name="initializing">Initializing…</string>
 
     <!-- Model name for the tiny english model -->
-    <string name="tiny_en_name">English-39 (default)</string>
+    <string name="tiny_en_name">Whisper tiny.en (39M)</string>
     <!-- Model name for the base english model -->
-    <string name="base_en_name">English-74 (slower, more accurate)</string>
+    <string name="base_en_name">Whisper tiny.base (74M)</string>
     <!-- Model name for the small english model -->
-    <string name="small_en_name">English-244 (slow)</string>
+    <string name="small_en_name">Whisper tiny.small (244M)</string>
+
+    <string name="asr4all_s_name">asr4all small</string>
+    <string name="asr4all_m_name">asr4all medium</string>
+    <string name="asr4all_l_name">asr4all large</string>
+
+    <string name="parakeet_110m_name">Parakeet TDT 110M</string>
+    <string name="parakeet_unified_en_name">Parakeet Unified EN 600M</string>
 
     <!-- Model name for the tiny model -->
     <string name="tiny_name">Multilingual-39 (less accurate)</string>

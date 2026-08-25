@@ -14,7 +14,6 @@ val ENGLISH_MODELS: List<ModelLoader> = listOf(
         name = R.string.tiny_en_name,
         ggmlFile = "tiny_en_acft_q8_0.bin.not.tflite"
     ),
-
     ModelDownloadable(
         name = R.string.base_en_name,
         ggmlFile = "base_en_acft_q8_0.bin",
@@ -25,6 +24,26 @@ val ENGLISH_MODELS: List<ModelLoader> = listOf(
         ggmlFile = "small_en_acft_q8_0.bin",
         checksum = "58fbe949992dafed917590d58bc12ca577b08b9957f0b3e0d7ee71b64bed3aa8"
     ),
+    ModelDownloadable(
+        name = R.string.asr4all_m_name,
+        ggmlFile = "asr4all-m-Q8_0.gguf",
+        checksum = "805879c10efe11faacdb11b7bd03df3e3ec9462e3f8063d821235a20eef124a2"
+    ),
+    ModelDownloadable(
+        name = R.string.asr4all_l_name,
+        ggmlFile = "asr4all-l-Q8_0.gguf",
+        checksum = "bf42ca622c611ec6bf98d59c03011ce9f62552b7faa5b3f7741d4fcc4de569e5"
+    ),
+    ModelDownloadable(
+        name = R.string.parakeet_110m_name,
+        ggmlFile = "parakeet-tdt_ctc-110m-Q8_0.gguf",
+        checksum = "7dd44c74a331d788a4e5f8b16913b3feb29ced22cf5613aad0e0f6cd30516296"
+    ),
+    ModelDownloadable(
+        name = R.string.parakeet_unified_en_name,
+        ggmlFile = "parakeet-unified-en-0.6b-Q4_K_M.gguf",
+        checksum = "a8bf3de2b393bd14ead5a858c3748d5e3b07a20fdeabdd3b498fba4f463fa929"
+    )
 )
 
 val MULTILINGUAL_MODELS: List<ModelLoader> = listOf(

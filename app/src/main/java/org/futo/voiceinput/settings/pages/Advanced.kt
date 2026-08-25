@@ -17,8 +17,8 @@ import org.futo.voiceinput.settings.MULTILINGUAL_MODEL_INDEX
 import org.futo.voiceinput.settings.NavigationItem
 import org.futo.voiceinput.settings.NavigationItemStyle
 import org.futo.voiceinput.settings.ScreenTitle
-import org.futo.voiceinput.settings.ScrollableList
 import org.futo.voiceinput.settings.SettingToggleDataStore
+import org.futo.voiceinput.settings.SettingsRootList
 import org.futo.voiceinput.settings.SettingsViewModel
 import org.futo.voiceinput.settings.VERBOSE_PROGRESS
 import org.futo.voiceinput.settings.openImeOptions
@@ -37,7 +37,7 @@ fun AdvancedScreen(
         default = MULTILINGUAL_MODEL_INDEX.default
     )
 
-    ScrollableList {
+    SettingsRootList {
         ScreenTitle(title = stringResource(id = R.string.advanced_settings), showBack = true, navController = navController)
 
         SettingToggleDataStore(

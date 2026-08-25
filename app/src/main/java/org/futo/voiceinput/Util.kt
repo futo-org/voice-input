@@ -20,6 +20,7 @@ import org.futo.voiceinput.downloader.DownloadActivity
 import org.futo.voiceinput.settings.DISALLOW_SYMBOLS
 import org.futo.voiceinput.settings.ENABLE_30S_LIMIT
 import org.futo.voiceinput.settings.ENABLE_ANIMATIONS
+import org.futo.voiceinput.settings.ENABLE_SOUND
 import org.futo.voiceinput.settings.ENGLISH_MODEL_INDEX
 import org.futo.voiceinput.settings.IS_VAD_ENABLED
 import org.futo.voiceinput.settings.LANGUAGE_TOGGLES
@@ -239,7 +240,6 @@ fun Context.loadRecognizerSettings(inlinePartialResult: Boolean = false): Recogn
     val useLanguageSpecificModels = getSetting(USE_LANGUAGE_SPECIFIC_MODELS)
     val languages = getSetting(LANGUAGE_TOGGLES).mapNotNull { getLanguageFromWhisperString(it) }.toSet()
 
-
     val englishModel = ENGLISH_MODELS[englishModelIdx]
     val multiModel = MULTILINGUAL_MODELS[multiModelIdx]
     val primaryModel = if(languages == setOf(Language.English)) {
@@ -253,16 +253,18 @@ fun Context.loadRecognizerSettings(inlinePartialResult: Boolean = false): Recogn
         languageSpecificModels[Language.English] = englishModel
     }
 
-        return RecognizerViewSettings(
+    return RecognizerViewSettings(
         shouldShowVerboseFeedback = getSetting(VERBOSE_PROGRESS),
         shouldShowInlinePartialResult = inlinePartialResult,
         shouldAnimateBubble = getSetting(ENABLE_ANIMATIONS),
+        shouldPlaySounds = getSetting(ENABLE_SOUND),
+        shouldShowLanguageSelector = getSetting(MANUALLY_SELECT_LANGUAGE) && languages.size > 1,
         modelRunConfiguration = MultiModelRunConfiguration(
             primaryModel = primaryModel,
             languageSpecificModels = languageSpecificModels,
         ),
         decodingConfiguration = DecodingConfiguration(
-            glossary = getSetting(PERSONAL_DICTIONARY).split("\n").map { it.trim() },
+            glossary = getSetting(PERSONAL_DICTIONARY).split("\n").map { it.trim() }.filter { it.isNotBlank() },
             languages = languages,
             suppressSymbols = getSetting(DISALLOW_SYMBOLS),
         ),

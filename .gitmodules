@@ -1,3 +1,6 @@
 [submodule "libs"]
 	path = libs
 	url = https://gitlab.futo.org/keyboard/android-libs.git
+[submodule "app/src/main/cpp/transcribe.cpp"]
+	path = app/src/main/cpp/transcribe.cpp
+	url = https://gitlab.futo.org/keyboard/transcribe.cpp.git

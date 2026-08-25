@@ -20,8 +20,8 @@ import org.futo.voiceinput.settings.ENABLE_MULTILINGUAL
 import org.futo.voiceinput.settings.LANGUAGE_TOGGLES
 import org.futo.voiceinput.settings.MULTILINGUAL_MODEL_INDEX
 import org.futo.voiceinput.settings.ScreenTitle
-import org.futo.voiceinput.settings.SettingListLazy
 import org.futo.voiceinput.settings.SettingToggleRaw
+import org.futo.voiceinput.settings.SettingsRootListLazy
 import org.futo.voiceinput.settings.SettingsViewModel
 import org.futo.voiceinput.settings.Tip
 import org.futo.voiceinput.settings.useDataStore
@@ -79,7 +79,7 @@ fun LanguagesScreen(
         if (multilingual != newMultilingual) setMultilingual(newMultilingual)
     }
 
-    SettingListLazy {
+    SettingsRootListLazy {
         item {
             ScreenTitle(stringResource(R.string.languages_title), showBack = true, navController = navController)
         }

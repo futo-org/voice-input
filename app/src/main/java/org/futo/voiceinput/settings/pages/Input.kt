@@ -20,8 +20,8 @@ import org.futo.voiceinput.settings.MANUALLY_SELECT_LANGUAGE
 import org.futo.voiceinput.settings.NavigationItem
 import org.futo.voiceinput.settings.NavigationItemStyle
 import org.futo.voiceinput.settings.ScreenTitle
-import org.futo.voiceinput.settings.ScrollableList
 import org.futo.voiceinput.settings.SettingToggleDataStore
+import org.futo.voiceinput.settings.SettingsRootList
 import org.futo.voiceinput.settings.SettingsViewModel
 import org.futo.voiceinput.settings.Tip
 import org.futo.voiceinput.settings.USE_LANGUAGE_SPECIFIC_MODELS
@@ -36,7 +36,7 @@ fun InputScreen(
 ) {
     val languages = useDataStore(LANGUAGE_TOGGLES)
 
-    ScrollableList {
+    SettingsRootList {
         ScreenTitle(title = stringResource(id = R.string.input_options), showBack = true, navController = navController)
 
         NavigationItem(

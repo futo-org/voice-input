@@ -6,11 +6,15 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.windowInsetsBottomHeight
+import androidx.compose.foundation.layout.windowInsetsTopHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.rememberScrollState
@@ -60,7 +64,7 @@ fun ScreenTitle(title: String, showBack: Boolean = false, navController: NavHost
             Icon(Icons.Default.ArrowBack, contentDescription = null, modifier = Modifier.align(CenterVertically))
             Spacer(modifier = Modifier.width(18.dp))
         }
-        Text(title, style = Typography.titleLarge, modifier = Modifier
+        Text(title, style = Typography.Heading.Medium, modifier = Modifier
             .align(CenterVertically)
             .padding(0.dp, 16.dp))
     }
@@ -78,7 +82,7 @@ fun Tip(text: String = "This is an example tip", onDismiss: (() -> Unit)? = null
             Text(
                 text,
                 modifier = Modifier.padding(8.dp),
-                style = Typography.bodyMedium,
+                style = Typography.Body.RegularMl,
                 color = MaterialTheme.colorScheme.onPrimaryContainer
             )
             if (onDismiss != null) {
@@ -139,12 +143,12 @@ fun SettingItem(
                 )
         ) {
             Column {
-                Text(title, style = Typography.bodyLarge)
+                Text(title, style = Typography.Heading.RegularMl)
 
                 if (subtitle != null) {
                     Text(
                         subtitle,
-                        style = Typography.bodySmall,
+                        style = Typography.SmallMl,
                         color = MaterialTheme.colorScheme.outline
                     )
                 }
@@ -258,7 +262,22 @@ fun<T> SettingRadio(
 }
 
 @Composable
-fun ScrollableList(content: @Composable () -> Unit) {
+fun SettingsRootList(content: @Composable () -> Unit) {
+    val scrollState = rememberScrollState()
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(scrollState)
+    ) {
+        Spacer(Modifier.windowInsetsTopHeight(WindowInsets.systemBars))
+        content()
+        Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.systemBars))
+    }
+}
+
+@Composable
+fun BasicScrollList(content: @Composable () -> Unit) {
     val scrollState = rememberScrollState()
 
     Column(
@@ -271,12 +290,14 @@ fun ScrollableList(content: @Composable () -> Unit) {
 }
 
 @Composable
-fun SettingListLazy(content: LazyListScope.() -> Unit) {
+fun SettingsRootListLazy(content: LazyListScope.() -> Unit) {
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
     ) {
+        item { Spacer(Modifier.windowInsetsTopHeight(WindowInsets.systemBars)) }
         content()
+        item { Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.systemBars)) }
     }
 }
 
