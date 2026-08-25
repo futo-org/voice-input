@@ -23,7 +23,7 @@ suspend fun checkForUpdate(): UpdateResult? {
     return withContext(Dispatchers.IO) {
         val httpClient = OkHttpClient()
 
-        val request = Request.Builder().method("GET", null).url(UPDATE_URL).build()
+        val request = Request.Builder().method("GET", null).url(UPDATE_URL + "?hr=${System.currentTimeMillis() / 1000L / 3600L}").build()
 
         try {
             val response = httpClient.newCall(request).execute()
@@ -74,7 +74,7 @@ suspend fun checkForUpdateAndSaveToPreferences(context: Context): Boolean {
     return false
 }
 
-suspend fun retrieveSavedLastUpdateCheckResult(context: Context): UpdateResult? {
+fun retrieveSavedLastUpdateCheckResult(context: Context): UpdateResult? {
     return UpdateResult.fromString(context.getSetting(LAST_UPDATE_CHECK_RESULT))
 }
 
