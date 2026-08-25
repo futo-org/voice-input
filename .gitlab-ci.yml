@@ -14,6 +14,12 @@ unit-test-job:
   stage: test
   tags:
     - docker
+  before_script:
+    - git fetch origin $CI_COMMIT_BRANCH:$CI_COMMIT_BRANCH
+    - export VERSION_NAME=`git describe --tags --dirty`
+    - export VERSION_CODE=`git rev-list --first-parent --count $GIT_BRANCH`
+    - echo $VERSION_CODE $VERSION_NAME
+    - ./setUpPropertiesCI.sh
   script:
     - ./gradlew testDevDebugUnitTest -s
   artifacts:
@@ -26,9 +32,9 @@ buildDev:
   tags:
     - docker
   before_script:
-    - git fetch origin master:master
+    - git fetch origin $CI_COMMIT_BRANCH:$CI_COMMIT_BRANCH
     - export VERSION_NAME=`git describe --tags --dirty`
-    - export VERSION_CODE=`git rev-list --first-parent --count master`
+    - export VERSION_CODE=`git rev-list --first-parent --count $GIT_BRANCH`
     - echo $VERSION_CODE $VERSION_NAME
     - ./setUpPropertiesCI.sh
   script:
@@ -50,8 +56,13 @@ buildRelease:
   stage: buildRelease
   tags:
     - docker
-  script:
+  before_script:
+    - git fetch origin master:master
+    - export VERSION_NAME=`git describe --tags --dirty`
+    - export VERSION_CODE=`git rev-list --first-parent --count master`
+    - echo $VERSION_CODE $VERSION_NAME
     - ./setUpPropertiesCI.sh
+  script:
     - ./gradlew bundlePlayStoreRelease -s
     - ./gradlew assembleStandaloneRelease -s
     - ./gradlew assembleFDroidRelease -s
