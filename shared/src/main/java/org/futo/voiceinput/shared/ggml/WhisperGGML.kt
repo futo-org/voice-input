@@ -3,6 +3,8 @@ package org.futo.voiceinput.shared.ggml
 
 import androidx.annotation.Keep
 import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.newSingleThreadContext
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -44,12 +46,10 @@ class WhisperGGML(
     // 2 or more languages = autodetect between those languages
     @Throws(BailLanguageException::class, InferenceCancelledException::class)
     suspend fun infer(
-        samples: FloatArray,
+        sampleFlow: Flow<FloatArray>,
         prompt: String,
         languages: Array<String>,
         bailLanguages: Array<String>,
-        decodingMode: DecodingMode,
-        suppressNonSpeechTokens: Boolean,
         partialResultCallback: (String) -> Unit
     ): String = withContext(inferenceContext) {
         if(handle == 0L) {
@@ -57,7 +57,38 @@ class WhisperGGML(
         }
         this@WhisperGGML.partialResultCallback = partialResultCallback
 
-        val result = inferNative(handle, samples, prompt, languages, bailLanguages, decodingMode.value, suppressNonSpeechTokens)?.trim()
+        val streamStatus = startStreamNative(handle, prompt, languages, bailLanguages)
+        if(!streamStatus) return@withContext offlineInfer(sampleFlow, prompt, languages, bailLanguages)
+
+        try {
+            sampleFlow.collect {
+                feedStreamNative(handle, it)
+            }
+
+            val finalResult = stopStreamNative(handle) ?: "?"
+            return@withContext finalResult
+        } catch(e: Throwable) {
+            stopStreamNative(handle)
+            throw e
+        }
+    }
+
+    private suspend fun offlineInfer(
+        sampleFlow: Flow<FloatArray>,
+        prompt: String,
+        languages: Array<String>,
+        bailLanguages: Array<String>
+    ): String = withContext(inferenceContext) {
+        val sampleList = sampleFlow.toList()
+
+        val samples = FloatArray(sampleList.sumOf { it.size })
+        var i = 0
+        for(sample in sampleList) {
+            sample.copyInto(samples, i)
+            i += sample.size
+        }
+
+        val result = offlineInferNative(handle, samples, prompt, languages, bailLanguages)?.trim()
         if(result == null) throw IllegalStateException("Inference failed")
 
         if(result.contains("<>CANCELLED<>")) {
@@ -88,7 +119,10 @@ class WhisperGGML(
     }
 
     private external fun openNative(path: String): Long
-    private external fun inferNative(handle: Long, samples: FloatArray, prompt: String, languages: Array<String>, bailLanguages: Array<String>, decodingMode: Int, suppressNonSpeechTokens: Boolean): String?
+    private external fun offlineInferNative(handle: Long, samples: FloatArray, prompt: String, languages: Array<String>, bailLanguages: Array<String>): String?
+    private external fun startStreamNative(handle: Long, prompt: String, languages: Array<String>, bailLanguages: Array<String>): Boolean
+    private external fun feedStreamNative(handle: Long, samples: FloatArray): Boolean
+    private external fun stopStreamNative(handle: Long): String?
     private external fun cancelNative(handle: Long)
     private external fun closeNative(handle: Long)
 }

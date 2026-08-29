@@ -3,10 +3,10 @@ package org.futo.voiceinput.shared.whisper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import org.futo.voiceinput.shared.ggml.BailLanguageException
-import org.futo.voiceinput.shared.ggml.DecodingMode
 import org.futo.voiceinput.shared.ggml.InferenceCancelledException
 import org.futo.voiceinput.shared.types.InferenceState
 import org.futo.voiceinput.shared.types.Language
@@ -50,7 +50,7 @@ class MultiModelRunner(
 
     @Throws(InferenceCancelledException::class)
     suspend fun run(
-        samples: FloatArray,
+        sampleFlow: Flow<FloatArray>,
         runConfiguration: MultiModelRunConfiguration,
         decodingConfiguration: DecodingConfiguration,
         callback: ModelInferenceCallback
@@ -70,12 +70,10 @@ class MultiModelRunner(
         val result = try {
             callback.updateStatus(InferenceState.Encoding)
             primaryModel.infer(
-                samples = samples,
+                sampleFlow = sampleFlow,
                 prompt = glossary,
                 languages = allowedLanguages,
                 bailLanguages = bailLanguages,
-                decodingMode = DecodingMode.BeamSearch5,
-                suppressNonSpeechTokens = decodingConfiguration.suppressSymbols,
                 partialResultCallback = {
                     callback.partialResult(it)
                 }
@@ -88,12 +86,10 @@ class MultiModelRunner(
             val specificModel = modelManager.obtainModel(specificModelLoader)
 
             specificModel.infer(
-                samples = samples,
+                sampleFlow = sampleFlow,
                 prompt = glossary,
                 languages = arrayOf(e.language),
                 bailLanguages = arrayOf(),
-                decodingMode = DecodingMode.BeamSearch5,
-                suppressNonSpeechTokens = decodingConfiguration.suppressSymbols,
                 partialResultCallback = {
                     callback.partialResult(it)
                 }

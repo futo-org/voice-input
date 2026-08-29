@@ -12,10 +12,7 @@ import android.media.AudioManager
 import android.media.AudioRecord
 import android.media.MediaRecorder
 import android.media.MicrophoneDirection
-import android.net.Uri
 import android.os.Build
-import android.provider.Settings
-import android.util.Log
 import androidx.lifecycle.LifecycleCoroutineScope
 import com.konovalov.vad.Vad
 import com.konovalov.vad.config.FrameSize
@@ -23,13 +20,19 @@ import com.konovalov.vad.config.Mode
 import com.konovalov.vad.config.Model
 import com.konovalov.vad.config.SampleRate
 import com.konovalov.vad.models.VadModel
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.selects.select
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.yield
-import org.futo.voiceinput.shared.ggml.InferenceCancelledException
 import org.futo.voiceinput.shared.ggml.InvalidModelException
 import org.futo.voiceinput.shared.types.AudioRecognizerListener
 import org.futo.voiceinput.shared.types.InferenceState
@@ -43,7 +46,6 @@ import org.futo.voiceinput.shared.whisper.ModelManager
 import org.futo.voiceinput.shared.whisper.MultiModelRunConfiguration
 import org.futo.voiceinput.shared.whisper.MultiModelRunner
 import org.futo.voiceinput.shared.whisper.isBlankResult
-import java.nio.FloatBuffer
 import java.nio.ShortBuffer
 import kotlin.math.min
 import kotlin.math.pow
@@ -108,10 +110,11 @@ class AudioRecognizer(
     private val useVAD = settings.recordingConfiguration.useVADAutoStop
     private var inhibitVAD = false
 
-    private var floatSamples: FloatBuffer = FloatBuffer.allocate(16000 * 30)
+    private val stopSignal = CompletableDeferred<Unit>()
+    private val audioChannel = Channel<FloatArray>(Channel.UNLIMITED)
+    //private var floatSamples: FloatBuffer = FloatBuffer.allocate(16000 * 30)
     private var recorderJob: Job? = null
     private var modelJob: Job? = null
-    private var loadModelJob: Job? = null
 
     private var focusRequest: AudioFocusRequest? = null
 
@@ -280,12 +283,18 @@ class AudioRecognizer(
 
     @Throws(SecurityException::class)
     private fun createAudioRecorder(): AudioRecord {
+        val minBuffer = AudioRecord.getMinBufferSize(
+            16000,
+            AudioFormat.CHANNEL_IN_MONO,
+            AudioFormat.ENCODING_PCM_FLOAT
+        )
+
         val recorder = AudioRecord(
             MediaRecorder.AudioSource.VOICE_RECOGNITION,
             16000,
             AudioFormat.CHANNEL_IN_MONO,
             AudioFormat.ENCODING_PCM_16BIT,
-            16000 * 2 * 5
+            minBuffer
         )
 
         this.recorder = recorder
@@ -299,18 +308,6 @@ class AudioRecognizer(
 
     private suspend fun preloadModels() {
         modelRunner.preload(settings.modelRunConfiguration)
-    }
-
-    private fun expandSpaceIfAllowed(): Boolean {
-        if(canExpandSpace) {
-            // Allocate an extra 30 seconds
-            val newSampleBuffer = FloatBuffer.allocate(floatSamples.capacity() + 16000 * 30)
-            //Log.d("AudioRecognizer", "Allocating extra space: ${floatSamples.capacity() / 16000} -> ${newSampleBuffer.capacity() / 16000}")
-            newSampleBuffer.put(floatSamples.array(), 0, floatSamples.capacity() - floatSamples.remaining())
-            floatSamples = newSampleBuffer
-            return true
-        }
-        return false
     }
 
     private suspend fun recordingJob(recorder: AudioRecord, vad: VadModel?) {
@@ -331,6 +328,7 @@ class AudioRecognizer(
         var numConsecutiveSpeech = 0
 
         val samples = ShortArray(1600)
+        val recordingStartTime = System.currentTimeMillis()
 
         while (isRecording) {
             yield()
@@ -338,10 +336,8 @@ class AudioRecognizer(
             if (nRead <= 0) break
             yield()
 
-            var isRunningOutOfSpace = (floatSamples.remaining() < nRead.coerceAtLeast(1600)) && !expandSpaceIfAllowed()
-
             val hasNotTalkedRecently = hasTalked && (numConsecutiveNonSpeech > 66) && useVAD && !inhibitVAD
-            if (isRunningOutOfSpace || hasNotTalkedRecently) {
+            if (hasNotTalkedRecently) {
                 yield()
                 withContext(Dispatchers.Main) {
                     finish()
@@ -379,11 +375,11 @@ class AudioRecognizer(
                 }
             }
 
-            floatSamples.put(samples.sliceArray(0 until nRead).map { it.toFloat() / Short.MAX_VALUE.toFloat() }.toFloatArray())
+            audioChannel.send(samples.sliceArray(0 until nRead).map { it.toFloat() / Short.MAX_VALUE.toFloat() }.toFloatArray())
 
             // Don't set hasTalked if the start sound may still be playing, otherwise on some
             // devices the rms just explodes and `hasTalked` is always true
-            val startSoundPassed = (floatSamples.position() > 16000 * 0.6)
+            val startSoundPassed = (System.currentTimeMillis() - recordingStartTime) > 600
             if (!startSoundPassed) {
                 numConsecutiveSpeech = 0
                 numConsecutiveNonSpeech = 0
@@ -401,7 +397,7 @@ class AudioRecognizer(
             }
 
             // Check if mic is blocked
-            val blockCheckTimePassed = (floatSamples.position() > 2 * 16000) // two seconds
+            val blockCheckTimePassed = (System.currentTimeMillis() - recordingStartTime) > 2000
             if (!anyNoiseAtAll && canMicBeBlocked && blockCheckTimePassed) {
                 isMicBlocked = true
             }
@@ -429,14 +425,7 @@ class AudioRecognizer(
                     samples, 0, 1600, AudioRecord.READ_NON_BLOCKING
                 )
                 if (nRead2 > 0) {
-                    if (floatSamples.remaining() < nRead2 && !expandSpaceIfAllowed()) {
-                        yield()
-                        withContext(Dispatchers.Main) {
-                            finish()
-                        }
-                        break
-                    }
-                    floatSamples.put(samples.sliceArray(0 until nRead2).map { it.toFloat() / Short.MAX_VALUE.toFloat() }.toFloatArray())
+                    audioChannel.trySend(samples.sliceArray(0 until nRead2).map { it.toFloat() / Short.MAX_VALUE.toFloat() }.toFloatArray())
                 } else {
                     break
                 }
@@ -516,7 +505,7 @@ class AudioRecognizer(
 
         listener.recordingStarted(device)
 
-        loadModelJob = lifecycleScope.launch {
+        modelJob = lifecycleScope.launch {
             withContext(Dispatchers.Default) {
                 try {
                     preloadModels()
@@ -526,9 +515,36 @@ class AudioRecognizer(
                         listener.modelLoadingFailed()
                     }
                 }
+
+                yield()
+
+                val text = modelRunner.run(
+                    audioChannel.receiveAsFlow().takeUntil(stopSignal),
+                    settings.modelRunConfiguration,
+                    settings.decodingConfiguration,
+                    runnerCallback
+                )
+
+                withContext(Dispatchers.Main) {
+                    yield()
+                    listener.finished(text)
+                }
             }
         }
     }
+
+    private fun <T> Flow<T>.takeUntil(signal: Deferred<Unit>): Flow<T> = channelFlow {
+        val collector = launch {
+            collect { send(it) }
+        }
+        select {
+            signal.onAwait { }
+            collector.onJoin { }
+        }
+
+        collector.cancel()
+    }
+
 
     private val runnerCallback: ModelInferenceCallback = object : ModelInferenceCallback {
         override fun updateStatus(state: InferenceState) {
@@ -545,43 +561,6 @@ class AudioRecognizer(
         }
     }
 
-    private suspend fun runModel() {
-        loadModelJob?.let {
-            if (it.isActive) {
-                println("Model was not finished loading...")
-                it.join()
-            }
-        }
-
-        val floatArray = floatSamples.array().sliceArray(0 until floatSamples.position())
-
-        yield()
-        val outputText = try {
-             modelRunner.run(
-                floatArray,
-                settings.modelRunConfiguration,
-                settings.decodingConfiguration,
-                runnerCallback
-            ).trim()
-        }catch(e: InferenceCancelledException) {
-            yield()
-            return
-        }
-
-        val text = when {
-            isBlankResult(outputText) -> ""
-            else -> outputText
-        }
-
-        yield()
-        lifecycleScope.launch {
-            withContext(Dispatchers.Main) {
-                yield()
-                listener.finished(text)
-            }
-        }
-    }
-
     private fun onFinishRecording() {
         recorderJob?.cancel()
 
@@ -593,11 +572,6 @@ class AudioRecognizer(
         recorder?.stop()
 
         listener.processing()
-
-        modelJob = lifecycleScope.launch {
-            withContext(Dispatchers.Default) {
-                runModel()
-            }
-        }
+        stopSignal.complete(Unit)
     }
 }

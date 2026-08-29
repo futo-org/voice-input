@@ -56,6 +56,8 @@ struct WhisperModelState {
     volatile int cancel_flag = 0;
     jobject partial_result_instance;
     jmethodID partial_result_method;
+
+    size_t last_partial_emit = 0;
 };
 
 void log_callback(transcribe_log_level level, const char *msg, void *userdata) {
@@ -72,6 +74,7 @@ bool abort_callback(void* userdata) {
         return true;
     }
 
+    /*
     if(state->partial_result_instance && state->partial_result_method) {
         const char* text = transcribe_full_text(state->session);
         if(text == nullptr) {
@@ -85,7 +88,7 @@ bool abort_callback(void* userdata) {
             state->env->DeleteLocalRef(pjstr);
         }
     }
-
+    */
     return false;
 }
 
@@ -120,10 +123,7 @@ static jlong WhisperGGML_open(JNIEnv *env, jclass clazz, jstring model_dir) {
     return reinterpret_cast<jlong>(state);
 }
 
-static jstring WhisperGGML_infer(JNIEnv *env, jobject instance, jlong handle, jfloatArray samples_array, jstring prompt, jobjectArray languages, jobjectArray bail_languages, jint decoding_mode, jboolean suppress_non_speech_tokens) {
-    auto *state = reinterpret_cast<WhisperModelState *>(handle);
-    state->cancel_flag = 0;
-
+static std::string languageArrayToMergedString(JNIEnv *env, jobjectArray languages) {
     std::string language_hint;
     int num_languages = env->GetArrayLength(languages);
     for (int i=0; i<num_languages; i++) {
@@ -136,17 +136,15 @@ static jstring WhisperGGML_infer(JNIEnv *env, jobject instance, jlong handle, jf
         }
     }
 
-    std::string bail_language_hint;
-    int num_bail_languages = env->GetArrayLength(bail_languages);
-    for (int i=0; i<num_bail_languages; i++) {
-        jstring jstr = static_cast<jstring>(env->GetObjectArrayElement(bail_languages, i));
-        std::string str = jstring2string(env, jstr);
+    return language_hint;
+}
 
-        bail_language_hint.append(str);
-        if(i < (num_bail_languages - 1)) {
-            bail_language_hint.append(",");
-        }
-    }
+static jstring WhisperGGML_infer(JNIEnv *env, jobject instance, jlong handle, jfloatArray samples_array, jstring prompt, jobjectArray languages, jobjectArray bail_languages) {
+    auto *state = reinterpret_cast<WhisperModelState *>(handle);
+    state->cancel_flag = 0;
+
+    std::string language_hint = languageArrayToMergedString(env, languages);
+    std::string bail_language_hint = languageArrayToMergedString(env, bail_languages);
 
     state->env = env;
     state->partial_result_instance = instance;
@@ -161,8 +159,8 @@ static jstring WhisperGGML_infer(JNIEnv *env, jobject instance, jlong handle, jf
     jfloat *samples = env->GetFloatArrayElements(samples_array, nullptr);
 
 
-    struct transcribe_whisper_run_ext wp = { };
-    struct transcribe_asr4all_stream_ext a4ap = { };
+    struct transcribe_whisper_run_ext wp;
+
     struct transcribe_run_params params;
     transcribe_run_params_init(&params);
     params.task = TRANSCRIBE_TASK_TRANSCRIBE;
@@ -174,17 +172,9 @@ static jstring WhisperGGML_infer(JNIEnv *env, jobject instance, jlong handle, jf
 
     if(transcribe_model_accepts_ext_kind(
             transcribe_get_model(state->session),
-            TRANSCRIBE_EXT_SLOT_STREAM,
-            TRANSCRIBE_EXT_KIND_ASR4ALL_STREAM
-    )) {
-        // TODO: for streaming
-    } else if(transcribe_model_accepts_ext_kind(
-            transcribe_get_model(state->session),
             TRANSCRIBE_EXT_SLOT_RUN,
             TRANSCRIBE_EXT_KIND_WHISPER_RUN
     )) {
-
-        struct transcribe_whisper_run_ext wp = { };
         transcribe_whisper_run_ext_init(&wp);
 
         wp.audio_ctx = std::max(160, std::min(1500, (int)ceil((double)num_samples / (double)(320.0)) + 32));
@@ -233,6 +223,141 @@ static jstring WhisperGGML_infer(JNIEnv *env, jobject instance, jlong handle, jf
     return string2jstring(env, txt);
 }
 
+static jboolean WhisperGGML_startStream(JNIEnv *env, jobject instance, jlong handle, jstring prompt, jobjectArray languages, jobjectArray bail_languages) {
+    auto *state = reinterpret_cast<WhisperModelState *>(handle);
+    state->cancel_flag = 0;
+
+    std::string language_hint = languageArrayToMergedString(env, languages);
+    std::string bail_language_hint = languageArrayToMergedString(env, bail_languages);
+
+    state->env = env;
+    state->partial_result_instance = instance;
+    state->partial_result_method = env->GetMethodID(
+            env->GetObjectClass(instance),
+            "invokePartialResult",
+            "(Ljava/lang/String;)V");
+
+    struct transcribe_asr4all_stream_ext a4ap;
+
+    struct transcribe_stream_params s_params;
+    struct transcribe_run_params r_params;
+    transcribe_stream_params_init(&s_params);
+    transcribe_run_params_init(&r_params);
+
+    r_params.task = TRANSCRIBE_TASK_TRANSCRIBE;
+    r_params.timestamps = TRANSCRIBE_TIMESTAMPS_NONE;
+    r_params.language = language_hint.c_str();
+    r_params.keep_special_tags = false;
+    r_params.bail_languages = bail_language_hint.c_str();
+
+    if(transcribe_model_accepts_ext_kind(
+            transcribe_get_model(state->session),
+            TRANSCRIBE_EXT_SLOT_STREAM,
+            TRANSCRIBE_EXT_KIND_ASR4ALL_STREAM
+    )) {
+        transcribe_asr4all_stream_ext_init(&a4ap);
+
+        /* TODO: Tier selection by settings or hardware?
+            {
+              "name": "stream_c32r4",
+              "commit": 32,
+              "right_ctx": 4,
+              "lookahead": 22
+            },
+            {
+              "name": "stream_c128r32",
+              "commit": 128,
+              "right_ctx": 32,
+              "lookahead": 162
+            },
+            {
+              "name": "stream_c256r32",
+              "commit": 256,
+              "right_ctx": 32,
+              "lookahead": 162
+            },
+            {
+              "name": "stream_c512r32",
+              "commit": 512,
+              "right_ctx": 32,
+              "lookahead": 162
+            }
+        */
+
+        a4ap.commit_frames = 32;
+        a4ap.right_ctx_frames = 4;
+        a4ap.lookahead_frames = 22;
+
+        s_params.family = &a4ap.ext;
+    }
+
+    return transcribe_stream_begin(state->session, &r_params, &s_params) == TRANSCRIBE_OK;
+}
+
+static jboolean WhisperGGML_feedStream(JNIEnv *env, jobject instance, jlong handle, jfloatArray samples_array) {
+    auto *state = reinterpret_cast<WhisperModelState *>(handle);
+    state->cancel_flag = 0;
+
+    state->env = env;
+    state->partial_result_instance = instance;
+    state->partial_result_method = env->GetMethodID(
+            env->GetObjectClass(instance),
+            "invokePartialResult",
+            "(Ljava/lang/String;)V");
+
+    int num_samples = env->GetArrayLength(samples_array);
+    jfloat *samples = env->GetFloatArrayElements(samples_array, nullptr);
+
+    transcribe_status status;
+    struct transcribe_stream_update result;
+    transcribe_stream_update_init(&result);
+    if((status = transcribe_stream_feed(state->session, samples, num_samples, &result)) != TRANSCRIBE_OK) {
+        AKLOGE("stream feed failed! %s", transcribe_status_string(status));
+        return false;
+    }
+
+    struct transcribe_stream_text text_result;
+    transcribe_stream_text_init(&text_result);
+    if ((status = transcribe_stream_get_text(state->session, &text_result)) != TRANSCRIBE_OK) {
+        AKLOGE("stream get_text failed! %s", transcribe_status_string(status));
+        return false;
+    }
+
+    if (text_result.full_text != nullptr) {
+        jstring pjstr = string2jstring(env, text_result.full_text);
+        state->env->CallVoidMethod(state->partial_result_instance, state->partial_result_method,
+                                   pjstr);
+        state->env->DeleteLocalRef(pjstr);
+    }
+
+    return true;
+}
+
+static jstring WhisperGGML_stopStream(JNIEnv *env, jobject instance, jlong handle) {
+    auto *state = reinterpret_cast<WhisperModelState *>(handle);
+    state->cancel_flag = 0;
+    state->env = env;
+
+    transcribe_status status;
+    struct transcribe_stream_update result;
+    transcribe_stream_update_init(&result);
+    if((status = transcribe_stream_finalize(state->session, &result)) != TRANSCRIBE_OK) {
+        AKLOGE("stream finalize failed! %s", transcribe_status_string(status));
+        return nullptr;
+    }
+
+    struct transcribe_stream_text text_result;
+    transcribe_stream_text_init(&text_result);
+    if((status = transcribe_stream_get_text(state->session, &text_result)) != TRANSCRIBE_OK) {
+        AKLOGE("stream get_text failed! %s", transcribe_status_string(status));
+        return nullptr;
+    }
+
+    jstring pjstr = string2jstring(state->env, text_result.full_text);
+    return pjstr;
+}
+
+
 static void WhisperGGML_close(JNIEnv *env, jclass clazz, jlong handle) {
     auto *state = reinterpret_cast<WhisperModelState *>(handle);
     if(!state) return;
@@ -254,9 +379,24 @@ static const JNINativeMethod sMethods[] = {
                 reinterpret_cast<void *>(WhisperGGML_open)
         },
         {
-                const_cast<char *>("inferNative"),
-                const_cast<char *>("(J[FLjava/lang/String;[Ljava/lang/String;[Ljava/lang/String;IZ)Ljava/lang/String;"),
+                const_cast<char *>("offlineInferNative"),
+                const_cast<char *>("(J[FLjava/lang/String;[Ljava/lang/String;[Ljava/lang/String;)Ljava/lang/String;"),
                 reinterpret_cast<void *>(WhisperGGML_infer)
+        },
+        {
+                const_cast<char *>("startStreamNative"),
+                const_cast<char *>("(JLjava/lang/String;[Ljava/lang/String;[Ljava/lang/String;)Z"),
+                reinterpret_cast<void *>(WhisperGGML_startStream)
+        },
+        {
+                const_cast<char *>("feedStreamNative"),
+                const_cast<char *>("(J[F)Z"),
+                reinterpret_cast<void *>(WhisperGGML_feedStream)
+        },
+        {
+                const_cast<char *>("stopStreamNative"),
+                const_cast<char *>("(J)Ljava/lang/String;"),
+                reinterpret_cast<void *>(WhisperGGML_stopStream)
         },
         {
                 const_cast<char *>("cancelNative"),
