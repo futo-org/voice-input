@@ -61,14 +61,23 @@ class WhisperGGML(
         if(!streamStatus) return@withContext offlineInfer(sampleFlow, prompt, languages, bailLanguages)
 
         try {
+            val frames = mutableListOf<FloatArray>()
+            var awaitingOfflineFallback = false
             sampleFlow.collect {
-                feedStreamNative(handle, it)
+                frames.add(it)
+                if(awaitingOfflineFallback) return@collect
+                if(!feedStreamNative(handle, it)) {
+                    stopStreamNative(handle, false)
+                    awaitingOfflineFallback = true
+                }
             }
 
-            val finalResult = stopStreamNative(handle) ?: "?"
+            if(awaitingOfflineFallback) return@withContext offlineInfer(frames, prompt, languages, bailLanguages)
+
+            val finalResult = stopStreamNative(handle, true) ?: "?"
             return@withContext finalResult
         } catch(e: Throwable) {
-            stopStreamNative(handle)
+            stopStreamNative(handle, false)
             throw e
         }
     }
@@ -78,9 +87,14 @@ class WhisperGGML(
         prompt: String,
         languages: Array<String>,
         bailLanguages: Array<String>
-    ): String = withContext(inferenceContext) {
-        val sampleList = sampleFlow.toList()
+    ) = offlineInfer(sampleFlow.toList(), prompt, languages, bailLanguages)
 
+    private suspend fun offlineInfer(
+        sampleList: List<FloatArray>,
+        prompt: String,
+        languages: Array<String>,
+        bailLanguages: Array<String>
+    ): String = withContext(inferenceContext) {
         val samples = FloatArray(sampleList.sumOf { it.size })
         var i = 0
         for(sample in sampleList) {
@@ -122,7 +136,7 @@ class WhisperGGML(
     private external fun offlineInferNative(handle: Long, samples: FloatArray, prompt: String, languages: Array<String>, bailLanguages: Array<String>): String?
     private external fun startStreamNative(handle: Long, prompt: String, languages: Array<String>, bailLanguages: Array<String>): Boolean
     private external fun feedStreamNative(handle: Long, samples: FloatArray): Boolean
-    private external fun stopStreamNative(handle: Long): String?
+    private external fun stopStreamNative(handle: Long, finalize: Boolean): String?
     private external fun cancelNative(handle: Long)
     private external fun closeNative(handle: Long)
 }

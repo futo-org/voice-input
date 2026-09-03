@@ -31,6 +31,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableFloatState
@@ -58,13 +59,18 @@ import androidx.compose.ui.semantics.text
 import androidx.compose.ui.semantics.toggleableState
 import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.drawText
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 import org.futo.voiceinput.shared.R
 import org.futo.voiceinput.shared.types.Language
 import org.futo.voiceinput.shared.types.MagnitudeState
 import org.futo.voiceinput.shared.ui.theme.Typography
+import kotlin.math.roundToInt
 
 data class MicrophoneDeviceState(
     val bluetoothAvailable: Boolean,
@@ -179,7 +185,8 @@ private fun BoxScope.BluetoothToggleIcon(device: MutableState<MicrophoneDeviceSt
 fun InnerRecognize(
     magnitude: MutableFloatState = mutableFloatStateOf(0.5f),
     state: MutableState<MagnitudeState> = mutableStateOf(MagnitudeState.MIC_MAY_BE_BLOCKED),
-    device: MutableState<MicrophoneDeviceState>? = null
+    device: MutableState<MicrophoneDeviceState>? = null,
+    partialText: String? = ""
 ) {
     Box(modifier = Modifier, contentAlignment = Alignment.Center) {
         AnimatedRecognizeCircle(magnitude = magnitude)
@@ -197,14 +204,18 @@ fun InnerRecognize(
             MagnitudeState.TALKING -> stringResource(R.string.listening)
         }
 
-        Text(
-            text,
-            modifier = Modifier
-                .fillMaxWidth()
-                .offset(x = 0.dp, y = 48.dp),
-            textAlign = TextAlign.Center,
-            color = MaterialTheme.colorScheme.onSurface
-        )
+        if(partialText?.isNotEmpty() == true) {
+            RecognizePartialText(partialText, modifier = Modifier.offset(x = 0.dp, y = 64.dp))
+        } else {
+            Text(
+                text,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .offset(x = 0.dp, y = 48.dp),
+                textAlign = TextAlign.Center,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+        }
 
         BluetoothToggleIcon(device)
     }
@@ -212,38 +223,59 @@ fun InnerRecognize(
 
 
 @Composable
-fun ColumnScope.RecognizeLoadingCircle(text: String = "Initializing...") {
-    CircularProgressIndicator(
-        modifier = Modifier.align(Alignment.CenterHorizontally),
-        color = MaterialTheme.colorScheme.primary
-    )
-    Spacer(modifier = Modifier.height(8.dp))
-    Text(text, modifier = Modifier.align(Alignment.CenterHorizontally))
+private fun RecognizePartialText(partialText: String, modifier: Modifier = Modifier) {
+    val color = contentColorFor(MaterialTheme.colorScheme.surfaceContainerLow)
+    val style = Typography.bodyMedium.copy(color = color)
+    val lineHeight = style.lineHeight
+
+
+    val measurer = rememberTextMeasurer()
+    val availableHeight = with(LocalDensity.current) {
+        (lineHeight * 2).toDp()
+    }
+
+    Surface(
+        modifier = modifier
+            .padding(4.dp)
+            .fillMaxWidth(),
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
+        shape = RoundedCornerShape(8.dp)
+    ) {
+        Canvas(Modifier.fillMaxWidth().padding(8.dp).height(availableHeight)) {
+            val measurement = measurer.measure(partialText, style, constraints = Constraints(
+                maxWidth = size.width.roundToInt()
+            ))
+
+            val line0 = if(measurement.lineCount >= 2) {
+                val start = measurement.getLineStart(measurement.lineCount - 2)
+                val end = measurement.getLineEnd(measurement.lineCount - 2)
+                partialText.substring(start, end)
+            } else ""
+
+            val line1 = if(measurement.lineCount >= 1) {
+                val start = measurement.getLineStart(measurement.lineCount - 1)
+                val end = measurement.getLineEnd(measurement.lineCount - 1)
+                partialText.substring(start, end)
+            } else ""
+
+
+
+            drawText(measurer, line0, style = style, topLeft = Offset(0.0f, 0.0f))
+            drawText(measurer, line1, style = style, topLeft = Offset(0.0f, lineHeight.toPx()))
+        }
+    }
 }
 
 @Composable
-fun ColumnScope.PartialDecodingResult(text: String = "I am speaking [...]") {
-    CircularProgressIndicator(
-        modifier = Modifier.align(Alignment.CenterHorizontally),
-        color = MaterialTheme.colorScheme.onPrimary
-    )
-    Spacer(modifier = Modifier.height(6.dp))
-    Surface(
-        modifier = Modifier
-            .padding(4.dp)
-            .fillMaxWidth(),
-        color = MaterialTheme.colorScheme.primaryContainer,
-        shape = RoundedCornerShape(4.dp)
-    ) {
-        Text(
-            text,
-            modifier = Modifier
-                .align(Alignment.Start)
-                .padding(8.dp)
-                .defaultMinSize(0.dp, 64.dp),
-            textAlign = TextAlign.Start,
-            style = Typography.bodyMedium
-        )
+fun RecognizeLoadingCircle(text: String = "Initializing...", partialText: String? = null) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+        Spacer(modifier = Modifier.height(8.dp))
+        if(partialText?.isNotEmpty() == true) {
+            RecognizePartialText(partialText)
+        } else {
+            Text(text)
+        }
     }
 }
 
@@ -287,5 +319,38 @@ fun SelectLanguage(languages: Set<Language>, onSelected: (Language) -> Unit) {
                 Text(languageItems[it].name,  modifier = Modifier.padding(0.dp, 16.dp), color = MaterialTheme.colorScheme.onSurface)
             }
         }
+    }
+}
+
+
+@Preview
+@Composable
+private fun PreviewLoading() {
+    Surface(color = MaterialTheme.colorScheme.surface) {
+        RecognizeLoadingCircle("Loading...")
+    }
+}
+
+@Preview
+@Composable
+private fun PreviewPartialDecodeOffline() {
+    Surface(color = MaterialTheme.colorScheme.surface) {
+        RecognizeLoadingCircle("Decoding...", "My name is Manousos Oviedo. I am not one of them. I wish to save the world.")
+    }
+}
+
+@Preview
+@Composable
+private fun PreviewRecord() {
+    Surface(color = MaterialTheme.colorScheme.surface) {
+        InnerRecognize()
+    }
+}
+
+@Preview
+@Composable
+private fun PreviewRecordStreamingDecode() {
+    Surface(color = MaterialTheme.colorScheme.surface) {
+        InnerRecognize(partialText = "My name is Manousos Oviedo. I am not one of them. I wish to save the world.")
     }
 }

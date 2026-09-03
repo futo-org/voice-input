@@ -57,7 +57,10 @@ struct WhisperModelState {
     jobject partial_result_instance;
     jmethodID partial_result_method;
 
+    size_t ticker = 0;
     size_t last_partial_emit = 0;
+    size_t last_exit = 0;
+    size_t inference_time = 0;
 };
 
 void log_callback(transcribe_log_level level, const char *msg, void *userdata) {
@@ -104,7 +107,7 @@ static jlong WhisperGGML_open(JNIEnv *env, jclass clazz, jstring model_dir) {
     mlparams.backend = TRANSCRIBE_BACKEND_CPU;
 
     long num_procs = sysconf(_SC_NPROCESSORS_ONLN) / 2;
-    if(num_procs < 2 || num_procs > 16) num_procs = 4; // Make sure the number is sane
+    if(num_procs < 1 || num_procs > 4) num_procs = 4; // Make sure the number is sane*/
 
     struct transcribe_session_params sparams;
     transcribe_session_params_init(&sparams);
@@ -291,6 +294,9 @@ static jboolean WhisperGGML_startStream(JNIEnv *env, jobject instance, jlong han
         s_params.family = &a4ap.ext;
     }
 
+    state->ticker = 0;
+    state->inference_time = 0;
+
     return transcribe_stream_begin(state->session, &r_params, &s_params) == TRANSCRIBE_OK;
 }
 
@@ -308,6 +314,10 @@ static jboolean WhisperGGML_feedStream(JNIEnv *env, jobject instance, jlong hand
     int num_samples = env->GetArrayLength(samples_array);
     jfloat *samples = env->GetFloatArrayElements(samples_array, nullptr);
 
+    auto t0 = duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+
+    bool is_ahead = (state->last_exit - t0) > ((num_samples / 16) * 3 / 2);
+
     transcribe_status status;
     struct transcribe_stream_update result;
     transcribe_stream_update_init(&result);
@@ -316,12 +326,31 @@ static jboolean WhisperGGML_feedStream(JNIEnv *env, jobject instance, jlong hand
         return false;
     }
 
+    auto t1 = duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+
     struct transcribe_stream_text text_result;
     transcribe_stream_text_init(&text_result);
     if ((status = transcribe_stream_get_text(state->session, &text_result)) != TRANSCRIBE_OK) {
         AKLOGE("stream get_text failed! %s", transcribe_status_string(status));
         return false;
     }
+
+    auto t2 = duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+
+
+    bool preview = (state->ticker - state->last_partial_emit) > 4000;
+    if(is_ahead && preview && (status = transcribe_stream_feed(state->session, nullptr, 0, &result)) != TRANSCRIBE_OK) {
+        AKLOGE("stream tail feed failed! %s", transcribe_status_string(status));
+        // non critical
+    }
+
+    if(preview) state->last_partial_emit = state->ticker;
+    state->ticker += num_samples;
+
+
+    auto t3 = duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+
+    //AKLOGI("[%d] processed %d samples in %d ms + %d ms + %d ms (%s)", state->ticker, num_samples, (int)(t1-t0), (int)(t2-t1), (int)(t3-t1), preview ? "previewed" : "no");
 
     if (text_result.full_text != nullptr) {
         jstring pjstr = string2jstring(env, text_result.full_text);
@@ -330,13 +359,32 @@ static jboolean WhisperGGML_feedStream(JNIEnv *env, jobject instance, jlong hand
         state->env->DeleteLocalRef(pjstr);
     }
 
+    state->last_exit = duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+    state->inference_time += state->last_exit - t0;
+
+    double xRT = (((double)state->ticker) / 16.0) / ((double)(state->inference_time));
+    if(xRT < 0.8 && (state->ticker > 32000)) {
+        AKLOGE("Falling back to offline.");
+        std::string s = text_result.full_text;
+        s.append(" [...]");
+        jstring pjstr = string2jstring(env, s.c_str());
+        state->env->CallVoidMethod(state->partial_result_instance, state->partial_result_method, pjstr);
+        state->env->DeleteLocalRef(pjstr);
+        return false;
+    }
+
     return true;
 }
 
-static jstring WhisperGGML_stopStream(JNIEnv *env, jobject instance, jlong handle) {
+static jstring WhisperGGML_stopStream(JNIEnv *env, jobject instance, jlong handle, jboolean finalize) {
     auto *state = reinterpret_cast<WhisperModelState *>(handle);
     state->cancel_flag = 0;
     state->env = env;
+
+    if(!finalize) {
+        transcribe_stream_reset(state->session);
+        return nullptr;
+    }
 
     transcribe_status status;
     struct transcribe_stream_update result;
@@ -395,7 +443,7 @@ static const JNINativeMethod sMethods[] = {
         },
         {
                 const_cast<char *>("stopStreamNative"),
-                const_cast<char *>("(J)Ljava/lang/String;"),
+                const_cast<char *>("(JZ)Ljava/lang/String;"),
                 reinterpret_cast<void *>(WhisperGGML_stopStream)
         },
         {

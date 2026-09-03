@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.State
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -26,7 +25,6 @@ import org.futo.voiceinput.shared.types.Language
 import org.futo.voiceinput.shared.types.MagnitudeState
 import org.futo.voiceinput.shared.ui.InnerRecognize
 import org.futo.voiceinput.shared.ui.MicrophoneDeviceState
-import org.futo.voiceinput.shared.ui.PartialDecodingResult
 import org.futo.voiceinput.shared.ui.RecognizeLoadingCircle
 import org.futo.voiceinput.shared.ui.RecognizeMicError
 import org.futo.voiceinput.shared.ui.SelectLanguage
@@ -90,8 +88,7 @@ class RecognizerView(
     private val statusState = mutableStateOf(MagnitudeState.NOT_TALKED_YET)
 
     enum class CurrentView {
-        LoadingCircle, PartialDecodingResult, InnerRecognize, PermissionError, ModelError,
-        SelectLanguage
+        LoadingCircle, InnerRecognize, PermissionError, ModelError, SelectLanguage
     }
 
     private val soundPlayer = when {
@@ -128,22 +125,18 @@ class RecognizerView(
             }
 
             CurrentView.LoadingCircle -> {
-                Column {
-                    RecognizeLoadingCircle(text = loadingCircleText.value)
-                }
-            }
-
-            CurrentView.PartialDecodingResult -> {
-                Column {
-                    PartialDecodingResult(text = partialDecodingText.value)
-                }
+                RecognizeLoadingCircle(
+                    text = loadingCircleText.value,
+                    partialText = partialDecodingText.value
+                )
             }
 
             CurrentView.InnerRecognize -> {
                 InnerRecognize(
                     magnitude = magnitudeState,
                     state = statusState,
-                    device = currentDeviceState
+                    device = currentDeviceState,
+                    partialText = partialDecodingText.value
                 )
             }
 
@@ -208,7 +201,6 @@ class RecognizerView(
             listener.partialResult(result)
             if (settings.shouldShowInlinePartialResult && result.isNotBlank()) {
                 partialDecodingText.value = result
-                currentViewState.value = CurrentView.PartialDecodingResult
             }
         }
 
