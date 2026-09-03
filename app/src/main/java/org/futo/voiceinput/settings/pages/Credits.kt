@@ -28,6 +28,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import org.futo.voiceinput.R
 import org.futo.voiceinput.settings.ScreenTitle
+import org.futo.voiceinput.settings.SettingsRootColumn
 import org.futo.voiceinput.settings.SettingsRootList
 import org.futo.voiceinput.theme.Typography
 
@@ -173,7 +174,7 @@ fun CreditsScreen(openDependencies: () -> Unit = {}, navController: NavHostContr
 
 @Composable
 fun DependenciesScreen(navController: NavHostController = rememberNavController()) {
-    Column {
+    SettingsRootColumn {
         ScreenTitle(title = stringResource(id = R.string.dependencies), showBack = true, navController = navController)
         AndroidView(factory = {
             WebView(it).apply {

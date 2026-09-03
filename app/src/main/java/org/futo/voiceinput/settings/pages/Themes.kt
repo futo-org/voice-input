@@ -11,6 +11,8 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import org.futo.voiceinput.R
 import org.futo.voiceinput.settings.ScreenTitle
+import org.futo.voiceinput.settings.SettingsRootColumn
+import org.futo.voiceinput.settings.SettingsRootList
 import org.futo.voiceinput.settings.THEME_KEY
 import org.futo.voiceinput.settings.useDataStore
 import org.futo.voiceinput.theme.selector.ThemePicker
@@ -21,7 +23,7 @@ fun ThemeScreen(navController: NavHostController = rememberNavController()) {
     val (theme, setTheme) = useDataStore(THEME_KEY)
 
     val context = LocalContext.current
-    Column(modifier = Modifier.fillMaxSize()) {
+    SettingsRootColumn {
         ScreenTitle(stringResource(R.string.theme), showBack = true, navController)
         ThemePicker {
             setTheme(it.key)

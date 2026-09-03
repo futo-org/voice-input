@@ -262,6 +262,19 @@ fun<T> SettingRadio(
 }
 
 @Composable
+fun SettingsRootColumn(content: @Composable () -> Unit) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+    ) {
+        Spacer(Modifier.windowInsetsTopHeight(WindowInsets.systemBars))
+        content()
+        Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.systemBars))
+    }
+}
+
+
+@Composable
 fun SettingsRootList(content: @Composable () -> Unit) {
     val scrollState = rememberScrollState()
 
