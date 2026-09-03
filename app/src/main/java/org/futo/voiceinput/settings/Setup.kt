@@ -3,9 +3,10 @@ package org.futo.voiceinput.settings
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.net.Uri
+import android.os.Build
 import android.provider.Settings
+import android.widget.Toast
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -182,14 +183,29 @@ fun SetupFUTOKeyboardConflictSwitchDialog(
         forward = R.string.setup_which_voice_input_to_use_switch_finished,
         onBack = {
             val pm = context.packageManager
-            val intent = pm.getLaunchIntentForPackage(defaultIME.value.split("/")[0])!!
+            val pkg = defaultIME.value.split("/")[0]
 
-            intent.flags = (Intent.FLAG_ACTIVITY_NEW_TASK
+            val flags = (Intent.FLAG_ACTIVITY_NEW_TASK
                     or Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED
                     or Intent.FLAG_ACTIVITY_NO_HISTORY
                     or Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS)
 
-            context.startActivity(intent)
+            try {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    val intent = Intent()
+                    intent.flags = flags
+
+                    val sender = pm.getLaunchIntentSenderForPackage(pkg)
+                    sender.sendIntent(context, 0, intent, null, null)
+                } else {
+                    val intent = pm.getLaunchIntentForPackage(pkg)!!
+                    intent.flags = flags
+                    context.startActivity(intent)
+                }
+            } catch(e: Exception) {
+                val toast = Toast.makeText(context, "Launching failed! Please open FUTO Keyboard settings manually", Toast.LENGTH_LONG)
+                toast.show()
+            }
         },
         onForward = onContinue,
         onDismiss = onBack
