@@ -112,7 +112,7 @@ class RecognizeActivity : ComponentActivity() {
     private var onPermissionGranted: () -> Unit = {}
     private var onPermissionRejected: () -> Unit = {}
 
-    fun initRecognizerView() {
+    fun initRecognizerView(): Boolean {
         val settings = loadRecognizerSettings(inlinePartialResult = true)
         try {
             recognizer = RecognizerView(
@@ -153,6 +153,7 @@ class RecognizeActivity : ComponentActivity() {
                 lifecycleScope = this@RecognizeActivity.lifecycleScope,
                 modelManager = CrashLoggingApplication.getModelManager(this@RecognizeActivity)!!,
             )
+            return true
         } catch(e: ModelDoesNotExistException) {
             val models = listOf(
                 settings.modelRunConfiguration.primaryModel
@@ -160,6 +161,7 @@ class RecognizeActivity : ComponentActivity() {
 
             startModelDownloadActivity(models)
             onCancel()
+            return false
         }
     }
 
@@ -170,7 +172,11 @@ class RecognizeActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        if(recognizer == null) initRecognizerView()
+        if(recognizer == null) {
+            if(!initRecognizerView()) {
+                return
+            }
+        }
         recognizer!!.reset()
         scheduleUpdateCheckingJob(applicationContext)
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
