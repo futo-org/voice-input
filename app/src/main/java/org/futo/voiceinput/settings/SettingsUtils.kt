@@ -240,7 +240,7 @@ fun SetupOrMain(settingsViewModel: SettingsViewModel = viewModel(), billing: Bil
     val acknowledgedKeyboardSwitch = rememberSaveable { mutableStateOf(false) }
 
     if(defaultIME.value.startsWith("org.futo.inputmethod.latin") && !acknowledgedKeyboardSwitch.value) {
-        SetupFUTOKeyboardConflict {
+        SetupFUTOKeyboardConflict(defaultIME.value) {
             acknowledgedKeyboardSwitch.value = true
         }
     } else if(defaultVoiceInputIntent.value.kind == DefaultVoiceInputIntentKind.OTHER && defaultVoiceInputIntent.value.name != null && !acknowledgedWrongDefaultWarning.value) {

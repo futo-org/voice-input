@@ -35,6 +35,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -42,19 +43,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.LinearGradient
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
-import androidx.core.content.getSystemService
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import org.futo.voiceinput.R
 import org.futo.voiceinput.theme.Typography
 
@@ -212,16 +210,35 @@ fun SetupFUTOKeyboardConflictSwitchDialog(
     )
 }
 
+val AlreadySwitchedBefore = SettingsKey<Boolean>(
+    booleanPreferencesKey("alreadySwitchedBefore"),
+    false
+)
+
 @Composable
-@Preview
 fun SetupFUTOKeyboardConflict(
+    ime: String,
     onSwitch: () -> Unit = {},
 ) {
     val scrollState = rememberScrollState()
+    val alreadySwitchedBefore = useDataStore(AlreadySwitchedBefore)
+    val isSwitching = remember { mutableStateOf(0) }
+    val isSet = useIsConfiguredInFUTOKeyboard(ime, isSwitching.value, isSwitching.value>0)
+
+    val dialogShownSwitch = remember { mutableStateOf(false) }
+    LaunchedEffect(isSet.value, isSwitching.value) {
+        if(isSet.value == KeyboardVoiceInputConfigState.Set) onSwitch()
+        else if(isSet.value == KeyboardVoiceInputConfigState.KeyboardOutdated) {
+            if(alreadySwitchedBefore.value) {
+                onSwitch()
+            } else {
+                if(isSwitching.value > 0) dialogShownSwitch.value = true
+            }
+        }
+    }
 
     val scrollGradientAlpha = animateFloatAsState(if(scrollState.value >= scrollState.maxValue * 0.95f) { 0.0f } else { 1.0f })
     val dialogShownKeep = remember { mutableStateOf(false) }
-    val dialogShownSwitch = remember { mutableStateOf(false) }
 
     val activity = LocalContext.current as? SettingsActivity
     if(dialogShownKeep.value) {
@@ -232,11 +249,16 @@ fun SetupFUTOKeyboardConflict(
     }else if(dialogShownSwitch.value) {
         SetupFUTOKeyboardConflictSwitchDialog(
             onBack = { dialogShownSwitch.value = false },
-            onContinue = { onSwitch() }
+            onContinue = {
+                onSwitch()
+                alreadySwitchedBefore.setValue(true)
+            }
         )
     }
 
-    Box(Modifier.fillMaxSize()) {
+    val alpha = animateFloatAsState(if(isSet.value == KeyboardVoiceInputConfigState.Unknown) 0.0f else 1.0f)
+
+    Box(Modifier.fillMaxSize().alpha(alpha.value)) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier
@@ -338,7 +360,7 @@ fun SetupFUTOKeyboardConflict(
                     )
 
                     Button(onClick = {
-                        dialogShownSwitch.value = true
+                        isSwitching.value += 1
                     }, modifier = Modifier
                         .align(Alignment.End)
                         .padding(0.dp, 8.dp, 0.dp, 0.dp)) {
