@@ -214,7 +214,7 @@
     <string name="commitment_to_privacy_body">This app will never serve you ads or sell your data. We are not in the business of doing that.</string>
 
     <string name="setup_which_voice_input_to_use">Which voice input do you want to use?</string>
-    <string name="setup_which_voice_input_to_use_info">ℹ️ You\'re using FUTO Keyboard, which already has voice input included. You can use this app for newer and experimental models, or keep using the keyboard\'s included voice input.</string>
+    <string name="setup_which_voice_input_to_use_info">You\'re using FUTO Keyboard, which already has voice input included. This app has a more experimental engine with wider model support. You can change this later in FUTO Keyboard settings.</string>
     <string name="setup_which_voice_input_to_use_keyboard">FUTO Keyboard</string>
     <string name="setup_which_voice_input_to_use_keyboard_details_1">Already has voice input included (Whisper, 2022)</string>
     <string name="setup_which_voice_input_to_use_keyboard_details_2">Completely offline app</string>
