@@ -25,6 +25,11 @@ val ENGLISH_MODELS: List<ModelLoader> = listOf(
         checksum = "58fbe949992dafed917590d58bc12ca577b08b9957f0b3e0d7ee71b64bed3aa8"
     ),
     ModelDownloadable(
+        name = R.string.asr4all_s_name,
+        ggmlFile = "asr4all-s-Q8_0.gguf",
+        checksum = "12c55855986a035261a266c69db2d36ef3a9e4da614f6b1bb054a8b4fc25b366"
+    ),
+    ModelDownloadable(
         name = R.string.asr4all_m_name,
         ggmlFile = "asr4all-m-Q8_0.gguf",
         checksum = "805879c10efe11faacdb11b7bd03df3e3ec9462e3f8063d821235a20eef124a2"
