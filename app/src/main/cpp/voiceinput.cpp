@@ -126,14 +126,38 @@ static jlong WhisperGGML_open(JNIEnv *env, jclass clazz, jstring model_dir) {
     return reinterpret_cast<jlong>(state);
 }
 
-static std::string languageArrayToMergedString(JNIEnv *env, jobjectArray languages) {
+static std::string narrowLanguageCode(const char *language, struct transcribe_capabilities *capabilities) {
+    size_t len_ref = strlen(language);
+
+    std::string result;
+    bool exact_match = false;
+    for(int i=0; i<capabilities->n_languages; i++) {
+        size_t len_cmp = strlen(capabilities->languages[i]);
+        if(strncmp(capabilities->languages[i], language, std::min(len_ref, len_cmp)) == 0) {
+            if(len_cmp == len_ref) return capabilities->languages[i];
+
+            // parakeet/nemotron dont support comma separated languages yet
+            // otherwise we should be providing that
+
+            //result.append(capabilities->languages[i]);
+            //result.append(",");
+            if(result.empty()) result = capabilities->languages[i];
+        }
+    }
+
+    if(result.size() > 0 && result[result.size() - 1] == ',') result.pop_back();
+
+    return result;
+}
+
+static std::string languageArrayToMergedString(JNIEnv *env, jobjectArray languages, struct transcribe_capabilities *capabilities) {
     std::string language_hint;
     int num_languages = env->GetArrayLength(languages);
     for (int i=0; i<num_languages; i++) {
         jstring jstr = static_cast<jstring>(env->GetObjectArrayElement(languages, i));
         std::string str = jstring2string(env, jstr);
 
-        language_hint.append(str);
+        language_hint.append(narrowLanguageCode(str.c_str(), capabilities));
         if(i < (num_languages - 1)) {
             language_hint.append(",");
         }
@@ -146,8 +170,12 @@ static jstring WhisperGGML_infer(JNIEnv *env, jobject instance, jlong handle, jf
     auto *state = reinterpret_cast<WhisperModelState *>(handle);
     state->cancel_flag = 0;
 
-    std::string language_hint = languageArrayToMergedString(env, languages);
-    std::string bail_language_hint = languageArrayToMergedString(env, bail_languages);
+    struct transcribe_capabilities capabilities;
+    transcribe_capabilities_init(&capabilities);
+    transcribe_model_get_capabilities(transcribe_get_model(state->session), &capabilities);
+
+    std::string language_hint = languageArrayToMergedString(env, languages, &capabilities);
+    std::string bail_language_hint = languageArrayToMergedString(env, bail_languages, &capabilities);
 
     state->env = env;
     state->partial_result_instance = instance;
@@ -230,8 +258,12 @@ static jboolean WhisperGGML_startStream(JNIEnv *env, jobject instance, jlong han
     auto *state = reinterpret_cast<WhisperModelState *>(handle);
     state->cancel_flag = 0;
 
-    std::string language_hint = languageArrayToMergedString(env, languages);
-    std::string bail_language_hint = languageArrayToMergedString(env, bail_languages);
+    struct transcribe_capabilities capabilities;
+    transcribe_capabilities_init(&capabilities);
+    transcribe_model_get_capabilities(transcribe_get_model(state->session), &capabilities);
+
+    std::string language_hint = languageArrayToMergedString(env, languages, &capabilities);
+    std::string bail_language_hint = languageArrayToMergedString(env, bail_languages, &capabilities);
 
     state->env = env;
     state->partial_result_instance = instance;
@@ -363,6 +395,7 @@ static jboolean WhisperGGML_feedStream(JNIEnv *env, jobject instance, jlong hand
     state->inference_time += state->last_exit - t0;
 
     double xRT = (((double)state->ticker) / 16.0) / ((double)(state->inference_time));
+    //AKLOGI("xRT = %.2f", (float)xRT);
     if(xRT < 0.8 && (state->ticker > 32000)) {
         AKLOGE("Falling back to offline.");
         std::string s = text_result.full_text;

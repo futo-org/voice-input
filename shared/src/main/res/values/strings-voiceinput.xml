@@ -47,6 +47,8 @@
 
     <string name="parakeet_110m_name">Parakeet TDT 110M</string>
     <string name="parakeet_unified_en_name">Parakeet Unified EN 600M</string>
+    <string name="nemotron_streaming_name">Nemotron 3.5 multilingual 600M</string>
+    <string name="moonshine_streaming_small_name">Moonshine Streaming EN 100M</string>
 
     <!-- Model name for the tiny model -->
     <string name="tiny_name">Multilingual-39 (less accurate)</string>

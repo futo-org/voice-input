@@ -48,7 +48,17 @@ val ENGLISH_MODELS: List<ModelLoader> = listOf(
         name = R.string.parakeet_unified_en_name,
         ggmlFile = "parakeet-unified-en-0.6b-Q4_K_M.gguf",
         checksum = "a8bf3de2b393bd14ead5a858c3748d5e3b07a20fdeabdd3b498fba4f463fa929"
-    )
+    ),
+    ModelDownloadable(
+        name = R.string.nemotron_streaming_name,
+        ggmlFile = "nemotron-3.5-asr-streaming-0.6b-Q4_K_M.gguf",
+        checksum = "41c99fa5fb6f3d35f68e79adc3e755eca2232a8d921178bd647b71194792b8fd"
+    ),
+    ModelDownloadable(
+        name = R.string.moonshine_streaming_small_name,
+        ggmlFile = "moonshine-streaming-small-Q8_0.gguf",
+        checksum = "d03670f69629b649085d0f44a63d97668b4119117cc9611a4e4ad94341713dfc"
+    ),
 )
 
 val MULTILINGUAL_MODELS: List<ModelLoader> = listOf(
@@ -66,5 +76,10 @@ val MULTILINGUAL_MODELS: List<ModelLoader> = listOf(
         name = R.string.small_name,
         ggmlFile = "small_acft_q8_0.bin",
         checksum = "15ef255465a6dc582ecf1ec651a4618c7ee2c18c05570bbe46493d248d465ac4"
+    ),
+    ModelDownloadable(
+        name = R.string.nemotron_streaming_name,
+        ggmlFile = "nemotron-3.5-asr-streaming-0.6b-Q4_K_M.gguf",
+        checksum = "41c99fa5fb6f3d35f68e79adc3e755eca2232a8d921178bd647b71194792b8fd"
     ),
 )
