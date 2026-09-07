@@ -118,6 +118,17 @@ val ENGLISH_MODELS: List<ModelLoader> = listOf(
     ),
     Nemotron600M,
     ModelDownloadable(
+        name = R.string.nemotron_en_streaming_name,
+        ggmlFile = "nemotron-speech-streaming-en-0.6b-Q4_K_M.gguf",
+        checksum = "dc959ca31499b114e395c44eb4f0778968f20e5cfb03305a08a39925b2da8e1e",
+        caps = ModelCapabilities(
+            supportedLanguages = setOf(Language.English),
+            supportsLanguageDetection = false,
+            supportsPersonalDict = false,
+            supportsStreaming = true,
+        )
+    ),
+    ModelDownloadable(
         name = R.string.moonshine_streaming_small_name,
         ggmlFile = "moonshine-streaming-small-Q8_0.gguf",
         checksum = "d03670f69629b649085d0f44a63d97668b4119117cc9611a4e4ad94341713dfc",
