@@ -26,6 +26,7 @@ import org.futo.voiceinput.settings.LANGUAGE_TOGGLES
 import org.futo.voiceinput.settings.MANUALLY_SELECT_LANGUAGE
 import org.futo.voiceinput.settings.MULTILINGUAL_MODEL_INDEX
 import org.futo.voiceinput.settings.PERSONAL_DICTIONARY
+import org.futo.voiceinput.settings.STREAMING_TIER
 import org.futo.voiceinput.settings.ScreenTitle
 import org.futo.voiceinput.settings.SettingRadio
 import org.futo.voiceinput.settings.SettingToggleDataStore
@@ -199,6 +200,20 @@ fun ModelsScreen(
                 ENGLISH_MODELS.indices.toList(),
                 ENGLISH_MODELS.map { stringResource(it.name) },
                 ENGLISH_MODEL_INDEX
+            )
+        }
+
+        if(model.caps.supportsStreaming || modelEn.caps.supportsStreaming) {
+            SettingRadio(
+                stringResource(R.string.model_settings_streaming_tier),
+                listOf(0, 1, 2, 3),
+                listOf(
+                    stringResource(R.string.model_settings_streaming_tier_0),
+                    stringResource(R.string.model_settings_streaming_tier_1),
+                    stringResource(R.string.model_settings_streaming_tier_2),
+                    stringResource(R.string.model_settings_streaming_tier_3),
+                ),
+                STREAMING_TIER,
             )
         }
 

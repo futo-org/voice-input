@@ -27,6 +27,7 @@ import org.futo.voiceinput.settings.LANGUAGE_TOGGLES
 import org.futo.voiceinput.settings.MANUALLY_SELECT_LANGUAGE
 import org.futo.voiceinput.settings.MULTILINGUAL_MODEL_INDEX
 import org.futo.voiceinput.settings.PERSONAL_DICTIONARY
+import org.futo.voiceinput.settings.STREAMING_TIER
 import org.futo.voiceinput.settings.USE_LANGUAGE_SPECIFIC_MODELS
 import org.futo.voiceinput.settings.VERBOSE_PROGRESS
 import org.futo.voiceinput.settings.getSetting
@@ -250,6 +251,7 @@ fun Context.loadRecognizerSettings(inlinePartialResult: Boolean = false): Recogn
             glossary = getSetting(PERSONAL_DICTIONARY).split("\n").map { it.trim() }.filter { it.isNotBlank() },
             languages = languages,
             suppressSymbols = getSetting(DISALLOW_SYMBOLS),
+            tier = getSetting(STREAMING_TIER),
         ),
         recordingConfiguration = RecordingSettings(
             preferBluetoothMic = false,

@@ -50,14 +50,17 @@ class WhisperGGML(
         prompt: String,
         languages: Array<String>,
         bailLanguages: Array<String>,
-        partialResultCallback: (String) -> Unit
+        partialResultCallback: (String) -> Unit,
+        tier: Int,
     ): String = withContext(inferenceContext) {
         if(handle == 0L) {
             throw IllegalStateException("WhisperGGML has already been closed, cannot infer")
         }
         this@WhisperGGML.partialResultCallback = partialResultCallback
 
-        val streamStatus = startStreamNative(handle, prompt, languages, bailLanguages)
+        if(tier >= 3) return@withContext offlineInfer(sampleFlow, prompt, languages, bailLanguages)
+
+        val streamStatus = startStreamNative(handle, prompt, languages, bailLanguages, tier)
         if(!streamStatus) return@withContext offlineInfer(sampleFlow, prompt, languages, bailLanguages)
 
         try {
@@ -134,7 +137,7 @@ class WhisperGGML(
 
     private external fun openNative(path: String): Long
     private external fun offlineInferNative(handle: Long, samples: FloatArray, prompt: String, languages: Array<String>, bailLanguages: Array<String>): String?
-    private external fun startStreamNative(handle: Long, prompt: String, languages: Array<String>, bailLanguages: Array<String>): Boolean
+    private external fun startStreamNative(handle: Long, prompt: String, languages: Array<String>, bailLanguages: Array<String>, tier: Int): Boolean
     private external fun feedStreamNative(handle: Long, samples: FloatArray): Boolean
     private external fun stopStreamNative(handle: Long, finalize: Boolean): String?
     private external fun cancelNative(handle: Long)

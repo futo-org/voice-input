@@ -141,3 +141,4 @@ val THEME_KEY = SettingsKey(
 )
 
 val BEAM_SEARCH = SettingsKey(key = booleanPreferencesKey("use_beam_search"), default = true)
+val STREAMING_TIER = SettingsKey(intPreferencesKey("streaming_tier"), 3)

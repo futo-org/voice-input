@@ -217,6 +217,11 @@
     <string name="language_settings_language_unsupported_by_model">Unsupported by %1$s</string>
     <string name="model_settings_model_doesnt_support_personal_dict">A selected model (%1$s) does not support personal dictionary</string>
     <string name="model_settings_model_doesnt_support_detection">The current model does not support language detection. Manual selection will be forced on.</string>
+    <string name="model_settings_streaming_tier">Streaming tier</string>
+    <string name="model_settings_streaming_tier_0">low (less accurate, less delayed)</string>
+    <string name="model_settings_streaming_tier_1">mid</string>
+    <string name="model_settings_streaming_tier_2">high (more accurate, more delayed)</string>
+    <string name="model_settings_streaming_tier_3">no streaming</string>
 
     <string name="setup_which_voice_input_to_use">Which voice input do you want to use?</string>
     <string name="setup_which_voice_input_to_use_info">You\'re using FUTO Keyboard, which already has voice input included. This app has a more experimental engine with wider model support. You can change this later in FUTO Keyboard settings.</string>

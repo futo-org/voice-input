@@ -24,7 +24,8 @@ data class MultiModelRunConfiguration(
 data class DecodingConfiguration(
     val glossary: List<String>,
     val languages: Set<Language>,
-    val suppressSymbols: Boolean
+    val suppressSymbols: Boolean,
+    val tier: Int,
 )
 
 class MultiModelRunner(
@@ -76,7 +77,8 @@ class MultiModelRunner(
                 bailLanguages = bailLanguages,
                 partialResultCallback = {
                     callback.partialResult(it)
-                }
+                },
+                tier = decodingConfiguration.tier,
             )
         } catch(e: BailLanguageException) {
             callback.updateStatus(InferenceState.SwitchingModel)
@@ -92,7 +94,8 @@ class MultiModelRunner(
                 bailLanguages = arrayOf(),
                 partialResultCallback = {
                     callback.partialResult(it)
-                }
+                },
+                tier = decodingConfiguration.tier,
             )
         }
 

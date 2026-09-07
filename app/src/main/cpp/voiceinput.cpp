@@ -62,6 +62,7 @@ struct WhisperModelState {
     size_t last_partial_emit = 0;
     size_t last_exit = 0;
     size_t inference_time = 0;
+    size_t preview_every = 0;
 };
 
 void log_callback(transcribe_log_level level, const char *msg, void *userdata) {
@@ -266,7 +267,7 @@ static jstring WhisperGGML_infer(JNIEnv *env, jobject instance, jlong handle, jf
     return string2jstring(env, txt);
 }
 
-static jboolean WhisperGGML_startStream(JNIEnv *env, jobject instance, jlong handle, jstring prompt, jobjectArray languages, jobjectArray bail_languages) {
+static jboolean WhisperGGML_startStream(JNIEnv *env, jobject instance, jlong handle, jstring prompt, jobjectArray languages, jobjectArray bail_languages, jint tier) {
     auto *state = reinterpret_cast<WhisperModelState *>(handle);
     state->cancel_flag = 0;
 
@@ -293,6 +294,7 @@ static jboolean WhisperGGML_startStream(JNIEnv *env, jobject instance, jlong han
             "(Ljava/lang/String;)V");
 
     struct transcribe_asr4all_stream_ext a4ap;
+    struct transcribe_parakeet_stream_ext pkp;
 
     struct transcribe_stream_params s_params;
     struct transcribe_run_params r_params;
@@ -312,39 +314,57 @@ static jboolean WhisperGGML_startStream(JNIEnv *env, jobject instance, jlong han
     )) {
         transcribe_asr4all_stream_ext_init(&a4ap);
 
-        /* TODO: Tier selection by settings or hardware?
-            {
-              "name": "stream_c32r4",
-              "commit": 32,
-              "right_ctx": 4,
-              "lookahead": 22
-            },
-            {
-              "name": "stream_c128r32",
-              "commit": 128,
-              "right_ctx": 32,
-              "lookahead": 162
-            },
-            {
-              "name": "stream_c256r32",
-              "commit": 256,
-              "right_ctx": 32,
-              "lookahead": 162
-            },
-            {
-              "name": "stream_c512r32",
-              "commit": 512,
-              "right_ctx": 32,
-              "lookahead": 162
-            }
-        */
+        if(tier <= 0) {
+            a4ap.commit_frames = 32;
+            a4ap.right_ctx_frames = 4;
+            a4ap.lookahead_frames = 22;
+            state->preview_every = 4000;
+        } else if(tier == 1) {
+            a4ap.commit_frames = 32;
+            a4ap.right_ctx_frames = 8;
+            a4ap.lookahead_frames = 26;
+            state->preview_every = 4000;
+        } else if(tier >= 2) {
+            a4ap.commit_frames = 64;
+            a4ap.right_ctx_frames = 16;
+            a4ap.lookahead_frames = 34;
+            state->preview_every = 8000;
+        } /*else {
+            a4ap.commit_frames = 512;
+            a4ap.right_ctx_frames = 32;
+            a4ap.lookahead_frames = 162;
 
-        a4ap.commit_frames = 32;
-        a4ap.right_ctx_frames = 4;
-        a4ap.lookahead_frames = 22;
+            if(tier == 1) a4ap.commit_frames = 128;
+            if(tier == 2) a4ap.commit_frames = 256;
+        }*/
 
         s_params.family = &a4ap.ext;
+    }else if(transcribe_model_accepts_ext_kind(
+            transcribe_get_model(state->session),
+            TRANSCRIBE_EXT_SLOT_STREAM,
+            TRANSCRIBE_EXT_KIND_PARAKEET_STREAM
+    )) {
+        transcribe_parakeet_stream_ext_init(&pkp);
+
+        // att_context_right = 0 doesn't really run on mobile
+        if(tier <= 0) {
+            if(strcmp(transcribe_model_variant_string(transcribe_get_model(state->session)), "nemotron-3.5-asr-streaming-0.6b") == 0) {
+                pkp.att_context_right = 3;
+            } else {
+                pkp.att_context_right = 1;
+            }
+        } else if(tier == 1) {
+            pkp.att_context_right = 6;
+        } else {
+            pkp.att_context_right = 13;
+        }
+
+        state->preview_every = 0;
+
+        s_params.family = &pkp.ext;
     }
+
+    //AKLOGE("variant is %s", transcribe_model_variant_string(transcribe_get_model(state->session)));
 
     state->ticker = 0;
     state->inference_time = 0;
@@ -380,17 +400,8 @@ static jboolean WhisperGGML_feedStream(JNIEnv *env, jobject instance, jlong hand
 
     auto t1 = duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 
-    struct transcribe_stream_text text_result;
-    transcribe_stream_text_init(&text_result);
-    if ((status = transcribe_stream_get_text(state->session, &text_result)) != TRANSCRIBE_OK) {
-        AKLOGE("stream get_text failed! %s", transcribe_status_string(status));
-        return false;
-    }
 
-    auto t2 = duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-
-
-    bool preview = (state->ticker - state->last_partial_emit) > 4000;
+    bool preview = (state->preview_every > 0) && (state->ticker - state->last_partial_emit) > state->preview_every;
     if(is_ahead && preview && (status = transcribe_stream_feed(state->session, nullptr, 0, &result)) != TRANSCRIBE_OK) {
         AKLOGE("stream tail feed failed! %s", transcribe_status_string(status));
         // non critical
@@ -398,6 +409,15 @@ static jboolean WhisperGGML_feedStream(JNIEnv *env, jobject instance, jlong hand
 
     if(preview) state->last_partial_emit = state->ticker;
     state->ticker += num_samples;
+
+    auto t2 = duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+
+    struct transcribe_stream_text text_result;
+    transcribe_stream_text_init(&text_result);
+    if ((status = transcribe_stream_get_text(state->session, &text_result)) != TRANSCRIBE_OK) {
+        AKLOGE("stream get_text failed! %s", transcribe_status_string(status));
+        return false;
+    }
 
 
     auto t3 = duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
@@ -415,7 +435,7 @@ static jboolean WhisperGGML_feedStream(JNIEnv *env, jobject instance, jlong hand
     state->inference_time += state->last_exit - t0;
 
     double xRT = (((double)state->ticker) / 16.0) / ((double)(state->inference_time));
-    //AKLOGI("xRT = %.2f", (float)xRT);
+    //AKLOGI("xRT = %.2f txt=[%s]", (float)xRT, text_result.full_text);
     if(xRT < 0.8 && (state->ticker > 32000)) {
         AKLOGE("Falling back to offline.");
         std::string s = text_result.full_text;
@@ -486,7 +506,7 @@ static const JNINativeMethod sMethods[] = {
         },
         {
                 const_cast<char *>("startStreamNative"),
-                const_cast<char *>("(JLjava/lang/String;[Ljava/lang/String;[Ljava/lang/String;)Z"),
+                const_cast<char *>("(JLjava/lang/String;[Ljava/lang/String;[Ljava/lang/String;I)Z"),
                 reinterpret_cast<void *>(WhisperGGML_startStream)
         },
         {
