@@ -4,16 +4,24 @@ import android.content.Context
 import androidx.annotation.StringRes
 import org.futo.voiceinput.shared.ggml.WhisperGGML
 import java.io.File
-import java.io.FileInputStream
 import java.io.FileNotFoundException
 import java.io.IOException
 import java.nio.MappedByteBuffer
 import java.nio.channels.FileChannel
 
+data class ModelCapabilities(
+    val supportedLanguages: Set<Language>,
+    val supportsLanguageDetection: Boolean,
+    val supportsPersonalDict: Boolean,
+    val supportsStreaming: Boolean,
+    val isWhisper: Boolean = false,
+)
+
 // Maybe add `val languages: Set<Language>`
 interface ModelLoader {
     @get:StringRes
     val name: Int
+    val caps: ModelCapabilities
 
     fun exists(context: Context): Boolean
     fun getRequiredDownloadList(context: Context): List<String>
@@ -25,7 +33,8 @@ interface ModelLoader {
 
 internal class ModelBuiltInAsset(
     override val name: Int,
-    val ggmlFile: String
+    val ggmlFile: String,
+    override val caps: ModelCapabilities,
 ) : ModelLoader {
     override fun exists(context: Context): Boolean {
         return true
@@ -72,8 +81,10 @@ private fun Context.tryOpenDownloadedModel(pathStr: String): MappedByteBuffer {
 internal class ModelDownloadable(
     override val name: Int,
     val ggmlFile: String,
-    val checksum: String
+    val checksum: String,
+    override val caps: ModelCapabilities,
 ) : ModelLoader {
+
     override fun exists(context: Context): Boolean {
         return getRequiredDownloadList(context).isEmpty()
     }
@@ -98,7 +109,9 @@ internal class ModelDownloadable(
 public class ModelFileFile(
     override val name: Int,
     val file: File,
+    override val caps: ModelCapabilities,
 ) : ModelLoader {
+
     override fun exists(context: Context): Boolean {
         return file.exists()
     }

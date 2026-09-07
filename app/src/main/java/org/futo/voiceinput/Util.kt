@@ -30,7 +30,6 @@ import org.futo.voiceinput.settings.PERSONAL_DICTIONARY
 import org.futo.voiceinput.settings.USE_LANGUAGE_SPECIFIC_MODELS
 import org.futo.voiceinput.settings.VERBOSE_PROGRESS
 import org.futo.voiceinput.settings.getSetting
-import org.futo.voiceinput.shared.BUILTIN_ENGLISH_MODEL
 import org.futo.voiceinput.shared.ENGLISH_MODELS
 import org.futo.voiceinput.shared.MULTILINGUAL_MODELS
 import org.futo.voiceinput.shared.RecognizerViewSettings
@@ -207,38 +206,11 @@ val LANGUAGE_LIST = listOf(
     LanguageEntry("lo", "Lao", 0)
 )
 
-private fun Context.getLanguageModelMap(): Map<Language, ModelLoader> {
-    val modelIdx = getSetting(MULTILINGUAL_MODEL_INDEX)
-    val englishModelIdx = getSetting(ENGLISH_MODEL_INDEX)
-    val useLanguageSpecificModels = getSetting(USE_LANGUAGE_SPECIFIC_MODELS)
-    val manuallySelectLanguage = getSetting(MANUALLY_SELECT_LANGUAGE)
-    val languages = getSetting(LANGUAGE_TOGGLES)
-
-    val map = hashMapOf<Language, ModelLoader>()
-    languages.forEach {
-        getLanguageFromWhisperString(it)?.let {
-            map[it] = if (it == Language.English) {
-                ENGLISH_MODELS[englishModelIdx]
-            } else {
-                MULTILINGUAL_MODELS[modelIdx]
-            }
-        }
-    }
-
-    //if(languages.size > 1 && !manuallySelectLanguage) {
-    //    map["unk"] = MULTILINGUAL_MODELS[modelIdx]
-    //}
-
-    //if(!manuallySelectLanguage && !useLanguageSpecificModels)
-
-    return map
-}
-
 fun Context.loadRecognizerSettings(inlinePartialResult: Boolean = false): RecognizerViewSettings {
     val multiModelIdx = getSetting(MULTILINGUAL_MODEL_INDEX)
     val englishModelIdx = getSetting(ENGLISH_MODEL_INDEX)
     val useLanguageSpecificModels = getSetting(USE_LANGUAGE_SPECIFIC_MODELS)
-    val languages = getSetting(LANGUAGE_TOGGLES).mapNotNull { getLanguageFromWhisperString(it) }.toSet()
+    val languages = getSetting(LANGUAGE_TOGGLES).mapNotNull { getLanguageFromWhisperString(it) }.toMutableSet()
 
     val englishModel = ENGLISH_MODELS[englishModelIdx]
     val multiModel = MULTILINGUAL_MODELS[multiModelIdx]
@@ -253,12 +225,23 @@ fun Context.loadRecognizerSettings(inlinePartialResult: Boolean = false): Recogn
         languageSpecificModels[Language.English] = englishModel
     }
 
+    val needLanguageSelector = languages.size > 1 && (
+        getSetting(MANUALLY_SELECT_LANGUAGE)
+                || !primaryModel.caps.supportsLanguageDetection
+    )
+
+    // remove unsupported languages
+    languages.filter { it !in primaryModel.caps.supportedLanguages && it !in languageSpecificModels }.forEach {
+        languages.remove(it)
+    }
+
+
     return RecognizerViewSettings(
         shouldShowVerboseFeedback = getSetting(VERBOSE_PROGRESS),
         shouldShowInlinePartialResult = inlinePartialResult,
         shouldAnimateBubble = getSetting(ENABLE_ANIMATIONS),
         shouldPlaySounds = getSetting(ENABLE_SOUND),
-        shouldShowLanguageSelector = getSetting(MANUALLY_SELECT_LANGUAGE) && languages.size > 1,
+        shouldShowLanguageSelector = needLanguageSelector,
         modelRunConfiguration = MultiModelRunConfiguration(
             primaryModel = primaryModel,
             languageSpecificModels = languageSpecificModels,

@@ -26,6 +26,7 @@ import org.futo.voiceinput.settings.SettingsViewModel
 import org.futo.voiceinput.settings.Tip
 import org.futo.voiceinput.settings.useDataStore
 import org.futo.voiceinput.shared.MULTILINGUAL_MODELS
+import org.futo.voiceinput.shared.types.getLanguageFromWhisperString
 import org.futo.voiceinput.startModelDownloadActivity
 
 
@@ -35,9 +36,10 @@ fun LanguageToggle(
     name: String,
     languages: Set<String>,
     setLanguages: (Set<String>) -> Job,
-    subtitle: String?
+    subtitle: String?,
+    disabled: Boolean
 ) {
-    val disabled = languages.contains(id) && languages.size == 1
+    val disabled = disabled || (languages.contains(id) && languages.size == 1)
 
     SettingToggleRaw(
         name,
@@ -67,6 +69,8 @@ fun LanguagesScreen(
 
     val (allowUndertrainedLanguages, _) = useDataStore(ALLOW_UNDERTRAINED_LANGUAGES)
 
+    val model = MULTILINGUAL_MODELS[multilingualModelIndex]
+
 
     LaunchedEffect(listOf(multilingualModelIndex, multilingual)) {
         if (multilingual) {
@@ -86,14 +90,30 @@ fun LanguagesScreen(
 
         item {
             Tip(stringResource(R.string.language_tip_1))
-            Tip(stringResource(R.string.language_tip_2))
-            Tip(stringResource(R.string.language_tip_3))
+
+            if(model.caps.supportsLanguageDetection) {
+                Tip(stringResource(R.string.language_tip_2))
+                Tip(stringResource(R.string.language_tip_3))
+            } else {
+                val unsupportedLanguages = languages.map { getLanguageFromWhisperString(it) }.filter { it !in model.caps.supportedLanguages }
+
+                if(unsupportedLanguages.isNotEmpty()) {
+                    Tip(
+                        stringResource(
+                            R.string.language_settings_model_doesnt_support_languages,
+                            stringResource(model.name),
+                            unsupportedLanguages.joinToString(", ")
+                        )
+                    )
+                }
+            }
+
         }
 
         items(LANGUAGE_LIST.size) {
             val language = LANGUAGE_LIST[it]
 
-            if(allowUndertrainedLanguages && it > 0) {
+            if(allowUndertrainedLanguages && it > 0 && model.caps.isWhisper) {
                 if (language.trainedHourCount < 1000 && LANGUAGE_LIST[it - 1].trainedHourCount >= 1000) {
                     Spacer(modifier = Modifier.height(48.dp))
                     Tip(stringResource(R.string.language_unsupported_warning_1000))
@@ -103,17 +123,25 @@ fun LanguagesScreen(
                 }
             }
 
-            val subtitle = if (language.trainedHourCount < 1000) {
-                stringResource(R.string.may_be_low_accuracy_x_hours, language.trainedHourCount)
-            } else {
-                stringResource(R.string.trained_on_x_hours, language.trainedHourCount)
+            val modelSupportsLanguage = getLanguageFromWhisperString(language.id) in model.caps.supportedLanguages
+            val subtitle = when {
+                 !modelSupportsLanguage ->
+                     stringResource(R.string.model_settings_model_doesnt_support_detection, stringResource(model.name))
+
+                !model.caps.isWhisper ->
+                    ""
+
+                language.trainedHourCount < 1000 ->
+                    stringResource(R.string.may_be_low_accuracy_x_hours, language.trainedHourCount)
+
+                else ->
+                    stringResource(R.string.trained_on_x_hours, language.trainedHourCount)
             }
 
-            // Only show languages trained with over 1000 hours for now, as anything lower
-            // can be laughably bad on the tiny model
-            if (allowUndertrainedLanguages || language.trainedHourCount > 1000) {
-                LanguageToggle(language.id, language.name, languages, setLanguages, subtitle)
-            }
+            if(!modelSupportsLanguage && !languages.contains(language.id)) return@items
+            if(model.caps.isWhisper && !allowUndertrainedLanguages && language.trainedHourCount <= 1000) return@items
+
+            LanguageToggle(language.id, language.name, languages, setLanguages, subtitle, false)
         }
     }
 }

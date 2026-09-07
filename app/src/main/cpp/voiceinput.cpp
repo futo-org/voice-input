@@ -8,6 +8,7 @@
 #include "jni_common.h"
 #include "transcribe.h"
 #include "transcribe/whisper.h"
+#include "transcribe/parakeet.h"
 #include "transcribe/asr4all.h"
 
 std::string jstring2string(JNIEnv *env, jstring jStr) {
@@ -136,16 +137,9 @@ static std::string narrowLanguageCode(const char *language, struct transcribe_ca
         if(strncmp(capabilities->languages[i], language, std::min(len_ref, len_cmp)) == 0) {
             if(len_cmp == len_ref) return capabilities->languages[i];
 
-            // parakeet/nemotron dont support comma separated languages yet
-            // otherwise we should be providing that
-
-            //result.append(capabilities->languages[i]);
-            //result.append(",");
             if(result.empty()) result = capabilities->languages[i];
         }
     }
-
-    if(result.size() > 0 && result[result.size() - 1] == ',') result.pop_back();
 
     return result;
 }
@@ -157,8 +151,14 @@ static std::string languageArrayToMergedString(JNIEnv *env, jobjectArray languag
         jstring jstr = static_cast<jstring>(env->GetObjectArrayElement(languages, i));
         std::string str = jstring2string(env, jstr);
 
-        language_hint.append(narrowLanguageCode(str.c_str(), capabilities));
-        if(i < (num_languages - 1)) {
+        std::string narrowed = narrowLanguageCode(str.c_str(), capabilities);
+        if(narrowed.empty() && str == "no") {
+            // we refer to norwegian as "no" but parakeet refers to it by "nb" (Norwegian Bokmål)
+            narrowed = narrowLanguageCode("nb", capabilities);
+        }
+
+        language_hint.append(narrowed);
+        if(i < (num_languages - 1) && !narrowed.empty()) {
             language_hint.append(",");
         }
     }
@@ -177,14 +177,20 @@ static jstring WhisperGGML_infer(JNIEnv *env, jobject instance, jlong handle, jf
     std::string language_hint = languageArrayToMergedString(env, languages, &capabilities);
     std::string bail_language_hint = languageArrayToMergedString(env, bail_languages, &capabilities);
 
+    if(strcmp(transcribe_model_arch_string(transcribe_get_model(state->session)),
+            "parakeet") == 0) {
+        if(language_hint.find(',') != std::string::npos) {
+            AKLOGE("Parakeet/Nemotron do not support multilingual, clearing hint");
+            language_hint = "";
+        }
+    }
+
     state->env = env;
     state->partial_result_instance = instance;
     state->partial_result_method = env->GetMethodID(
         env->GetObjectClass(instance),
         "invokePartialResult",
           "(Ljava/lang/String;)V");
-
-    // TODO: ban symbols toggle?
 
     int num_samples = env->GetArrayLength(samples_array);
     jfloat *samples = env->GetFloatArrayElements(samples_array, nullptr);
@@ -219,6 +225,12 @@ static jstring WhisperGGML_infer(JNIEnv *env, jobject instance, jlong handle, jf
         }
 
         params.family = &wp.ext;
+    } else if(transcribe_model_accepts_ext_kind(
+            transcribe_get_model(state->session),
+            TRANSCRIBE_EXT_SLOT_RUN,
+            TRANSCRIBE_EXT_KIND_PARAKEET_STREAM
+    )) {
+
     }
 
     auto result = transcribe_run(state->session, samples, num_samples, &params);
@@ -264,6 +276,14 @@ static jboolean WhisperGGML_startStream(JNIEnv *env, jobject instance, jlong han
 
     std::string language_hint = languageArrayToMergedString(env, languages, &capabilities);
     std::string bail_language_hint = languageArrayToMergedString(env, bail_languages, &capabilities);
+
+    if(strcmp(transcribe_model_arch_string(transcribe_get_model(state->session)),
+              "parakeet") == 0) {
+        if(language_hint.find(',') != std::string::npos) {
+            AKLOGE("Parakeet/Nemotron do not support multilingual, clearing hint");
+            language_hint = "";
+        }
+    }
 
     state->env = env;
     state->partial_result_instance = instance;

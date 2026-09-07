@@ -213,6 +213,11 @@
     <string name="commitment_to_privacy_title">Commitment to Privacy</string>
     <string name="commitment_to_privacy_body">This app will never serve you ads or sell your data. We are not in the business of doing that.</string>
 
+    <string name="language_settings_model_doesnt_support_languages">The current model (%1$s) does not support these languages: %2$s</string>
+    <string name="language_settings_language_unsupported_by_model">Unsupported by %1$s</string>
+    <string name="model_settings_model_doesnt_support_personal_dict">A selected model (%1$s) does not support personal dictionary</string>
+    <string name="model_settings_model_doesnt_support_detection">The current model does not support language detection. Manual selection will be forced on.</string>
+
     <string name="setup_which_voice_input_to_use">Which voice input do you want to use?</string>
     <string name="setup_which_voice_input_to_use_info">You\'re using FUTO Keyboard, which already has voice input included. This app has a more experimental engine with wider model support. You can change this later in FUTO Keyboard settings.</string>
     <string name="setup_which_voice_input_to_use_keyboard">FUTO Keyboard</string>

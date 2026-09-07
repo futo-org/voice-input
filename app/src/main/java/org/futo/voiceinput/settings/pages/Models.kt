@@ -36,6 +36,7 @@ import org.futo.voiceinput.settings.USE_LANGUAGE_SPECIFIC_MODELS
 import org.futo.voiceinput.settings.useDataStore
 import org.futo.voiceinput.shared.ENGLISH_MODELS
 import org.futo.voiceinput.shared.MULTILINGUAL_MODELS
+import org.futo.voiceinput.shared.types.getLanguageFromWhisperString
 import org.futo.voiceinput.startModelDownloadActivity
 
 @Composable
@@ -145,6 +146,8 @@ fun ModelsScreen(
         launchDownloaderIfNecessary()
     }
 
+    val modelEn = ENGLISH_MODELS[englishModelIndex.value]
+    val model = MULTILINGUAL_MODELS[multilingualModelIndex.value]
 
     SettingsRootList {
         ScreenTitle(stringResource(R.string.model_options), showBack = true, navController = navController)
@@ -157,11 +160,31 @@ fun ModelsScreen(
             )
         }
 
+        if(!modelEn.caps.supportsPersonalDict && (useLanguageSpecificModels || languages == setOf("en"))) {
+            Tip(stringResource(R.string.model_settings_model_doesnt_support_personal_dict, stringResource(modelEn.name)))
+        }
+        if(!model.caps.supportsPersonalDict && languages != setOf("en")) {
+            Tip(stringResource(R.string.model_settings_model_doesnt_support_personal_dict, stringResource(model.name)))
+        }
+
         PersonalDictionaryEditor(disabled = false)
 
         Spacer(modifier = Modifier.height(32.dp))
 
         if (useMultilingual) {
+            if(!model.caps.supportsLanguageDetection) {
+                Tip(stringResource(R.string.model_settings_model_doesnt_support_detection))
+            }
+
+            val unsupportedLanguages = languages.map { getLanguageFromWhisperString(it) }.filter { it !in model.caps.supportedLanguages }
+            if(unsupportedLanguages.isNotEmpty()) {
+                Tip(stringResource(
+                    R.string.language_settings_model_doesnt_support_languages,
+                    stringResource(model.name),
+                    unsupportedLanguages.joinToString(", ")
+                ))
+            }
+
             SettingRadio(
                 stringResource(R.string.multilingual_model),
                 MULTILINGUAL_MODELS.indices.toList(),
