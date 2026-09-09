@@ -186,7 +186,6 @@ class VoiceInputMethodService : InputMethodService(), LifecycleOwner, ViewModelS
     private var onPermissionGranted: () -> Unit = {}
     private var onPermissionRejected: () -> Unit = {}
 
-    private var anyTextComposed = false
     private var textComposed = ""
     private var pendingPreText = ""
     private var pendingPostText = ""
@@ -230,7 +229,7 @@ class VoiceInputMethodService : InputMethodService(), LifecycleOwner, ViewModelS
                     }
 
                     override fun partialResult(result: String) {
-                        if(result.isEmpty() && !anyTextComposed) return
+                        if(result == textComposed) return
 
                         currentInputConnection?.let {
                             if(pendingPreText.isNotEmpty()) {
@@ -239,7 +238,6 @@ class VoiceInputMethodService : InputMethodService(), LifecycleOwner, ViewModelS
                                 pendingPreText = ""
                             }
                             it.setComposingText(result, 1)
-                            anyTextComposed = true
                             textComposed = result
                         }
                     }
