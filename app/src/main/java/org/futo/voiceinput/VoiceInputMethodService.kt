@@ -186,6 +186,12 @@ class VoiceInputMethodService : InputMethodService(), LifecycleOwner, ViewModelS
     private var onPermissionGranted: () -> Unit = {}
     private var onPermissionRejected: () -> Unit = {}
 
+    private var anyTextComposed = false
+    private var textComposed = ""
+    private var pendingPreText = ""
+    private var pendingPostText = ""
+    private var composingStartPos = -100
+
     fun initRecognizerView() {
         val cancelSelf = {
             needsInitialization = true
@@ -217,27 +223,24 @@ class VoiceInputMethodService : InputMethodService(), LifecycleOwner, ViewModelS
                     }
 
                     override fun finished(result: String) {
-                        currentInputConnection.also {
-                            var modifiedResult = result
-
-                            // TODO: Insert space automatically if ended at punctuation by stealing the code from FUTO Keyboard
-
-                            /*if(!prevText.isNullOrBlank()) {
-                            val lastChar = prevText?.last()
-
-                            if (punctuationChars.contains(lastChar)) {
-                                modifiedResult = " $result"
-                            }
-                        }*/
-
-                            it.commitText(modifiedResult, 1)
+                        currentInputConnection?.let {
+                            it.commitText(result + pendingPostText, 1)
                         }
                         cancelled()
                     }
 
                     override fun partialResult(result: String) {
-                        if (currentInputConnection != null) {
-                            currentInputConnection.setComposingText(result, 1)
+                        if(result.isEmpty() && !anyTextComposed) return
+
+                        currentInputConnection?.let {
+                            if(pendingPreText.isNotEmpty()) {
+                                it.commitText(pendingPreText, 1)
+                                composingStartPos += pendingPreText.length
+                                pendingPreText = ""
+                            }
+                            it.setComposingText(result, 1)
+                            anyTextComposed = true
+                            textComposed = result
                         }
                     }
 
@@ -337,6 +340,23 @@ class VoiceInputMethodService : InputMethodService(), LifecycleOwner, ViewModelS
             }
         }
 
+        // Move cursor to end of selection if one is active
+        currentInputConnection?.let { ic ->
+            var txtBefore: String? = null
+            var txtAfter: String? = null
+
+            if(info.initialSelStart != info.initialSelEnd && (info.initialSelStart != -1) && (info.initialSelEnd > 0)) {
+                ic.setSelection(info.initialSelEnd, info.initialSelEnd)
+            }
+            if(info.initialSelStart != -1) composingStartPos = info.initialSelStart
+
+            txtBefore = ic.getTextBeforeCursor(1, 0)?.toString()
+            txtAfter = ic.getTextAfterCursor(1, 0)?.toString()
+
+            if(txtBefore?.lastOrNull()?.isWhitespace() == false) pendingPreText = " "
+            if(txtAfter?.getOrNull(0)?.isLetter() == true) pendingPostText = " "
+        }
+
         if(needsInitialization) {
             needsInitialization = false
 
@@ -357,6 +377,35 @@ class VoiceInputMethodService : InputMethodService(), LifecycleOwner, ViewModelS
                 allowClick = recognizer?.isFinishable?.value ?: false
             ) {
                 recognizer?.Content()
+            }
+        }
+    }
+
+    override fun onUpdateSelection(
+        oldSelStart: Int,
+        oldSelEnd: Int,
+        newSelStart: Int,
+        newSelEnd: Int,
+        candidatesStart: Int,
+        candidatesEnd: Int
+    ) {
+        super.onUpdateSelection(
+            oldSelStart,
+            oldSelEnd,
+            newSelStart,
+            newSelEnd,
+            candidatesStart,
+            candidatesEnd
+        )
+
+        // User selected a word. Try to recover by some chance
+        if(newSelStart != newSelEnd && composingStartPos > 0) {
+            currentInputConnection?.let {
+                it.setSelection(composingStartPos + textComposed.length, composingStartPos + textComposed.length)
+                if(it.getTextBeforeCursor(textComposed.length, 0) == textComposed) {
+                    it.setComposingRegion(composingStartPos, composingStartPos + textComposed.length)
+                    // recovered
+                }
             }
         }
     }
