@@ -31,12 +31,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
 import okhttp3.internal.closeQuietly
+import org.futo.voiceinput.CrashLoggingApplication
 import org.futo.voiceinput.R
 import org.futo.voiceinput.fileNeedsDownloading
 import org.futo.voiceinput.settings.ScreenTitle
@@ -291,6 +295,12 @@ class DownloadActivity : ComponentActivity() {
         cleanupList.forEach {
             val file = File(this@DownloadActivity.filesDir, it)
             if(file.isFile) file.delete()
+        }
+
+        // Unload old stale models
+        @OptIn(DelicateCoroutinesApi::class)
+        GlobalScope.launch {
+            CrashLoggingApplication.getModelManager(this@DownloadActivity)?.cleanUp()
         }
 
         val returnIntent = Intent()
