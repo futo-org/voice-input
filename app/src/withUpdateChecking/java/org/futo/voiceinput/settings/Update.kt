@@ -3,7 +3,9 @@ package org.futo.voiceinput.settings
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import org.futo.voiceinput.R
 import org.futo.voiceinput.openURI
 import org.futo.voiceinput.updates.UpdateResult
 
@@ -19,14 +21,18 @@ fun ConditionalUpdate() {
     }
 
     val context = LocalContext.current
+
+    // App update is prioritized over model update because it's more important
     if(lastUpdateResult != null && lastUpdateResult.isNewer()) {
         NavigationItem(
-            title = "Update Available",
+            title = stringResource(R.string.update_available),
             subtitle = "${UpdateResult.currentVersionString()} -> ${lastUpdateResult.nextVersionString}",
             style = NavigationItemStyle.Misc,
             navigate = {
                 context.openURI(lastUpdateResult.apkUrl)
             }
         )
+    } else {
+        ConditionalModelUpdate()
     }
 }

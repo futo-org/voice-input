@@ -10,12 +10,10 @@ import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -34,7 +32,7 @@ import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.lifecycleScope
-import org.futo.voiceinput.settings.pages.ConditionalUnpaidNoticeInVoiceInputWindow
+import org.futo.voiceinput.settings.pages.OptionalWindowNotice
 import org.futo.voiceinput.shared.ModelDoesNotExistException
 import org.futo.voiceinput.shared.RecognizerView
 import org.futo.voiceinput.shared.RecognizerViewListener
@@ -80,7 +78,7 @@ fun RecognizeWindow(forceNoUnpaidNotice: Boolean = false, allowClick: Boolean = 
                 Box(modifier = Modifier.fillMaxWidth()) {
                     if(!forceNoUnpaidNotice) {
                         Box(modifier = Modifier.align(Alignment.CenterStart)) {
-                            ConditionalUnpaidNoticeInVoiceInputWindow(onClose)
+                            OptionalWindowNotice(onClose)
                         }
                     }
 

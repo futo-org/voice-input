@@ -19,7 +19,7 @@ enum class DecodingMode(val value: Int) {
 
 class BailLanguageException(val language: String): Exception()
 class InferenceCancelledException : Exception()
-class InvalidModelException : Exception("The Whisper model could not be loaded from the given buffer")
+class InvalidModelException(val fileError: Boolean) : Exception("The Whisper model could not be loaded from the given buffer")
 
 @Keep
 class WhisperGGML(
@@ -29,8 +29,8 @@ class WhisperGGML(
     init {
         handle = openNative(file.absolutePath)
 
-        if(handle == 0L) {
-            throw InvalidModelException()
+        if(handle == 0L || handle == 1L) {
+            throw InvalidModelException(handle == 1L)
         }
     }
 

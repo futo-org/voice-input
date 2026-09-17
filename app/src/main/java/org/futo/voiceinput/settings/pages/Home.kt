@@ -155,7 +155,7 @@ fun HomeScreen(
             icon = painterResource(R.drawable.edit)
         )
 
-        UnpaidNoticeCondition(showOnlyIfReminder = true) {
+        if(unpaidNoticeCondition(showOnlyIfReminder = true)) {
             NavigationItem(
                 title = stringResource(R.string.payment),
                 style = NavigationItemStyle.Misc,

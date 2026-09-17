@@ -78,15 +78,15 @@ fun Context.fileNeedsDownloading(file: String): Boolean {
     return !File(this.filesDir, file).exists()
 }
 
-fun Context.modelNeedsDownloading(model: ModelLoader): Boolean =
-    model.getRequiredDownloadList(this).isNotEmpty()
-
-fun Context.startModelDownloadActivity(models: List<ModelLoader>) {
-    @Suppress("NAME_SHADOWING") val models = models.filter { this.modelNeedsDownloading(it) }
-    if(models.isEmpty()) return
+fun Context.startModelDownloadActivity(models: List<ModelLoader>, forUpgrade: Boolean = true) {
+    val downloadList = models.map { it.getRequiredDownloadList(this, forUpgrade) }.filter { it.isNotEmpty() }
+    if(downloadList.isEmpty()) return
 
     val intent = Intent(this, DownloadActivity::class.java)
-    intent.putStringArrayListExtra("models", ArrayList(models.flatMap { it.getRequiredDownloadList(this) }))
+    intent.putStringArrayListExtra("models", ArrayList(downloadList.flatten()))
+
+    val cleanupList = models.flatMap { it.getCleanupListAfterUpgrade(this) }
+    intent.putStringArrayListExtra("cleanup", ArrayList(cleanupList))
 
     if(this !is Activity) {
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
@@ -206,6 +206,10 @@ val LANGUAGE_LIST = listOf(
     LanguageEntry("su", "Sundanese", 0),
     LanguageEntry("lo", "Lao", 0)
 )
+
+fun Context.loadCurrentModelList() = loadRecognizerSettings().modelRunConfiguration.let {
+    listOf(it.primaryModel) + it.languageSpecificModels.values
+}
 
 fun Context.loadRecognizerSettings(inlinePartialResult: Boolean = false): RecognizerViewSettings {
     val multiModelIdx = getSetting(MULTILINGUAL_MODEL_INDEX)

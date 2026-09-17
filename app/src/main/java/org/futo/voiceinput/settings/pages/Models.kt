@@ -136,10 +136,11 @@ fun ModelsScreen(
                 listOf(
                     ENGLISH_MODELS[englishModelIndex.value],
                     MULTILINGUAL_MODELS[multilingualModelIndex.value]
-                )
+                ),
+                forUpgrade = false
             )
         } else {
-            context.startModelDownloadActivity(listOf(ENGLISH_MODELS[englishModelIndex.value]))
+            context.startModelDownloadActivity(listOf(ENGLISH_MODELS[englishModelIndex.value]), forUpgrade = false)
         }
     }
 

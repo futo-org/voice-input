@@ -78,15 +78,17 @@ val ENGLISH_MODELS: List<ModelLoader> = listOf(
     ),
     ModelDownloadable(
         name = R.string.asr4all_s_name,
-        ggmlFile = "asr4all-s-Q8_0.gguf",
-        checksum = "12c55855986a035261a266c69db2d36ef3a9e4da614f6b1bb054a8b4fc25b366",
+        ggmlFile = "asr4all-s-Q8_0-v2.gguf",
+        checksum = "9c9cd8f8510a15f676df35f864009970ba073a0aa6d68caa36129c8b928dcb0c",
         caps = Asr4AllCapabilities,
+        backwardsCompatFiles = listOf("asr4all-s-Q8_0.gguf"),
     ),
     ModelDownloadable(
         name = R.string.asr4all_m_name,
-        ggmlFile = "asr4all-m-Q8_0.gguf",
-        checksum = "805879c10efe11faacdb11b7bd03df3e3ec9462e3f8063d821235a20eef124a2",
+        ggmlFile = "asr4all-m-Q8_0-v2.gguf",
+        checksum = "3894142e1dbea2e47a88decc8c3c022d1eb1b1d650792d00e2dce5cf1867b055",
         caps = Asr4AllCapabilities,
+        backwardsCompatFiles = listOf("asr4all-m-Q8_0.gguf"),
     ),
     ModelDownloadable(
         name = R.string.asr4all_l_name,

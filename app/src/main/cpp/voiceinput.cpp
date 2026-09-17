@@ -120,6 +120,11 @@ static jlong WhisperGGML_open(JNIEnv *env, jclass clazz, jstring model_dir) {
     if(!state->session || result != TRANSCRIBE_OK){
         AKLOGE("Failed to initialize whisper_context from path '%s' with error: %s", model_dir_str.c_str(), transcribe_status_string(result));
         delete state;
+
+        if(result == TRANSCRIBE_ERR_GGUF || result == TRANSCRIBE_ERR_UNSUPPORTED_ARCH) {
+            return 1L;
+        }
+
         return 0L;
     }
 
@@ -315,19 +320,16 @@ static jboolean WhisperGGML_startStream(JNIEnv *env, jobject instance, jlong han
         transcribe_asr4all_stream_ext_init(&a4ap);
 
         if(tier <= 0) {
-            a4ap.commit_frames = 32;
+            a4ap.commit_frames = 16;
             a4ap.right_ctx_frames = 4;
-            a4ap.lookahead_frames = 22;
-            state->preview_every = 4000;
+            state->preview_every = 2000;
         } else if(tier == 1) {
             a4ap.commit_frames = 32;
             a4ap.right_ctx_frames = 8;
-            a4ap.lookahead_frames = 26;
             state->preview_every = 4000;
         } else if(tier >= 2) {
             a4ap.commit_frames = 64;
             a4ap.right_ctx_frames = 16;
-            a4ap.lookahead_frames = 34;
             state->preview_every = 8000;
         } /*else {
             a4ap.commit_frames = 512;

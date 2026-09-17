@@ -36,6 +36,7 @@ import okhttp3.Callback
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
+import okhttp3.internal.closeQuietly
 import org.futo.voiceinput.R
 import org.futo.voiceinput.fileNeedsDownloading
 import org.futo.voiceinput.settings.ScreenTitle
@@ -52,7 +53,7 @@ data class ModelInfo(
     val size: MutableState<Long?> = mutableStateOf(null),
     val progress: MutableState<Float> = mutableStateOf(0.0f),
     val error: MutableState<Boolean> = mutableStateOf(false),
-    val finished: MutableState<Boolean> = mutableStateOf(false)
+    val finished: MutableState<Boolean> = mutableStateOf(false),
 )
 
 val EXAMPLE_MODELS = listOf(
@@ -192,6 +193,7 @@ fun DownloadScreen(models: List<ModelInfo> = EXAMPLE_MODELS) {
 
 class DownloadActivity : ComponentActivity() {
     private val modelsToDownload: MutableList<ModelInfo> = mutableStateListOf()
+    private val cleanupList: MutableList<String> = mutableListOf()
     private val httpClient = OkHttpClient()
     private val isDownloading = mutableStateOf(false)
 
@@ -229,15 +231,13 @@ class DownloadActivity : ComponentActivity() {
                 }
 
                 override fun onResponse(call: Call, response: Response) {
-                    response.body?.source()?.let { source ->
-                        try {
-                            it.size.value = response.headers["content-length"]!!.toLong()
-                        } catch (e: Exception) {
-                            println("url failed ${it.url}")
-                            println(response.headers)
-                            e.printStackTrace()
-                        }
+                    if(response.code != 200) {
+                        println("url failed ${response.code}: ${it.url}")
+                        it.error.value = true
+                        return
+                    }
 
+                    response.body?.source()?.let { source ->
                         val fileName = it.name + ".download"
                         val file =
                             File.createTempFile(fileName, null, this@DownloadActivity.cacheDir)
@@ -265,7 +265,12 @@ class DownloadActivity : ComponentActivity() {
                         os.flush()
                         os.close()
 
-                        assert(file.renameTo(File(this@DownloadActivity.filesDir, it.name)))
+                        source.closeQuietly()
+
+                        if(it.error.value) return@let
+                        if(!file.renameTo(File(this@DownloadActivity.filesDir, it.name))) {
+                            throw IllegalStateException()
+                        }
 
                         if (modelsToDownload.all { a -> a.finished.value }) {
                             downloadsFinished()
@@ -283,6 +288,11 @@ class DownloadActivity : ComponentActivity() {
     }
 
     private fun downloadsFinished() {
+        cleanupList.forEach {
+            val file = File(this@DownloadActivity.filesDir, it)
+            if(file.isFile) file.delete()
+        }
+
         val returnIntent = Intent()
         setResult(RESULT_OK, returnIntent)
         finish()
@@ -313,6 +323,8 @@ class DownloadActivity : ComponentActivity() {
                         println("Bad response code ${response.code}")
                         it.error.value = true
                     }
+
+                    response.closeQuietly()
                 }
             })
         }
@@ -331,13 +343,16 @@ class DownloadActivity : ComponentActivity() {
         modelsToDownload.addAll(models.filter { this.fileNeedsDownloading(it) }.map {
             ModelInfo(
                 name = it,
-                url = "https://dl.voiceinput.futo.org/VoiceInput/${it}"
+                url = "https://dl.voiceinput.futo.org/VoiceInput/${it}",
             )
         })
 
         if (modelsToDownload.isEmpty()) {
             cancel()
         }
+
+        cleanupList.clear()
+        intent.getStringArrayListExtra("cleanup")?.forEach { cleanupList.add(it) }
 
         isDownloading.value = false
 

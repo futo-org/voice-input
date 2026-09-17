@@ -249,4 +249,9 @@
     <string name="setup_which_voice_input_to_use_switch_manual">To switch, please open FUTO Keyboard Settings -> Voice Input -> toggle on \"Disable built-in voice input\", then tap done.</string>
     <string name="setup_which_voice_input_to_use_switch_settings">Settings</string>
     <string name="setup_which_voice_input_to_use_switch_finished">Done</string>
+
+    <string name="voice_input_window_indicator_app_update_available">Update app</string>
+    <string name="voice_input_window_indicator_model_update_available">Update model</string>
+    <string name="voice_input_window_indicator_model_requires_download">Model download required</string>
+
 </resources>

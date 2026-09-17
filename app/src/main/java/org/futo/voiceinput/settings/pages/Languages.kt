@@ -74,7 +74,7 @@ fun LanguagesScreen(
 
     LaunchedEffect(listOf(multilingualModelIndex, multilingual)) {
         if (multilingual) {
-            context.startModelDownloadActivity(listOf(MULTILINGUAL_MODELS[multilingualModelIndex]))
+            context.startModelDownloadActivity(listOf(MULTILINGUAL_MODELS[multilingualModelIndex]), forUpgrade = false)
         }
     }
 
