@@ -123,20 +123,9 @@ fun HelpScreen(navController: NavHostController = rememberNavController()) {
         Tip(stringResource(R.string.help_paragraph_5))
 
         Spacer(modifier = Modifier.height(4.dp))
-
-        textItem(stringResource(R.string.help_paragraph_6))
-        Column(modifier = Modifier.padding(16.dp, 0.dp)) {
-            textItem(stringResource(R.string.grammarly_keyboard))
-            textItem(stringResource(R.string.microsoft_swiftkey))
-        }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Tip(stringResource(R.string.help_paragraph_7))
-
-        Spacer(modifier = Modifier.height(4.dp))
         textItem(stringResource(R.string.help_paragraph_8))
         Column(modifier = Modifier.padding(16.dp, 0.dp)) {
+            textItem(stringResource(R.string.microsoft_swiftkey))
             textItem(stringResource(R.string.gboard))
             textItem(stringResource(R.string.samsung_keyboard_one_ui_5))
             textItem(stringResource(R.string.typewise))

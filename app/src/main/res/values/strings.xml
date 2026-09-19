@@ -18,23 +18,22 @@
     <string name="view_other_dependencies">View Other Dependencies</string>
     <string name="name_legal">The authors, contributors or copyright holders listed above are not affiliated with this product and do not endorse or promote this product. Reference to the authors, contributors or copyright holders is solely for attribution purposes. Mention of their names does not imply approval or endorsement.</string>
     <string name="just_a_demonstration">This is just a demonstration of how Voice Input looks</string>
-    <string name="help_paragraph_1">You have installed Voice Input and enabled the Voice input method. You should now be able to use Voice Input within supported apps and keyboards.</string>
-    <string name="help_paragraph_2">When you open Voice Input, it will look something like this:</string>
+    <string name="help_paragraph_1">You\'ve installed and enabled FUTO Voice Input. You should now be abl to use it in supported apps and keyboards.</string>
+    <string name="help_paragraph_2">When you open voice input, it should look something like this:</string>
     <string name="voice_input_will_look_like_this">Voice Input will look like this</string>
     <string name="look_for_the_big_off_center_futo_logo_in_the_background">Look for the big off-center FUTO logo in the background!</string>
     <string name="stop_recording">Stop Recording</string>
     <string name="once_you_re_done_talking_you_can_hit_the_microphone_button_to_stop">Once you\'re done talking, you can hit the microphone button to stop</string>
-    <string name="help_paragraph_3">You can use one of the following open-source keyboards that are tested to work:</string>
-    <string name="aosp_keyboard_included_in_aosp_based_roms">• AOSP Keyboard, included in AOSP-based ROMs</string>
-    <string name="heliboard_info">• HeliBoard, a fork of OpenBoard</string>
+    <string name="help_paragraph_3">We recommend using one of these keyboards:</string>
+    <string name="futo_keyboard_bullet_point">• FUTO Keyboard, which also has Whisper built-in (but you can use this app for more models)</string>
+    <string name="aosp_keyboard_included_in_aosp_based_roms">• AOSP Keyboard, if it\'s included in your OS</string>
+    <string name="heliboard_info">• HeliBoard, a fork of AOSP Keyboard / OpenBoard</string>
     <string name="anysoftkeyboard_available_on_f_droid_and_google_play">• AnySoftKeyboard, available on F-Droid and Google Play</string>
     <string name="help_paragraph_5">Everything you type is seen by your keyboard app, and proprietary commercial keyboards often have lengthy and complicated privacy policies. Choose carefully!</string>
-    <string name="help_paragraph_6">The following proprietary keyboards may also work, but they are not recommended as they may not respect your privacy:</string>
-    <string name="grammarly_keyboard" translatable="false">• Grammarly Keyboard</string>
-    <string name="microsoft_swiftkey" translatable="false">• Microsoft SwiftKey</string>
     <string name="help_paragraph_7">Note: Not all keyboards are compatible with Voice Input. You need to make sure you\'re using a compatible keyboard.</string>
-    <string name="help_paragraph_8">Some keyboards are simply incompatible, as they do not integrate with Android APIs for voice input. If your keyboard is listed here, you will need to use a different one as it is NOT compatible:</string>
-    <string name="gboard" translatable="false">• Gboard</string>
+    <string name="help_paragraph_8">Not all keyboards are compatible with FUTO Voice Input. You should avoid using:</string>
+    <string name="microsoft_swiftkey" translatable="false">• Microsoft SwiftKey - not recommended due to bugs that sometimes lead to disappearance of text</string>
+    <string name="gboard" translatable="false">• Gboard - incompatible due to lack of integration with Android API for voice input</string>
     <string name="samsung_keyboard_one_ui_5" translatable="false">• Samsung Keyboard (One UI 5)</string>
     <string name="typewise" translatable="false">• TypeWise</string>
     <string name="simple_keyboard" translatable="false">• Simple Keyboard</string>
@@ -74,7 +73,7 @@
     <string name="initializing">Initializing…</string>
     <string name="cancel">Cancel</string>
     <string name="futo_logo">FUTO Logo</string>
-    <string name="enable_ime_body">To integrate with existing keyboards, you need to enable the Voice Input Method.</string>
+    <string name="enable_ime_body">To integrate with existing keyboards, you need to enable the FUTO Voice Input Method. To avoid conflicts we recommend also disabling other voice input methods.</string>
     <string name="open_input_method_settings">Open Input Method Settings</string>
     <string name="step_1_of_2">Step 1 of 2</string>
     <string name="step_2_of_2">Step 2 of 2</string>
