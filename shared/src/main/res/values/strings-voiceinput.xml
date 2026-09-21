@@ -37,9 +37,9 @@
     <!-- Model name for the tiny english model -->
     <string name="tiny_en_name">Whisper tiny.en (39M)</string>
     <!-- Model name for the base english model -->
-    <string name="base_en_name">Whisper tiny.base (74M)</string>
+    <string name="base_en_name">Whisper base.en (74M)</string>
     <!-- Model name for the small english model -->
-    <string name="small_en_name">Whisper tiny.small (244M)</string>
+    <string name="small_en_name">Whisper small.en (244M)</string>
 
     <string name="asr4all_s_name">asr4all small</string>
     <string name="asr4all_m_name">asr4all medium</string>
