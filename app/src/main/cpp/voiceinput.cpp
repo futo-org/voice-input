@@ -231,12 +231,6 @@ static jstring WhisperGGML_infer(JNIEnv *env, jobject instance, jlong handle, jf
         }
 
         params.family = &wp.ext;
-    } else if(transcribe_model_accepts_ext_kind(
-            transcribe_get_model(state->session),
-            TRANSCRIBE_EXT_SLOT_RUN,
-            TRANSCRIBE_EXT_KIND_PARAKEET_STREAM
-    )) {
-
     }
 
     auto result = transcribe_run(state->session, samples, num_samples, &params);

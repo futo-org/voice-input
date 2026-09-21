@@ -17,7 +17,7 @@ enum class DecodingMode(val value: Int) {
     BeamSearch5(5)
 }
 
-class BailLanguageException(val language: String): Exception()
+class BailLanguageException(val language: String, val samples: FloatArray): Exception()
 class InferenceCancelledException : Exception()
 class InvalidModelException(val fileError: Boolean) : Exception("The Whisper model could not be loaded from the given buffer")
 
@@ -105,6 +105,8 @@ class WhisperGGML(
             i += sample.size
         }
 
+        if(samples.isEmpty()) throw IllegalArgumentException("samples is empty")
+
         val result = offlineInferNative(handle, samples, prompt, languages, bailLanguages)?.trim()
         if(result == null) throw IllegalStateException("Inference failed")
 
@@ -113,7 +115,7 @@ class WhisperGGML(
                 throw InferenceCancelledException()
             } else if(result.contains("lang=")) {
                 val language = result.split("lang=")[1]
-                throw BailLanguageException(language)
+                throw BailLanguageException(language, samples)
             } else {
                 throw IllegalStateException("Cancelled for unknown reason")
             }

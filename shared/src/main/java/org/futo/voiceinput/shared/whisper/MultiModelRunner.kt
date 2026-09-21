@@ -4,6 +4,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import org.futo.voiceinput.shared.ggml.BailLanguageException
@@ -87,15 +89,16 @@ class MultiModelRunner(
             val specificModelLoader = runConfiguration.languageSpecificModels[language]!!
             val specificModel = modelManager.obtainModel(specificModelLoader)
 
+            val remainder = sampleFlow.toList()
             specificModel.infer(
-                sampleFlow = sampleFlow,
+                sampleFlow = (listOf(e.samples) + remainder).asFlow(),
                 prompt = glossary,
                 languages = arrayOf(e.language),
                 bailLanguages = arrayOf(),
                 partialResultCallback = {
                     callback.partialResult(it)
                 },
-                tier = decodingConfiguration.tier,
+                tier = 3,//decodingConfiguration.tier,
             )
         }
 
