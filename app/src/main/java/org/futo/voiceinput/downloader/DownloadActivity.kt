@@ -24,6 +24,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment.Companion.CenterVertically
@@ -196,6 +197,9 @@ fun DownloadScreen(models: List<ModelInfo> = EXAMPLE_MODELS) {
 }
 
 class DownloadActivity : ComponentActivity() {
+    companion object {
+        val downloadsCompleted = mutableIntStateOf(0)
+    }
     private val modelsToDownload: MutableList<ModelInfo> = mutableStateListOf()
     private val cleanupList: MutableList<String> = mutableListOf()
     private val httpClient = OkHttpClient()
@@ -302,6 +306,8 @@ class DownloadActivity : ComponentActivity() {
         GlobalScope.launch {
             CrashLoggingApplication.getModelManager(this@DownloadActivity)?.cleanUp()
         }
+
+        downloadsCompleted.intValue += 1
 
         val returnIntent = Intent()
         setResult(RESULT_OK, returnIntent)

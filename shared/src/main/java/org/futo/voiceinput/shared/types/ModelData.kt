@@ -93,7 +93,7 @@ internal class ModelBuiltInAsset(
 
 private fun Context.ggmlFile(fname: String) = File(filesDir, fname)
 
-internal class ModelDownloadable(
+class ModelDownloadable(
     override val name: Int,
     val ggmlFile: String,
     val checksum: String,
@@ -120,7 +120,7 @@ internal class ModelDownloadable(
     }
 
     override fun getCleanupListAfterUpgrade(context: Context): List<String> =
-        backwardsCompatFiles
+        backwardsCompatFiles + otherCleanupFiles
 
     override fun loadGGML(context: Context): WhisperGGML {
         val file = matchingFile(context) ?: throw FileNotFoundException()

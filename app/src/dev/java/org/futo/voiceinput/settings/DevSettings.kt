@@ -15,16 +15,47 @@ import androidx.navigation.compose.rememberNavController
 import com.android.billingclient.api.BillingClient
 import com.android.billingclient.api.ConsumeParams
 import com.android.billingclient.api.QueryPurchasesParams
+import org.futo.voiceinput.downloader.DownloadActivity
 import org.futo.voiceinput.payments.PRODUCT_ID
 import org.futo.voiceinput.payments.PlayBilling
 import org.futo.voiceinput.settings.pages.SettingsSeparator
 import org.futo.voiceinput.settings.pages.TRIAL_PERIOD_DAYS
+import org.futo.voiceinput.shared.ENGLISH_MODELS
+import org.futo.voiceinput.shared.MULTILINGUAL_MODELS
+import org.futo.voiceinput.shared.types.ModelDownloadable
+import java.io.File
 
 @Composable
 fun DevOnlySettings() {
+    val context = LocalContext.current
     val daysInstalled = useNumberOfDaysInstalled()
 
     SettingsSeparator("Payment testing [Developer Build only]")
+
+    Button(onClick = {
+        val downloadList = (ENGLISH_MODELS + MULTILINGUAL_MODELS).filterIsInstance<ModelDownloadable>().mapNotNull {
+            val outdated = it.backwardsCompatFiles.firstOrNull() ?: return@mapNotNull null
+            File(context.filesDir, it.ggmlFile).delete()
+
+            outdated
+        }
+
+        if(downloadList.isEmpty()) return@Button
+
+        val intent = Intent(context, DownloadActivity::class.java)
+        intent.putStringArrayListExtra("models", ArrayList(downloadList))
+
+        intent.putStringArrayListExtra("cleanup", ArrayList(emptyList<String>()))
+
+        if(context !is Activity) {
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+
+        context.startActivity(intent)
+    }, modifier = Modifier.padding(32.dp, 64.dp)) {
+        Text("Outdate models")
+    }
+
     SettingToggleDataStore(
         "Show payment notice despite not being past $TRIAL_PERIOD_DAYS days",
         FORCE_SHOW_NOTICE,
@@ -56,8 +87,6 @@ fun DevOnlySettings() {
         reminder.value <= currTime,
         { }
     )
-
-    val context = LocalContext.current
 
     val navigator = rememberNavController()
     val consumeProduct = {

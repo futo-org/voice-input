@@ -5,6 +5,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import org.futo.voiceinput.R
+import org.futo.voiceinput.downloader.DownloadActivity
 import org.futo.voiceinput.loadCurrentModelList
 import org.futo.voiceinput.shared.types.ModelPresence
 import org.futo.voiceinput.startModelDownloadActivity
@@ -13,11 +14,9 @@ import org.futo.voiceinput.startModelDownloadActivity
 fun ConditionalModelUpdate() {
     val context = LocalContext.current
 
-    val models = remember {
+    val models = remember(DownloadActivity.downloadsCompleted.intValue) {
         context.loadCurrentModelList()
-            .also { println("model list = ${it.joinToString { context.getString(it.name) }}") }
             .map { it to it.getPresence(context) }
-            .also { println("model presence = ${it.joinToString { context.getString(it.first.name) + " " + it.second.name }}") }
             .filter { it.second != ModelPresence.Exists }
     }
     if(models.isNotEmpty()) {
