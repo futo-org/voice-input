@@ -199,6 +199,8 @@
     <string name="check_permissions">Check permissions</string>
     <string name="use_beam_search">Use beam search</string>
     <string name="recommended">Recommended</string>
+    <string name="copy_result_to_clipboard">Copy result to clipboard</string>
+    <string name="copy_result_to_clipboard_subtitle">Every transcription is also placed on the clipboard, so it can be pasted by hand if it does not reach the text field. Note that this overwrites whatever you last copied.</string>
     <string name="new_model_features_tip">Models have been updated for better accuracy and faster performance. You can now also add words/phrases in the personal dictionary. If you have any issues or feedback after this change please contact us.</string>
     <string name="personal_dictionary_placeholder">John Doe, Jane Smith, TensorFlow, bobble, type anything you want voice input to recognize more often here!</string>
     <string name="personal_dictionary">Personal Dictionary</string>
@@ -213,5 +215,13 @@
     <string name="sustainable_development_body">FUTO\'s mission is for open-source software and non-malicious software business practices to become a sustainable income source for projects and their developers. For this reason, we are in favor of users actually paying for software.</string>
     <string name="commitment_to_privacy_title">Commitment to Privacy</string>
     <string name="commitment_to_privacy_body">This app will never serve you ads or sell your data. We are not in the business of doing that.</string>
+
+    <string name="enable_transcription_history">Keep transcription history</string>
+    <string name="enable_transcription_history_subtitle">Saves your last 20 transcriptions on this device, so a dictation that never reaches the text field can be copied from the Transcription history screen. No popups.</string>
+    <string name="transcription_history">Transcription history</string>
+    <string name="transcription_history_home_subtitle">Recover a dictation that did not get inserted</string>
+    <string name="transcription_history_hint">Tap a transcription to copy it to the clipboard.</string>
+    <string name="transcription_history_empty">No transcriptions yet. After you dictate, your most recent transcriptions appear here so a lost one can be copied.</string>
+    <string name="clear_transcription_history">Clear history</string>
 
 </resources>

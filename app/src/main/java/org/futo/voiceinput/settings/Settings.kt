@@ -142,6 +142,21 @@ val MANUALLY_SELECT_LANGUAGE = SettingsKey(booleanPreferencesKey("manually_selec
 
 val PERSONAL_DICTIONARY = SettingsKey(stringPreferencesKey("personal_dict"), "")
 
+// Safety net for the case where the recognized text never reaches the editor - the keyboard's
+// commit can be silently dropped if the editor's InputConnection is no longer active by the time
+// the result arrives. With this on, the text is always also on the clipboard so it can be pasted
+// by hand instead of being lost. Off by default because Android 13+ shows an unsuppressable
+// system "copied" overlay on every clipboard write, which is intrusive on every dictation.
+val COPY_RESULT_TO_CLIPBOARD = SettingsKey(booleanPreferencesKey("copy_result_to_clipboard"), false)
+
+// Silent counterpart to the clipboard fallback: the last few transcriptions are kept on-device
+// (newest first, JSON array of {time, text}) and can be copied from the settings app, so a
+// dropped dictation is recoverable without a clipboard write - and its system popup - on every
+// single result.
+val ENABLE_TRANSCRIPTION_HISTORY = SettingsKey(booleanPreferencesKey("enable_transcription_history"), true)
+val TRANSCRIPTION_HISTORY = SettingsKey(stringPreferencesKey("transcription_history"), "")
+const val TRANSCRIPTION_HISTORY_MAX_ENTRIES = 20
+
 val THEME_KEY = SettingsKey(
     key = stringPreferencesKey("activeThemeOption"),
     default = if(BuildConfig.FLAVOR == "dev" || BuildConfig.FLAVOR == "devSameId") { DevThemeYellow.key } else { VoiceInputTheme.key }

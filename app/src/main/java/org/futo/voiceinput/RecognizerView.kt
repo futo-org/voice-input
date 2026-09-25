@@ -1,5 +1,7 @@
 package org.futo.voiceinput
 
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.Context
 import android.media.AudioAttributes
 import android.media.AudioAttributes.CONTENT_TYPE_SONIFICATION
@@ -56,15 +58,25 @@ import androidx.compose.ui.unit.dp
 import androidx.core.math.MathUtils.clamp
 import androidx.lifecycle.LifecycleCoroutineScope
 import com.google.android.material.math.MathUtils
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.futo.voiceinput.ml.RunState
+import org.futo.voiceinput.settings.COPY_RESULT_TO_CLIPBOARD
 import org.futo.voiceinput.settings.ENABLE_ANIMATIONS
 import org.futo.voiceinput.settings.ENABLE_SOUND
+import org.futo.voiceinput.settings.ENABLE_TRANSCRIPTION_HISTORY
 import org.futo.voiceinput.settings.LANGUAGE_TOGGLES
 import org.futo.voiceinput.settings.MANUALLY_SELECT_LANGUAGE
+import org.futo.voiceinput.settings.TRANSCRIPTION_HISTORY
+import org.futo.voiceinput.settings.TRANSCRIPTION_HISTORY_MAX_ENTRIES
 import org.futo.voiceinput.settings.VERBOSE_PROGRESS
 import org.futo.voiceinput.settings.getSetting
+import org.futo.voiceinput.settings.setSetting
 import org.futo.voiceinput.settings.useDataStoreValueNullable
+import org.json.JSONArray
+import org.json.JSONObject
 import org.futo.voiceinput.theme.Typography
 
 fun Modifier.recognizerSurfaceClickable(disabled: Boolean, onPauseVAD: (Boolean) -> Unit, onFinish: () -> Unit): Modifier = composed {
@@ -260,12 +272,72 @@ abstract class RecognizerView {
     private var shouldBeVerbose = VERBOSE_PROGRESS.default
     private var shouldRequestLanguage = MANUALLY_SELECT_LANGUAGE.default
     private var languages = LANGUAGE_TOGGLES.default
+    private var shouldCopyToClipboard = COPY_RESULT_TO_CLIPBOARD.default
+    private var shouldSaveToHistory = ENABLE_TRANSCRIPTION_HISTORY.default
 
     suspend fun loadSettings() {
         shouldPlaySounds = context.getSetting(ENABLE_SOUND)
         shouldBeVerbose = context.getSetting(VERBOSE_PROGRESS)
         shouldRequestLanguage = context.getSetting(MANUALLY_SELECT_LANGUAGE)
         languages = context.getSetting(LANGUAGE_TOGGLES)
+        shouldCopyToClipboard = context.getSetting(COPY_RESULT_TO_CLIPBOARD)
+        shouldSaveToHistory = context.getSetting(ENABLE_TRANSCRIPTION_HISTORY)
+    }
+
+    /**
+     * Put the recognized text on the clipboard as a fallback, so that a transcription is never
+     * lost outright when the commit into the editor does not land.
+     */
+    private fun copyToClipboard(text: String) {
+        if (text.isBlank()) return
+
+        try {
+            val clipboard =
+                context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+            clipboard.setPrimaryClip(
+                ClipData.newPlainText(context.getString(R.string.app_name), text)
+            )
+        } catch (e: Exception) {
+            // Never let a clipboard failure take down the far more important sendResult path.
+            e.printStackTrace()
+        }
+    }
+
+    /**
+     * Keep the last few transcriptions so a dictation that never reaches the text field can be
+     * copied from the settings app later. The delivery contract has no way to report that a
+     * keyboard dropped the result, so this is the only loss-proof record of what was said.
+     */
+    private fun saveToHistory(text: String) {
+        if (text.isBlank()) return
+
+        // NonCancellable: sendResult() may finish the activity right after this is scheduled,
+        // which cancels lifecycleScope - the write must survive that or the entry is lost.
+        lifecycleScope.launch {
+            withContext(NonCancellable + Dispatchers.IO) {
+                try {
+                    val entries = JSONArray()
+                    entries.put(
+                        JSONObject()
+                            .put("time", System.currentTimeMillis())
+                            .put("text", text)
+                    )
+                    val previous = context.getSetting(TRANSCRIPTION_HISTORY)
+                    if (previous.isNotEmpty()) {
+                        val previousEntries = JSONArray(previous)
+                        for (i in 0 until minOf(
+                            previousEntries.length(),
+                            TRANSCRIPTION_HISTORY_MAX_ENTRIES - 1
+                        )) {
+                            entries.put(previousEntries.getJSONObject(i))
+                        }
+                    }
+                    context.setSetting(TRANSCRIPTION_HISTORY, entries.toString())
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
+        }
     }
 
     private val soundPool = SoundPool.Builder().setMaxStreams(2).setAudioAttributes(
@@ -320,6 +392,17 @@ abstract class RecognizerView {
         }
 
         override fun finished(result: String) {
+            // Do this before sendResult: sendResult may switch the input method or finish the
+            // activity, and once that happens we are no longer a foreground/active app and
+            // setPrimaryClip is silently ignored on Android 10+.
+            if (shouldCopyToClipboard) {
+                copyToClipboard(result)
+            }
+
+            if (shouldSaveToHistory) {
+                saveToHistory(result)
+            }
+
             val manager = context.getSystemService(Context.ACCESSIBILITY_SERVICE) as AccessibilityManager
             if(manager.isEnabled) {
                 val event = AccessibilityEvent.obtain();
