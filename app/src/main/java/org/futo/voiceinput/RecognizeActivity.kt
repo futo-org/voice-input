@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.view.Gravity
 import android.speech.RecognizerIntent
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
@@ -37,6 +38,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.LifecycleCoroutineScope
 import androidx.lifecycle.lifecycleScope
 import org.futo.voiceinput.migration.scheduleModelMigrationJob
+import org.futo.voiceinput.settings.UNOBTRUSIVE_RECOGNIZER
+import org.futo.voiceinput.settings.deferGetSetting
 import org.futo.voiceinput.settings.pages.ConditionalUnpaidNoticeInVoiceInputWindow
 import org.futo.voiceinput.theme.UixThemeAuto
 import org.futo.voiceinput.updates.scheduleUpdateCheckingJob
@@ -174,6 +177,20 @@ class RecognizeActivity : ComponentActivity() {
         scheduleUpdateCheckingJob(applicationContext)
         scheduleModelMigrationJob(applicationContext)
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+
+        // Unobtrusive mode: park the small card near the bottom, roughly where the keyboard was,
+        // instead of dead centre over the content being dictated into, and drop the full-screen
+        // dim so that content stays readable while you dictate about it. Positional and cosmetic
+        // only - focusability and every other window flag are deliberately untouched.
+        deferGetSetting(UNOBTRUSIVE_RECOGNIZER) { unobtrusive ->
+            if (unobtrusive) {
+                window.clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND)
+                window.attributes = window.attributes.apply {
+                    gravity = Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL
+                    y = (24 * resources.displayMetrics.density).toInt()
+                }
+            }
+        }
     }
 
     override fun onDestroy() {

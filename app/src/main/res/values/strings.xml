@@ -214,4 +214,8 @@
     <string name="commitment_to_privacy_title">Commitment to Privacy</string>
     <string name="commitment_to_privacy_body">This app will never serve you ads or sell your data. We are not in the business of doing that.</string>
 
+    <string name="unobtrusive_recognizer">Unobtrusive recognizer popup</string>
+    <string name="unobtrusive_recognizer_subtitle">Show the recognizer as a small card near the bottom of the screen without dimming the app behind it, instead of a dimmed dialog in the centre.</string>
+    <string name="recognizer_model_caption_description">Active model, tap to change</string>
+
 </resources>

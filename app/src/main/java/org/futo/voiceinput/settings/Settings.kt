@@ -110,6 +110,7 @@ val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "se
 val ENABLE_SOUND = SettingsKey(booleanPreferencesKey("enable_sounds"), true)
 val ENABLE_ANIMATIONS = SettingsKey(booleanPreferencesKey("enable_animations"), true)
 val VERBOSE_PROGRESS = SettingsKey(booleanPreferencesKey("verbose_progress"), false)
+val UNOBTRUSIVE_RECOGNIZER = SettingsKey(booleanPreferencesKey("unobtrusive_recognizer"), true)
 val ENABLE_MULTILINGUAL = SettingsKey(booleanPreferencesKey("enable_multilingual"), false)
 val DISALLOW_SYMBOLS = SettingsKey(booleanPreferencesKey("disallow_symbols"), true)
 val ENABLE_30S_LIMIT = SettingsKey(booleanPreferencesKey("enable_30s_limit"), false)

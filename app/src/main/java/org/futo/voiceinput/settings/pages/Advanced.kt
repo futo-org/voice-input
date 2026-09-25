@@ -21,6 +21,7 @@ import org.futo.voiceinput.settings.ScreenTitle
 import org.futo.voiceinput.settings.ScrollableList
 import org.futo.voiceinput.settings.SettingToggleDataStore
 import org.futo.voiceinput.settings.SettingsViewModel
+import org.futo.voiceinput.settings.UNOBTRUSIVE_RECOGNIZER
 import org.futo.voiceinput.settings.VERBOSE_PROGRESS
 import org.futo.voiceinput.settings.openImeOptions
 import org.futo.voiceinput.settings.useDataStore
@@ -49,6 +50,12 @@ fun AdvancedScreen(
         SettingToggleDataStore(
             stringResource(R.string.verbose_mode),
             VERBOSE_PROGRESS
+        )
+
+        SettingToggleDataStore(
+            stringResource(R.string.unobtrusive_recognizer),
+            UNOBTRUSIVE_RECOGNIZER,
+            subtitle = stringResource(R.string.unobtrusive_recognizer_subtitle)
         )
 
         SettingToggleDataStore(stringResource(R.string.use_beam_search), BEAM_SEARCH, subtitle = stringResource(R.string.recommended))

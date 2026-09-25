@@ -15,7 +15,10 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -59,9 +62,12 @@ import com.google.android.material.math.MathUtils
 import kotlinx.coroutines.launch
 import org.futo.voiceinput.ml.RunState
 import org.futo.voiceinput.settings.ENABLE_ANIMATIONS
+import org.futo.voiceinput.settings.ENABLE_MULTILINGUAL
+import org.futo.voiceinput.settings.ENGLISH_MODEL_INDEX
 import org.futo.voiceinput.settings.ENABLE_SOUND
 import org.futo.voiceinput.settings.LANGUAGE_TOGGLES
 import org.futo.voiceinput.settings.MANUALLY_SELECT_LANGUAGE
+import org.futo.voiceinput.settings.MULTILINGUAL_MODEL_INDEX
 import org.futo.voiceinput.settings.VERBOSE_PROGRESS
 import org.futo.voiceinput.settings.getSetting
 import org.futo.voiceinput.settings.useDataStoreValueNullable
@@ -132,7 +138,8 @@ fun AnimatedRecognizeCircle(magnitude: Float = 0.5f) {
 @Composable
 fun InnerRecognize(
     magnitude: Float = 0.5f,
-    state: MagnitudeState = MagnitudeState.MIC_MAY_BE_BLOCKED
+    state: MagnitudeState = MagnitudeState.MIC_MAY_BE_BLOCKED,
+    modelName: String? = null
 ) {
     val shouldUseCircle = useDataStoreValueNullable(ENABLE_ANIMATIONS.key, default = ENABLE_ANIMATIONS.default)
 
@@ -170,6 +177,24 @@ fun InnerRecognize(
         textAlign = TextAlign.Center,
         color = MaterialTheme.colorScheme.onSurface
     )
+
+    // Which model is listening. Useful mainly when switching between the English-only and
+    // multilingual models, where picking the wrong one is otherwise only obvious from the result.
+    if (modelName != null) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 2.dp),
+            horizontalArrangement = Arrangement.Center
+        ) {
+            Text(
+                modelName,
+                textAlign = TextAlign.Center,
+                style = Typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+            )
+        }
+    }
 }
 
 @Composable
@@ -266,7 +291,21 @@ abstract class RecognizerView {
         shouldBeVerbose = context.getSetting(VERBOSE_PROGRESS)
         shouldRequestLanguage = context.getSetting(MANUALLY_SELECT_LANGUAGE)
         languages = context.getSetting(LANGUAGE_TOGGLES)
+
+        // Which model is actually about to run. The parenthetical in the settings list
+        // ("most accurate", ...) is advice for choosing, not worth repeating on every dictation.
+        activeModelName = if (context.getSetting(ENABLE_MULTILINGUAL)) {
+            MULTILINGUAL_MODELS[
+                context.getSetting(MULTILINGUAL_MODEL_INDEX).coerceIn(MULTILINGUAL_MODELS.indices)
+            ].name.substringBefore(" (")
+        } else {
+            ENGLISH_MODELS[
+                context.getSetting(ENGLISH_MODEL_INDEX).coerceIn(ENGLISH_MODELS.indices)
+            ].name.substringBefore(" (")
+        }
     }
+
+    private var activeModelName: String? = null
 
     private val soundPool = SoundPool.Builder().setMaxStreams(2).setAudioAttributes(
         AudioAttributes.Builder()
@@ -440,7 +479,8 @@ abstract class RecognizerView {
                 ) {
                     InnerRecognize(
                         magnitude = magnitude,
-                        state = state
+                        state = state,
+                        modelName = activeModelName
                     )
                 }
             }
