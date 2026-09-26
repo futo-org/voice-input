@@ -84,6 +84,7 @@ abstract class AudioRecognizer {
 
 
     protected abstract val context: Context
+    protected open val recordingContext: Context get() = context
     protected abstract val lifecycleScope: LifecycleCoroutineScope
 
     protected abstract fun cancelled()
@@ -278,6 +279,8 @@ abstract class AudioRecognizer {
         forcedLanguage = language
     }
 
+    var extraBiasingWords: List<String> = emptyList()
+
     fun create() {
         loading()
 
@@ -304,13 +307,28 @@ abstract class AudioRecognizer {
         isVADPaused = false
 
         try {
-            recorder = AudioRecord(
-                MediaRecorder.AudioSource.VOICE_RECOGNITION,
-                16000,
-                AudioFormat.CHANNEL_IN_MONO,
-                AudioFormat.ENCODING_PCM_16BIT,
-                16000 * 2 * 5
-            )
+            recorder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                AudioRecord.Builder()
+                    .setContext(recordingContext)
+                    .setAudioSource(MediaRecorder.AudioSource.VOICE_RECOGNITION)
+                    .setAudioFormat(
+                        AudioFormat.Builder()
+                            .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
+                            .setSampleRate(16000)
+                            .setChannelMask(AudioFormat.CHANNEL_IN_MONO)
+                            .build()
+                    )
+                    .setBufferSizeInBytes(16000 * 2 * 5)
+                    .build()
+            } else {
+                AudioRecord(
+                    MediaRecorder.AudioSource.VOICE_RECOGNITION,
+                    16000,
+                    AudioFormat.CHANNEL_IN_MONO,
+                    AudioFormat.ENCODING_PCM_16BIT,
+                    16000 * 2 * 5
+                )
+            }
 
             if(recorder!!.state == AudioRecord.STATE_UNINITIALIZED) {
                 recorder!!.release()
@@ -512,7 +530,12 @@ abstract class AudioRecognizer {
 
         val floatArray = floatSamples.array().sliceArray(0 until floatSamples.position())
 
-        val words = context.getSetting(PERSONAL_DICTIONARY)
+        val personalDict = context.getSetting(PERSONAL_DICTIONARY)
+        val words = if (extraBiasingWords.isEmpty()) {
+            personalDict
+        } else {
+            (personalDict.lines().filter { it.isNotBlank() } + extraBiasingWords).joinToString("\n")
+        }
         val decodingMode = if(context.getSetting(BEAM_SEARCH)){ DecodingMode.BeamSearch5 } else { DecodingMode.Greedy }
 
         yield()
