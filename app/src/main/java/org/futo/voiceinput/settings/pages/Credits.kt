@@ -101,6 +101,14 @@ fun CreditsScreen(openDependencies: () -> Unit = {}, navController: NavHostContr
         )
 
         CreditItem(
+            name = "NVIDIA Nemotron/Parakeet",
+            thanksFor = stringResource(R.string.thanks_for_the_voice_recognition_model),
+            link = "https://huggingface.co/nvidia/nemotron-3.5-asr-streaming-0.6b",
+            license = "OpenMDW-1.1",
+            copyright = "Copyright (c) 2026 NVIDIA"
+        )
+
+        CreditItem(
             name = "whisper.cpp & ggml",
             thanksFor = stringResource(R.string.thanks_for_the_machine_learning_inference_library),
             link = "https://github.com/ggerganov/whisper.cpp",
@@ -109,11 +117,11 @@ fun CreditsScreen(openDependencies: () -> Unit = {}, navController: NavHostContr
         )
 
         CreditItem(
-            name = "TensorFlow Lite",
+            name = "transcribe.cpp",
             thanksFor = stringResource(R.string.thanks_for_the_machine_learning_inference_library),
-            link = "https://mvnrepository.com/artifact/org.tensorflow/tensorflow-lite",
-            license = "Apache-2.0",
-            copyright = "Copyright (c) 2023 TensorFlow Authors"
+            link = "https://github.com/handy-computer/transcribe.cpp",
+            license = "MIT",
+            copyright = "Copyright (c) 2026 The transcribe.cpp authors"
         )
 
         CreditItem(
