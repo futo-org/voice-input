@@ -5,6 +5,7 @@ import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.indication
@@ -23,26 +24,29 @@ import org.futo.voiceinput.settings.DISALLOW_SYMBOLS
 import org.futo.voiceinput.settings.ENABLE_30S_LIMIT
 import org.futo.voiceinput.settings.ENABLE_ANIMATIONS
 import org.futo.voiceinput.settings.ENABLE_SOUND
-import org.futo.voiceinput.settings.ENGLISH_MODEL_INDEX
 import org.futo.voiceinput.settings.IS_VAD_ENABLED
 import org.futo.voiceinput.settings.LANGUAGE_TOGGLES
+import org.futo.voiceinput.settings.LEGACY_ENGLISH_MODEL_INDEX
+import org.futo.voiceinput.settings.LEGACY_MULTILINGUAL_MODEL_INDEX
+import org.futo.voiceinput.settings.LEGACY_USE_LANGUAGE_SPECIFIC_MODELS
 import org.futo.voiceinput.settings.MANUALLY_SELECT_LANGUAGE
 import org.futo.voiceinput.settings.MIGRATED_ENGLISH_MODEL
-import org.futo.voiceinput.settings.MULTILINGUAL_MODEL_INDEX
+import org.futo.voiceinput.settings.MODEL_OPTIONS
 import org.futo.voiceinput.settings.PERSONAL_DICTIONARY
 import org.futo.voiceinput.settings.STREAMING_TIER
-import org.futo.voiceinput.settings.USE_LANGUAGE_SPECIFIC_MODELS
 import org.futo.voiceinput.settings.VERBOSE_PROGRESS
 import org.futo.voiceinput.settings.getSetting
 import org.futo.voiceinput.settings.setSetting
-import org.futo.voiceinput.shared.DEFAULT_ENGLISH_MODEL_IDX
-import org.futo.voiceinput.shared.ENGLISH_MODELS
-import org.futo.voiceinput.shared.MULTILINGUAL_MODELS
+import org.futo.voiceinput.shared.DefaultModelsByLanguage
 import org.futo.voiceinput.shared.RecognizerViewSettings
 import org.futo.voiceinput.shared.RecordingSettings
+import org.futo.voiceinput.shared.lookupModel
+import org.futo.voiceinput.shared.lookupModelLegacy
 import org.futo.voiceinput.shared.types.Language
+import org.futo.voiceinput.shared.types.LegacyId
 import org.futo.voiceinput.shared.types.ModelLoader
 import org.futo.voiceinput.shared.types.getLanguageFromWhisperString
+import org.futo.voiceinput.shared.types.toWhisperString
 import org.futo.voiceinput.shared.whisper.DecodingConfiguration
 import org.futo.voiceinput.shared.whisper.MultiModelRunConfiguration
 import java.io.File
@@ -216,41 +220,108 @@ fun Context.loadCurrentModelList() = loadRecognizerSettings().modelRunConfigurat
     listOf(it.primaryModel) + it.languageSpecificModels.values
 }
 
-// upgrade old tiny.en selection, which was previously built into the app, to the new one that's
-// built into the app (asr4all-m) to avoid unnecessary download prompt
+// upgrade older settings to newer (note: it also runs on fresh install since default migration lvl is 0)
 fun Context.performMigrationsIfNecessary() {
-    val englishModelIdx = getSetting(ENGLISH_MODEL_INDEX)
+    val options = getSetting(MODEL_OPTIONS).toMutableSet()
+    var multiModelIdx = getSetting(LEGACY_MULTILINGUAL_MODEL_INDEX)
+    var englishModelIdx = getSetting(LEGACY_ENGLISH_MODEL_INDEX)
+
     val migrationLvl = getSetting(MIGRATED_ENGLISH_MODEL)
 
-    if(migrationLvl >= CURRENT_MIGRATION_LEVEL) return
+    if(migrationLvl >= CURRENT_MIGRATION_LEVEL) {
+        // perform sanity check only
+        var passesSanityCheck = true
+
+        if(options.count { it.startsWith("multi:") } != 1) {
+            Log.e("MigrationUtils", "Model Options do not pass sanity check due to multiple multi:'s! $options")
+            passesSanityCheck = false
+            options.clear()
+        }
+
+        Language.entries.forEach {
+            val lang = it.toWhisperString()
+            if(options.count { it.startsWith("${lang}:") } > 1) {
+                Log.e("MigrationUtils", "Model Options do not pass sanity check due to multiple $lang:'s! $options")
+                passesSanityCheck = false
+                options.clear()
+            }
+        }
+
+        if(passesSanityCheck) return
+    }
+
     runBlocking { setSetting(MIGRATED_ENGLISH_MODEL, CURRENT_MIGRATION_LEVEL) }
 
     val oldDefaultEnglishModelIdx = 0
-    if(englishModelIdx == oldDefaultEnglishModelIdx && !ENGLISH_MODELS[oldDefaultEnglishModelIdx].exists(this)) {
-        runBlocking { setSetting(ENGLISH_MODEL_INDEX, DEFAULT_ENGLISH_MODEL_IDX) }
+    if(englishModelIdx == oldDefaultEnglishModelIdx && lookupModelLegacy(false, oldDefaultEnglishModelIdx)?.exists(this) != true) {
+        englishModelIdx = LegacyId.EnglishAsr4allM.idx!!
+    }
+
+    if(englishModelIdx == LEGACY_ENGLISH_MODEL_INDEX.default) englishModelIdx = lookupModel(DefaultModelsByLanguage[Language.English]!!)!!.legacyId.idx!!
+    if(multiModelIdx == LEGACY_MULTILINGUAL_MODEL_INDEX.default) multiModelIdx = LegacyId.MultiWhisperBase.idx!!
+
+    // Perform migration to new string set system
+    if(options.isNotEmpty()) {
+        Log.e("MigrationUtils", "expected an empty MODEL_OPTIONS during first migration! got $options")
+        return
+    }
+
+    options.add("multi:" + lookupModelLegacy(true, multiModelIdx)!!.id)
+
+    if(getSetting(LEGACY_USE_LANGUAGE_SPECIFIC_MODELS)) {
+        options.add(Language.English.toWhisperString() + ":" + lookupModelLegacy(false, englishModelIdx)!!.id)
+    } else {
+        options.add(Language.English.toWhisperString() + ":")
+    }
+
+    DefaultModelsByLanguage.forEach {
+        val lang = it.key.toWhisperString()
+        if(!options.any { it.startsWith("$lang:") }) {
+            options.add("$lang:${it.value}")
+        }
+    }
+
+    runBlocking { setSetting(MODEL_OPTIONS, options) }
+}
+
+/// language == null is guaranteed to be the multilingual model
+fun Iterable<String>.parseModelOptions() = mapNotNull { elem ->
+    elem.split(':', limit = 2).let {
+        if(it.size == 2) {
+            val lang = getLanguageFromWhisperString(it[0])
+            val model = lookupModel(it[1])
+            if((lang != null || it[0] == "multi") && model != null) lang to model else null
+        } else null
     }
 }
 
 fun Context.loadRecognizerSettings(inlinePartialResult: Boolean = false): RecognizerViewSettings {
     performMigrationsIfNecessary()
 
-    val multiModelIdx = getSetting(MULTILINGUAL_MODEL_INDEX)
-    val englishModelIdx = getSetting(ENGLISH_MODEL_INDEX)
-    val useLanguageSpecificModels = getSetting(USE_LANGUAGE_SPECIFIC_MODELS)
+    val modelOptions = getSetting(MODEL_OPTIONS).parseModelOptions()
     val languages = getSetting(LANGUAGE_TOGGLES).mapNotNull { getLanguageFromWhisperString(it) }.toMutableSet()
 
-    val englishModel = ENGLISH_MODELS[englishModelIdx]
-    val multiModel = MULTILINGUAL_MODELS[multiModelIdx]
-    val primaryModel = if(languages == setOf(Language.English)) {
-        englishModel
-    } else {
-        multiModel
+    val relevantModels = modelOptions.filter { it.first in languages || it.first == null }.toMutableList()
+
+    // means each language has an override and we need to remove the multi option
+    if(relevantModels.size > languages.size) {
+        relevantModels.removeIf { it.first == null }
     }
 
     val languageSpecificModels = mutableMapOf<Language, ModelLoader>()
-    if(useLanguageSpecificModels && primaryModel == multiModel) {
-        languageSpecificModels[Language.English] = englishModel
+
+    if(relevantModels.size == 0) {
+        Log.e("SettingsUtils", "Relevant models are empty!! options=${modelOptions}, languages=${languages} optionsRaw=${getSetting(MODEL_OPTIONS)}")
     }
+    val primaryModel = relevantModels.find { it.first == null }?.second ?: relevantModels[0].second
+    if(relevantModels.size > 1) {
+        relevantModels.forEach {
+            if(it.first != null && it.second != primaryModel) {
+                languageSpecificModels[it.first!!] = it.second
+            }
+        }
+    }
+
 
     val needLanguageSelector = languages.size > 1 && (
         getSetting(MANUALLY_SELECT_LANGUAGE)

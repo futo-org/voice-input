@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -15,10 +16,10 @@ import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.Job
 import org.futo.voiceinput.LANGUAGE_LIST
 import org.futo.voiceinput.R
+import org.futo.voiceinput.parseModelOptions
 import org.futo.voiceinput.settings.ALLOW_UNDERTRAINED_LANGUAGES
-import org.futo.voiceinput.settings.ENABLE_MULTILINGUAL
 import org.futo.voiceinput.settings.LANGUAGE_TOGGLES
-import org.futo.voiceinput.settings.MULTILINGUAL_MODEL_INDEX
+import org.futo.voiceinput.settings.MODEL_OPTIONS
 import org.futo.voiceinput.settings.ScreenTitle
 import org.futo.voiceinput.settings.SettingToggleRaw
 import org.futo.voiceinput.settings.SettingsRootListLazy
@@ -26,7 +27,6 @@ import org.futo.voiceinput.settings.SettingsViewModel
 import org.futo.voiceinput.settings.Tip
 import org.futo.voiceinput.settings.TipKind
 import org.futo.voiceinput.settings.useDataStore
-import org.futo.voiceinput.shared.MULTILINGUAL_MODELS
 import org.futo.voiceinput.shared.types.getLanguageFromWhisperString
 
 
@@ -62,18 +62,14 @@ fun LanguagesScreen(
     settingsViewModel: SettingsViewModel = viewModel(),
     navController: NavHostController = rememberNavController()
 ) {
-    val (multilingual, setMultilingual) = useDataStore(ENABLE_MULTILINGUAL)
-    val (multilingualModelIndex, _) = useDataStore(MULTILINGUAL_MODEL_INDEX)
     val (languages, setLanguages) = useDataStore(LANGUAGE_TOGGLES)
     val context = LocalContext.current
 
     val (allowUndertrainedLanguages, _) = useDataStore(ALLOW_UNDERTRAINED_LANGUAGES)
 
-    val model = MULTILINGUAL_MODELS[multilingualModelIndex]
-
-    LaunchedEffect(languages) {
-        val newMultilingual = languages.count { it != "en" } > 0
-        if (multilingual != newMultilingual) setMultilingual(newMultilingual)
+    val modelOptions = useDataStore(MODEL_OPTIONS)
+    val model = remember(modelOptions.value) {
+        modelOptions.value.filter { it.startsWith("multi:") }.parseModelOptions()[0].second
     }
 
     SettingsRootListLazy {

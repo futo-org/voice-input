@@ -29,12 +29,10 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import org.futo.voiceinput.R
 import org.futo.voiceinput.loadCurrentModelList
-import org.futo.voiceinput.settings.DataStoreItem
-import org.futo.voiceinput.settings.ENABLE_MULTILINGUAL
-import org.futo.voiceinput.settings.ENGLISH_MODEL_INDEX
+import org.futo.voiceinput.parseModelOptions
 import org.futo.voiceinput.settings.LANGUAGE_TOGGLES
 import org.futo.voiceinput.settings.MANUALLY_SELECT_LANGUAGE
-import org.futo.voiceinput.settings.MULTILINGUAL_MODEL_INDEX
+import org.futo.voiceinput.settings.MODEL_OPTIONS
 import org.futo.voiceinput.settings.PERSONAL_DICTIONARY
 import org.futo.voiceinput.settings.ScreenTitle
 import org.futo.voiceinput.settings.SettingItem
@@ -43,13 +41,13 @@ import org.futo.voiceinput.settings.SettingsRootList
 import org.futo.voiceinput.settings.SettingsViewModel
 import org.futo.voiceinput.settings.Tip
 import org.futo.voiceinput.settings.TipKind
-import org.futo.voiceinput.settings.USE_LANGUAGE_SPECIFIC_MODELS
 import org.futo.voiceinput.settings.useDataStore
 import org.futo.voiceinput.settings.useInvertedDataStore
-import org.futo.voiceinput.shared.ENGLISH_MODELS
-import org.futo.voiceinput.shared.MULTILINGUAL_MODELS
+import org.futo.voiceinput.shared.ALL_MODELS
+import org.futo.voiceinput.shared.types.Language
 import org.futo.voiceinput.shared.types.ModelLoader
 import org.futo.voiceinput.shared.types.getLanguageFromWhisperString
+import org.futo.voiceinput.shared.types.toWhisperString
 import org.futo.voiceinput.theme.Typography
 
 @Composable
@@ -97,25 +95,38 @@ fun ModelsScreen(
     settingsViewModel: SettingsViewModel = viewModel(),
     navController: NavHostController = rememberNavController()
 ) {
-    val (useMultilingual, _) = useDataStore(ENABLE_MULTILINGUAL)
-
-    val englishModelIndex = useDataStore(ENGLISH_MODEL_INDEX)
-    val multilingualModelIndex = useDataStore(MULTILINGUAL_MODEL_INDEX)
-
-    val (languages, _) = useDataStore(LANGUAGE_TOGGLES)
-    val (useLanguageSpecificModels, _) = useDataStore(USE_LANGUAGE_SPECIFIC_MODELS)
-
     val context = LocalContext.current
 
-    val modelEn = ENGLISH_MODELS[englishModelIndex.value]
-    val model = MULTILINGUAL_MODELS[multilingualModelIndex.value]
+    val (languages, _) = useDataStore(LANGUAGE_TOGGLES)
+    val (modelsRaw, setModels) = useDataStore(MODEL_OPTIONS)
+
+    val models = remember(modelsRaw) { modelsRaw.parseModelOptions().toMap() }
+
+    val multilingualShouldBeShown = remember(languages, models) {
+        val languagesWithModelsSet = models.keys.filterNotNull().toSet()
+        languages.any { getLanguageFromWhisperString(it) !in languagesWithModelsSet }
+    }
 
     val personalDict = useDataStore(PERSONAL_DICTIONARY)
+
+    val multilingualModel = models[null]!!
+
+    val updateModelOptions = { language: String, option: ModelLoader? ->
+        val newModels = modelsRaw.toMutableSet()
+        newModels.removeIf { it.startsWith("$language:") }
+        if(option != null) {
+            newModels.add("$language:${option.id}")
+        } else {
+            newModels.add("$language:")
+        }
+
+        setModels(newModels)
+    }
 
     SettingsRootList {
         ScreenTitle(stringResource(R.string.model_options), showBack = true, navController = navController)
 
-        if(languages.size > 1 && model.caps.supportsLanguageDetection) {
+        if(languages.size > 1 && multilingualModel.caps.supportsLanguageDetection && multilingualShouldBeShown) {
             SettingToggleDataStoreItem(
                 stringResource(R.string.autodetect_language),
                 useInvertedDataStore(MANUALLY_SELECT_LANGUAGE),
@@ -123,34 +134,34 @@ fun ModelsScreen(
             )
         }
 
-        if((model.caps.supportsPersonalDict && languages != setOf("en")) || (modelEn.caps.supportsPersonalDict && (useLanguageSpecificModels || languages == setOf("en")))) {
+        if(models.any { it.value.caps.supportsPersonalDict }) {
             PersonalDictionaryEditor(disabled = false)
         }
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        val modelItems = @Composable { title: Int, setting: DataStoreItem<Int>, list: List<Pair<Int, ModelLoader>> ->
+        val modelItems = @Composable { title: Int, curr: ModelLoader?, set: (ModelLoader?) -> Unit, list: List<ModelLoader?> ->
             Text(stringResource(title), style = Typography.Heading.Medium.copy(fontSize = 16.sp), modifier = Modifier
                 .padding(24.dp, 4.dp).alpha(0.8f))
             list.forEach {
                 SettingItem(
-                    title = stringResource(it.second.name),
-                    subtitle = if(setting.value == it.first && !it.second.caps.supportsPersonalDict && personalDict.value.isNotBlank()) stringResource(R.string.no_personal_dict_subtitle) else null,
+                    title = stringResource(it?.name ?: R.string.model_disabled_use_multilingual),
+                    subtitle = if(it != null && curr == it && !it.caps.supportsPersonalDict && personalDict.value.isNotBlank()) stringResource(R.string.no_personal_dict_subtitle) else null,
                     onClick = {
-                        setting.setValue(it.first)
+                        set(it)
                     },
                     disabled = false,
-                    icon = { RadioButton(selected = setting.value == it.first, onClick = { setting.setValue(it.first) }) }
+                    icon = { RadioButton(selected = curr == it, onClick = { set(it)  }) }
                 ) { }
             }
         }
 
-        if (useMultilingual) {
-            val unsupportedLanguages = languages.map { getLanguageFromWhisperString(it) }.filter { it !in model.caps.supportedLanguages }
+        if (multilingualShouldBeShown) {
+            val unsupportedLanguages = languages.map { getLanguageFromWhisperString(it) }.filter { it !in multilingualModel.caps.supportedLanguages }
             if(unsupportedLanguages.isNotEmpty()) {
                 Tip(stringResource(
                     R.string.language_settings_model_doesnt_support_languages,
-                    stringResource(model.name),
+                    stringResource(multilingualModel.name),
                     unsupportedLanguages.joinToString(", ")
                 ), TipKind.Error)
             }
@@ -160,42 +171,61 @@ fun ModelsScreen(
                     Text(stringResource(R.string.multilingual_model), style = Typography.Heading.Medium,
                         modifier = Modifier.align(Alignment.CenterHorizontally).padding(0.dp, 16.dp))
 
-                    val sortedModels = MULTILINGUAL_MODELS.mapIndexed { idx, it -> idx to it }
-                        .sortedBy { it.second.caps.paramCount }
+                    val sortedModels = ALL_MODELS.filter { it.caps.supportedLanguages.size > 1 }
+                        .sortedBy { it.caps.paramCount }
 
                     modelItems(
-                        R.string.streaming_models, multilingualModelIndex,
-                        sortedModels.filter { it.second.caps.supportsStreaming })
+                        R.string.streaming_models, models[null]!!, { if(it != null) updateModelOptions("multi", it) },
+                        sortedModels.filter { it.caps.supportsStreaming })
 
                     modelItems(
-                        R.string.nonstreaming_models, multilingualModelIndex,
-                        sortedModels.filter { !it.second.caps.supportsStreaming })
+                        R.string.nonstreaming_models, models[null]!!, { if(it != null) updateModelOptions("multi", it) },
+                        sortedModels.filter { !it.caps.supportsStreaming })
                 }
             }
             Spacer(Modifier.height(16.dp))
         }
 
 
-        if((!useMultilingual) || (languages.contains("en") && useLanguageSpecificModels)) {
+        if(languages.contains("en")) {
             Surface(color = MaterialTheme.colorScheme.surfaceContainerHigh, shape = RoundedCornerShape(24.dp), modifier = Modifier.padding(16.dp)) {
                 Column(Modifier.padding(0.dp, 8.dp)) {
                     Text(stringResource(R.string.english_model), style = Typography.Heading.Medium,
                         modifier = Modifier.align(Alignment.CenterHorizontally).padding(0.dp, 16.dp))
 
-                    val sortedModels = ENGLISH_MODELS.mapIndexed { idx, it -> idx to it }
-                        .sortedBy { it.second.caps.paramCount }
+                    val sortedModels = ALL_MODELS.filter { it.caps.supportedLanguages == setOf(Language.English) }
+                        .sortedBy { it.caps.paramCount }
 
                     modelItems(
-                        R.string.streaming_models_recommended, englishModelIndex,
-                        sortedModels.filter { it.second.caps.supportsStreaming && !it.second.caps.banishedToOther })
+                        R.string.streaming_models_recommended, models[Language.English], { updateModelOptions(Language.English.toWhisperString(), it) },
+                        sortedModels.filter { it.caps.supportsStreaming && !it.caps.banishedToOther })
 
                     modelItems(
-                        R.string.nonstreaming_models, englishModelIndex,
-                        sortedModels.filter { !it.second.caps.supportsStreaming && !it.second.caps.banishedToOther })
+                        R.string.nonstreaming_models, models[Language.English], { updateModelOptions(Language.English.toWhisperString(), it) },
+                        sortedModels.filter { !it.caps.supportsStreaming && !it.caps.banishedToOther })
 
                     modelItems(
-                        R.string.other_models, englishModelIndex,
-                        sortedModels.filter { it.second.caps.banishedToOther })
+                        R.string.other_models, models[Language.English], { updateModelOptions(Language.English.toWhisperString(), it) },
+                        sortedModels.filter { it.caps.banishedToOther } + listOf(null))
+                }
+            }
+
+            Spacer(Modifier.height(16.dp))
+        }
+
+
+        if(languages.contains("es")) {
+            Surface(color = MaterialTheme.colorScheme.surfaceContainerHigh, shape = RoundedCornerShape(24.dp), modifier = Modifier.padding(16.dp)) {
+                Column(Modifier.padding(0.dp, 8.dp)) {
+                    Text(stringResource(R.string.spanish_model), style = Typography.Heading.Medium,
+                        modifier = Modifier.align(Alignment.CenterHorizontally).padding(0.dp, 16.dp))
+
+                    val sortedModels = ALL_MODELS.filter { it.caps.supportedLanguages == setOf(Language.Spanish) }
+                        .sortedBy { it.caps.paramCount }
+
+                    modelItems(
+                        R.string.all_models, models[Language.Spanish], { updateModelOptions(Language.Spanish.toWhisperString(), it) },
+                        sortedModels + listOf(null))
                 }
             }
 

@@ -21,8 +21,7 @@ import org.futo.voiceinput.payments.PRODUCT_ID
 import org.futo.voiceinput.payments.PlayBilling
 import org.futo.voiceinput.settings.pages.SettingsSeparator
 import org.futo.voiceinput.settings.pages.TRIAL_PERIOD_DAYS
-import org.futo.voiceinput.shared.ENGLISH_MODELS
-import org.futo.voiceinput.shared.MULTILINGUAL_MODELS
+import org.futo.voiceinput.shared.ALL_MODELS
 import org.futo.voiceinput.shared.types.ModelDownloadable
 import java.io.File
 
@@ -33,7 +32,7 @@ fun DevOnlySettings() {
 
     SettingsSeparator("Payment testing [Developer Build only]")
 
-    (ENGLISH_MODELS + MULTILINGUAL_MODELS).filterIsInstance<ModelDownloadable>().filter {
+    ALL_MODELS.filterIsInstance<ModelDownloadable>().filter {
         it.backwardsCompatFiles.isNotEmpty() && File(context.filesDir, it.ggmlFile).isFile
     }.forEach {
         Button(onClick = {

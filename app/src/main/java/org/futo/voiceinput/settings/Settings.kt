@@ -20,7 +20,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.futo.voiceinput.BuildConfig
-import org.futo.voiceinput.shared.DEFAULT_ENGLISH_MODEL_IDX
 import org.futo.voiceinput.theme.presets.DevThemeYellow
 import org.futo.voiceinput.theme.presets.VoiceInputTheme
 
@@ -98,15 +97,16 @@ val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "se
 val ENABLE_SOUND = SettingsKey(booleanPreferencesKey("enable_sounds"), true)
 val ENABLE_ANIMATIONS = SettingsKey(booleanPreferencesKey("enable_animations"), true)
 val VERBOSE_PROGRESS = SettingsKey(booleanPreferencesKey("verbose_progress"), false)
-val ENABLE_MULTILINGUAL = SettingsKey(booleanPreferencesKey("enable_multilingual"), false)
 val DISALLOW_SYMBOLS = SettingsKey(booleanPreferencesKey("disallow_symbols"), true)
 val ENABLE_30S_LIMIT = SettingsKey(booleanPreferencesKey("enable_30s_limit"), false)
 
-val ENGLISH_MODEL_INDEX = SettingsKey(intPreferencesKey("english_model_index"), DEFAULT_ENGLISH_MODEL_IDX)
+val LEGACY_ENGLISH_MODEL_INDEX = SettingsKey(intPreferencesKey("english_model_index"), -1)
 val MIGRATED_ENGLISH_MODEL = SettingsKey(intPreferencesKey("migrated_english_model"), 0)
-val CURRENT_MIGRATION_LEVEL = 1
+val CURRENT_MIGRATION_LEVEL = 2
 
-val MULTILINGUAL_MODEL_INDEX = SettingsKey(intPreferencesKey("multilingual_model_index"), 1)
+val LEGACY_MULTILINGUAL_MODEL_INDEX = SettingsKey(intPreferencesKey("multilingual_model_index"), -1)
+
+val MODEL_OPTIONS = SettingsKey(stringSetPreferencesKey("model_options_v2.5"), setOf())
 
 val LANGUAGE_TOGGLES = SettingsKey(stringSetPreferencesKey("enabled_languages"), setOf("en"))
 
@@ -125,7 +125,7 @@ val EXT_PENDING_PURCHASE_ID = SettingsKey(stringPreferencesKey("purchase_id"), "
 val EXT_PENDING_PURCHASE_LAST_CHECK = SettingsKey(longPreferencesKey("purchase_status_last_check"), 0)
 
 val IS_VAD_ENABLED = SettingsKey(booleanPreferencesKey("enable_vad"), true)
-val USE_LANGUAGE_SPECIFIC_MODELS = SettingsKey(booleanPreferencesKey("USE_LANGUAGE_SPECIFIC_MODELS"), true)
+val LEGACY_USE_LANGUAGE_SPECIFIC_MODELS = SettingsKey(booleanPreferencesKey("USE_LANGUAGE_SPECIFIC_MODELS"), true)
 
 val ALLOW_UNDERTRAINED_LANGUAGES = SettingsKey(booleanPreferencesKey("allow_undertrained_languages"), false)
 val MANUALLY_SELECT_LANGUAGE = SettingsKey(booleanPreferencesKey("manually_select_language"), false)

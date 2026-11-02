@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -31,7 +30,6 @@ import org.futo.voiceinput.openURI
 import org.futo.voiceinput.theme.Typography
 import org.futo.voiceinput.BuildConfig
 import org.futo.voiceinput.settings.ConditionalUpdate
-import org.futo.voiceinput.settings.ENABLE_MULTILINGUAL
 import org.futo.voiceinput.settings.IS_ALREADY_PAID
 import org.futo.voiceinput.settings.KeyboardVoiceInputConfigState
 import org.futo.voiceinput.settings.NavigationItem
@@ -121,12 +119,6 @@ fun HomeScreen(
     navController: NavHostController = rememberNavController()
 ) {
     val isAlreadyPaid = useDataStore(IS_ALREADY_PAID)
-    val isMultilingual = useDataStore(ENABLE_MULTILINGUAL)
-    val multilingualSubtitle = if (isMultilingual.value) {
-        stringResource(R.string.multilingual_enabled_english_will_be_slower)
-    } else {
-        null
-    }
 
     val defaultIME = useDefaultIME(0)
     val isSet = useIsConfiguredInFUTOKeyboard(defaultIME.value, 0, false)
@@ -135,7 +127,7 @@ fun HomeScreen(
         Spacer(modifier = Modifier.height(24.dp))
         ScreenTitle(stringResource(R.string.futo_voice_input_settings))
         Text(
-            "${BuildConfig.VERSION_NAME}",
+            BuildConfig.VERSION_NAME,
             style = Typography.Small,
             modifier = Modifier
                 .fillMaxWidth()
@@ -152,7 +144,7 @@ fun HomeScreen(
         SettingsSeparator(stringResource(R.string.options))
         NavigationItem(
             title = stringResource(R.string.languages),
-            subtitle = multilingualSubtitle,
+            subtitle = null,
             style = NavigationItemStyle.Misc,
             navigate = { navController.navigate("languages") },
             icon = painterResource(R.drawable.globe)

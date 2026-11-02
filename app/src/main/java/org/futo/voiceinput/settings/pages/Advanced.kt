@@ -13,7 +13,6 @@ import org.futo.voiceinput.settings.BEAM_SEARCH
 import org.futo.voiceinput.settings.DISALLOW_SYMBOLS
 import org.futo.voiceinput.settings.DevOnlySettings
 import org.futo.voiceinput.settings.ENABLE_30S_LIMIT
-import org.futo.voiceinput.settings.MULTILINGUAL_MODEL_INDEX
 import org.futo.voiceinput.settings.NavigationItem
 import org.futo.voiceinput.settings.NavigationItemStyle
 import org.futo.voiceinput.settings.STREAMING_TIER
@@ -24,8 +23,6 @@ import org.futo.voiceinput.settings.SettingsRootList
 import org.futo.voiceinput.settings.SettingsViewModel
 import org.futo.voiceinput.settings.VERBOSE_PROGRESS
 import org.futo.voiceinput.settings.openImeOptions
-import org.futo.voiceinput.settings.useDataStore
-import org.futo.voiceinput.shared.MULTILINGUAL_MODELS
 
 @Composable
 @Preview
@@ -34,11 +31,6 @@ fun AdvancedScreen(
     navController: NavHostController = rememberNavController()
 ) {
     val context = LocalContext.current
-    val (_, setMultilingualIdx) = useDataStore(
-        key = MULTILINGUAL_MODEL_INDEX.key,
-        default = MULTILINGUAL_MODEL_INDEX.default
-    )
-
     SettingsRootList {
         ScreenTitle(title = stringResource(id = R.string.advanced_settings), showBack = true, navController = navController)
 

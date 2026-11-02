@@ -30,7 +30,31 @@ enum class ModelPresence {
     Missing
 }
 
+enum class LegacyId(val multilingual: Boolean? = null, val idx: Int? = null) {
+    None,
+
+    EnglishWhisperTiny(false, 0),
+    EnglishWhisperBase(false, 1),
+    EnglishWhisperSmall(false, 2),
+    EnglishAsr4allS(false, 3),
+    EnglishAsr4allM(false, 4),
+    EnglishAsr4allL(false, 5),
+    EnglishParakeetTDT(false, 6),
+    EnglishParakeetUnified(false, 7),
+    EnglishNemotronMulti(false, 8),
+    EnglishNemotron(false, 9),
+    EnglishMoonshine(false, 10),
+
+    MultiWhisperTiny(true, 0),
+    MultiWhisperBase(true, 1),
+    MultiWhisperSmall(true, 2),
+    MultiNemotron(true, 3),;
+}
+
 interface ModelLoader {
+    val id: String
+    val legacyId: LegacyId
+
     @get:StringRes
     val name: Int
     val caps: ModelCapabilities
@@ -58,9 +82,11 @@ interface ModelLoader {
 }
 
 internal class ModelBuiltInAsset(
+    override val id: String,
     override val name: Int,
     val ggmlFile: String,
     override val caps: ModelCapabilities,
+    override val legacyId: LegacyId = LegacyId.None,
 ) : ModelLoader {
     private var refreshed = false
 
@@ -97,7 +123,8 @@ internal class ModelBuiltInAsset(
 
 private fun Context.ggmlFile(fname: String) = File(filesDir, fname)
 
-class ModelDownloadable(
+data class ModelDownloadable(
+    override val id: String,
     override val name: Int,
     val ggmlFile: String,
     val checksum: String,
@@ -106,6 +133,7 @@ class ModelDownloadable(
     val backwardsCompatFiles: List<String> = emptyList(),
     /// Old model filenames that can no longer run (deleted after upgrade)
     val otherCleanupFiles: List<String> = emptyList(),
+    override val legacyId: LegacyId = LegacyId.None,
 ) : ModelLoader {
     private fun matchingFile(context: Context): File? =
         if(context.ggmlFile(ggmlFile).isFile)
@@ -143,30 +171,4 @@ class ModelDownloadable(
     override fun key(context: Context): Any {
         return "Downloadable$ggmlFile$checksum"
     }
-}
-
-public class ModelFileFile(
-    override val name: Int,
-    val file: File,
-    override val caps: ModelCapabilities,
-) : ModelLoader {
-
-    override fun exists(context: Context): Boolean {
-        return file.exists()
-    }
-
-    override fun getRequiredDownloadList(context: Context, forUpgrade: Boolean): List<String> {
-        return emptyList()
-    }
-
-    override fun loadGGML(context: Context): WhisperGGML {
-        if(!file.isFile) throw FileNotFoundException()
-        return WhisperGGML(file)
-    }
-
-    override fun key(context: Context): Any {
-        return "File${file.absolutePath}"
-    }
-
-    override fun getPresence(context: Context): ModelPresence = ModelPresence.Exists
 }

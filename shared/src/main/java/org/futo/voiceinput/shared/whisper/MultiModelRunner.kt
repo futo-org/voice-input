@@ -114,13 +114,12 @@ object GlossaryProcessor {
                     }
                 }
 
-                if (Language.English in languages && model.caps.requiresPersonalDictSpecialCharacterProcessing) {
+                if ((Language.English in languages || Language.Spanish in languages)  && model.caps.requiresPersonalDictSpecialCharacterProcessing) {
                     for(word in listOf("FUTO Voice Input", "FUTO Keyboard", "FUTO")) {
                         append(word)
                         append('\n')
                         transformationRules.add(wordToRegex(word) to word)
                     }
-
                 }
             }
 

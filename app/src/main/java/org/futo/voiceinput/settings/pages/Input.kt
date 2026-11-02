@@ -16,7 +16,6 @@ import org.futo.voiceinput.settings.ENABLE_ANIMATIONS
 import org.futo.voiceinput.settings.ENABLE_SOUND
 import org.futo.voiceinput.settings.IS_VAD_ENABLED
 import org.futo.voiceinput.settings.LANGUAGE_TOGGLES
-import org.futo.voiceinput.settings.MANUALLY_SELECT_LANGUAGE
 import org.futo.voiceinput.settings.NavigationItem
 import org.futo.voiceinput.settings.NavigationItemStyle
 import org.futo.voiceinput.settings.ScreenTitle
@@ -25,7 +24,6 @@ import org.futo.voiceinput.settings.SettingsRootList
 import org.futo.voiceinput.settings.SettingsViewModel
 import org.futo.voiceinput.settings.Tip
 import org.futo.voiceinput.settings.TipKind
-import org.futo.voiceinput.settings.USE_LANGUAGE_SPECIFIC_MODELS
 import org.futo.voiceinput.settings.useDataStore
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -63,16 +61,5 @@ fun InputScreen(
 
         Tip(stringResource(R.string.stop_on_silence_info), TipKind.Info)
         SettingToggleDataStore(stringResource(R.string.stop_on_silence), IS_VAD_ENABLED)
-
-        // Option only has effect when English is active and at least one other language
-        if(languages.value.size > 1 && languages.value.contains("en")) {
-            Spacer(modifier = Modifier.height(32.dp))
-
-            Tip(stringResource(R.string.use_language_specific_models_info), TipKind.Info)
-            SettingToggleDataStore(
-                stringResource(R.string.use_language_specific_models),
-                USE_LANGUAGE_SPECIFIC_MODELS
-            )
-        }
     }
 }

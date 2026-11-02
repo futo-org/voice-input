@@ -94,8 +94,11 @@
     <string name="model_options">Model Options</string>
     <string name="parameter_count_tip">Tip: The number is the model\'s parameter count in millions. More parameters = slower and more accurate</string>
     <string name="english_model">English Model</string>
+    <string name="spanish_model">Spanish Model</string>
+    <string name="model_disabled_use_multilingual">Use multilingual model option</string>
     <string name="multilingual_model">Multilingual Model</string>
     <string name="streaming_models_recommended">Streaming (recommended)</string>
+    <string name="all_models">All</string>
     <string name="streaming_models">Streaming</string>
     <string name="nonstreaming_models">Batch</string>
     <string name="other_models">Other</string>
