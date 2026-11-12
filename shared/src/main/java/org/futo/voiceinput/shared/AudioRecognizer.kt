@@ -510,7 +510,9 @@ class AudioRecognizer(
             withContext(Dispatchers.Default) {
                 try {
                     preloadModels()
-                } catch(_: InvalidModelException) {
+                } catch(e: InvalidModelException) {
+                    throw e
+
                     withContext(Dispatchers.Main) {
                         reset()
                         listener.modelLoadingFailed()
