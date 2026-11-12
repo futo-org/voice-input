@@ -248,7 +248,7 @@ static jstring WhisperGGML_infer(JNIEnv *env, jobject instance, jlong handle, jf
         }
 
         wp.initial_prompt = prompt_str.c_str();
-        AKLOGI("Initial prompt for [%s]: %s", language_hint.c_str(), prompt_str.c_str());
+        AKLOGI("Initial prompt for [%s]: %d chars", language_hint.c_str(), prompt_str.size());
 
         params.family = &wp.ext;
     }
