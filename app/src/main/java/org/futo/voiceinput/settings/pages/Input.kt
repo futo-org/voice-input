@@ -18,6 +18,8 @@ import org.futo.voiceinput.settings.IS_VAD_ENABLED
 import org.futo.voiceinput.settings.LANGUAGE_TOGGLES
 import org.futo.voiceinput.settings.NavigationItem
 import org.futo.voiceinput.settings.NavigationItemStyle
+import org.futo.voiceinput.settings.PREFER_BT_MIC
+import org.futo.voiceinput.settings.REQUEST_AUDIO_FOCUS
 import org.futo.voiceinput.settings.ScreenTitle
 import org.futo.voiceinput.settings.SettingToggleDataStore
 import org.futo.voiceinput.settings.SettingsRootList
@@ -55,6 +57,16 @@ fun InputScreen(
         SettingToggleDataStore(
             stringResource(R.string.animations),
             ENABLE_ANIMATIONS
+        )
+
+        SettingToggleDataStore(
+            stringResource(R.string.prefer_bt_device),
+            PREFER_BT_MIC
+        )
+
+        SettingToggleDataStore(
+            stringResource(R.string.request_audio_focus),
+            REQUEST_AUDIO_FOCUS
         )
 
         Spacer(modifier = Modifier.height(32.dp))

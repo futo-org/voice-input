@@ -139,3 +139,6 @@ val THEME_KEY = SettingsKey(
 
 val BEAM_SEARCH = SettingsKey(key = booleanPreferencesKey("use_beam_search"), default = true)
 val STREAMING_TIER = SettingsKey(intPreferencesKey("streaming_tier"), 1)
+
+val PREFER_BT_MIC = SettingsKey(booleanPreferencesKey("prefer_bt_mic"), false)
+val REQUEST_AUDIO_FOCUS = SettingsKey(booleanPreferencesKey("request_audio_focus"), true)

@@ -57,7 +57,10 @@ import androidx.savedstate.SavedStateRegistryController
 import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.findViewTreeSavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
+import kotlinx.coroutines.launch
+import org.futo.voiceinput.settings.PREFER_BT_MIC
 import org.futo.voiceinput.settings.pages.OptionalWindowNotice
+import org.futo.voiceinput.settings.setSetting
 import org.futo.voiceinput.shared.ModelDoesNotExistException
 import org.futo.voiceinput.shared.RecognizerView
 import org.futo.voiceinput.shared.RecognizerViewListener
@@ -211,7 +214,9 @@ class VoiceInputMethodService : InputMethodService(), LifecycleOwner, ViewModelS
                 }
 
                 override fun recordingStarted(device: MicrophoneDeviceState) {
-
+                    if(device.bluetoothAvailable && device.bluetoothActive != device.bluetoothPreferredByUser) {
+                        lifecycleScope.launch { setSetting(PREFER_BT_MIC, device.bluetoothActive) }
+                    }
                 }
 
                 override fun finished(result: String) {

@@ -54,6 +54,9 @@
     <string name="model">Model</string>
     <string name="sounds">Sounds</string>
     <string name="animations">Animations</string>
+    <string name="prefer_bt_device">Prefer Bluetooth</string>
+    <string name="request_audio_focus">Pause videos/music</string>
+
     <string name="will_play_a_sound_when_started_cancelled">Will play a sound when started / cancelled</string>
     <string name="will_not_play_sounds_when_started_cancelled">Will not play sounds when started / cancelled</string>
     <string name="payment">Payment</string>

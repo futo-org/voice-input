@@ -33,6 +33,8 @@ import org.futo.voiceinput.settings.MANUALLY_SELECT_LANGUAGE
 import org.futo.voiceinput.settings.MIGRATED_ENGLISH_MODEL
 import org.futo.voiceinput.settings.MODEL_OPTIONS
 import org.futo.voiceinput.settings.PERSONAL_DICTIONARY
+import org.futo.voiceinput.settings.PREFER_BT_MIC
+import org.futo.voiceinput.settings.REQUEST_AUDIO_FOCUS
 import org.futo.voiceinput.settings.STREAMING_TIER
 import org.futo.voiceinput.settings.VERBOSE_PROGRESS
 import org.futo.voiceinput.settings.getSetting
@@ -351,8 +353,8 @@ fun Context.loadRecognizerSettings(inlinePartialResult: Boolean = false): Recogn
             tier = getSetting(STREAMING_TIER),
         ),
         recordingConfiguration = RecordingSettings(
-            preferBluetoothMic = false,
-            requestAudioFocus = true,
+            preferBluetoothMic = getSetting(PREFER_BT_MIC),
+            requestAudioFocus = getSetting(REQUEST_AUDIO_FOCUS),
             canExpandSpace = !getSetting(ENABLE_30S_LIMIT),
             useVADAutoStop = getSetting(IS_VAD_ENABLED),
         )

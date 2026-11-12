@@ -32,7 +32,10 @@ import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
+import org.futo.voiceinput.settings.PREFER_BT_MIC
 import org.futo.voiceinput.settings.pages.OptionalWindowNotice
+import org.futo.voiceinput.settings.setSetting
 import org.futo.voiceinput.shared.ModelDoesNotExistException
 import org.futo.voiceinput.shared.RecognizerView
 import org.futo.voiceinput.shared.RecognizerViewListener
@@ -120,7 +123,9 @@ class RecognizeActivity : ComponentActivity() {
                 }
 
                 override fun recordingStarted(device: MicrophoneDeviceState) {
-
+                    if(device.bluetoothAvailable && device.bluetoothActive != device.bluetoothPreferredByUser) {
+                        lifecycleScope.launch { setSetting(PREFER_BT_MIC, device.bluetoothActive) }
+                    }
                 }
 
                 override fun finished(result: String) {
