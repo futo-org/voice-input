@@ -5,7 +5,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
@@ -88,6 +87,7 @@ class RecognizerView(
     private val lifecycleScope: LifecycleCoroutineScope,
     private val modelManager: ModelManager
 ) {
+    private val sentinel = Any()
     private val magnitudeState = mutableFloatStateOf(0.0f)
     private val statusState = mutableStateOf(MagnitudeState.NOT_TALKED_YET)
 
@@ -185,16 +185,19 @@ class RecognizerView(
             audioRecognizerListener.cancelled()
         }
         startPending = false
+        modelManager.finishUse(sentinel)
     }
 
     private val audioRecognizerListener = object : AudioRecognizerListener {
         override fun cancelled() {
             soundPlayer?.playCancelSound()
             listener.cancelled()
+            modelManager.finishUse(sentinel)
         }
 
         override fun finished(result: String) {
             listener.finished(result)
+            modelManager.finishUse(sentinel)
         }
 
         override fun languageDetected(language: Language) {
@@ -204,6 +207,7 @@ class RecognizerView(
         override fun modelLoadingFailed() {
             soundPlayer?.playCancelSound()
             currentViewState.value = CurrentView.ModelError
+            modelManager.finishUse(sentinel)
         }
 
         override fun partialResult(result: String) {
@@ -305,6 +309,7 @@ class RecognizerView(
         if(startPending) {
             recognizer?.let {
                 it.reset()
+                modelManager.startUse(sentinel)
                 it.start()
                 startPending = false
             }
@@ -315,9 +320,11 @@ class RecognizerView(
     fun reset() {
         recognizer?.reset()
         startPending = false
+        modelManager.finishUse(sentinel)
     }
 
     fun start() {
+        modelManager.startUse(sentinel)
         recognizer?.start()
         if(recognizer == null) startPending = true
     }
