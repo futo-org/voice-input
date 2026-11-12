@@ -105,10 +105,10 @@ class WhisperGGML(
             i += sample.size
         }
 
-        if(samples.isEmpty()) throw IllegalArgumentException("samples is empty")
+        if(samples.isEmpty()) return@withContext ""
 
         val result = offlineInferNative(handle, samples, prompt, languages, bailLanguages)?.trim()
-        if(result == null) throw IllegalStateException("Inference failed")
+            ?: throw IllegalStateException("Inference failed")
 
         if(result.contains("<>CANCELLED<>")) {
             if(result.contains("flag")) {
