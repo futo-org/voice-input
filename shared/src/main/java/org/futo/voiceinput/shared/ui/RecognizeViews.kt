@@ -282,7 +282,7 @@ fun RecognizeLoadingCircle(text: String = "Initializing...", partialText: String
 @Composable
 fun ColumnScope.RecognizeMicError(openSettings: () -> Unit) {
     Box(Modifier
-        .fillMaxSize()
+        .fillMaxWidth()
         .clickable { openSettings() }) {
         Column(Modifier.align(Alignment.Center), horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
@@ -295,7 +295,7 @@ fun ColumnScope.RecognizeMicError(openSettings: () -> Unit) {
             )
             Icon(
                 Icons.Default.Settings,
-                contentDescription = stringResource(R.string.grant_microphone_permission_to_use_voice_input),
+                contentDescription = null,
                 modifier = Modifier.size(32.dp),
                 tint = MaterialTheme.colorScheme.onSurface
             )

@@ -14,6 +14,7 @@
 
     <!-- When the user is trying to use voice input but has not granted our app the Android microphone permission, we ask the user to please grant it to use voice input -->
     <string name="grant_microphone_permission_to_use_voice_input">Grant microphone permission to use Voice Input</string>
+    <string name="grant_microphone_permission_to_use_voice_input_settings">Go to Permissions and allow Microphone.</string>
     <string name="open_voice_input_settings">Open Voice Input Settings</string>
 
     <!-- Verbose mode string to indicate we are extracting mel spectrogram audio features from the recorded audio. Must be fairly short. -->

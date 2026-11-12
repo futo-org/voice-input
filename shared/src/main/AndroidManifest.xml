@@ -2,4 +2,18 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
+
+
+    <application>
+        <activity
+            android:name="org.futo.inputmethod.latin.MicPermissionActivity"
+            android:clearTaskOnLaunch="false"
+            android:launchMode="standard"
+            android:noHistory="true"
+            android:configChanges="orientation|screenLayout|screenSize|keyboardHidden|keyboard|uiMode|density"
+            android:theme="@style/Theme.TextEditPopup" />
+
+    </application>
+
+
 </manifest>
