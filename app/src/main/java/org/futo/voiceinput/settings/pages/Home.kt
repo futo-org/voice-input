@@ -92,7 +92,8 @@ fun SettingsSeparator(text: String) {
 
 
 val NewsEntries = listOf(
-    R.string.whats_new_body to (R.string.whats_new_read_more to "https://futo.tech/blog/asr4all")
+    R.string.whats_new_body to (R.string.whats_new_read_more to "https://futo.tech/blog/asr4all"),
+    R.string.whats_new_body_2 to null
 )
 
 val NewsViewed = SettingsKey(intPreferencesKey("news_viewed2"), 0)
@@ -104,9 +105,9 @@ fun ConditionalWhatsNew(orElse: @Composable () -> Unit) {
 
     if(newsViewed.value < NewsEntries.size) {
         val entry = NewsEntries[newsViewed.value]
-        Tip(stringResource(entry.first), TipKind.WhatsNew, onAction = {
-            context.openURI(entry.second.second)
-        }, actionText = entry.second.first, onDismiss = {
+        Tip(stringResource(entry.first), TipKind.WhatsNew, onAction = entry.second?.let {{
+            context.openURI(it.second)
+        }}, actionText = entry.second?.first ?: 0, onDismiss = {
             newsViewed.setValue(newsViewed.value + 1)
         })
     } else orElse()

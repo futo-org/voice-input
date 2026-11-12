@@ -272,6 +272,7 @@
 
     <string name="whats_new_title">What\'s new?</string>
     <string name="whats_new_body">We have upgraded the speech recognition engine in this app, introducing new model options that you can choose from. Try them out in Model options! Many of these support streaming speech recognition.\n\nWe have also developed our own models under the asr4all family, which you can read more about in our blog.</string>
+    <string name="whats_new_body_2">We\'ve added a new asr4all model for Spanish. You can select it in Model options. We\'ve also resolved some bugs and stability issues.</string>
     <string name="whats_new_read_more">Read our blog</string>
 
     <string name="help_futo_keyboard_title">FUTO Keyboard setup</string>
