@@ -46,6 +46,6 @@ class ModelManager(
     }
 
     private val users = mutableSetOf<Any>()
-    fun startUse(sentinel: Any) = users.add(sentinel).also { Exception("startuse").printStackTrace() }
-    fun finishUse(sentinel: Any) = users.remove(sentinel).also { Exception("enduse").printStackTrace() }
+    fun startUse(sentinel: Any) = users.add(sentinel)
+    fun finishUse(sentinel: Any) = users.remove(sentinel)
 }
