@@ -303,9 +303,11 @@ class RecognizerView(
         recognizer = recognizerWithLanguage(language)
 
         if(startPending) {
-            recognizer!!.reset()
-            recognizer!!.start()
-            startPending = false
+            recognizer?.let {
+                it.reset()
+                it.start()
+                startPending = false
+            }
         }
     }
 
