@@ -33,6 +33,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.selects.select
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.yield
+import org.futo.voiceinput.shared.ggml.InferenceCancelledException
 import org.futo.voiceinput.shared.ggml.InvalidModelException
 import org.futo.voiceinput.shared.types.AudioRecognizerListener
 import org.futo.voiceinput.shared.types.InferenceState
@@ -518,12 +519,18 @@ class AudioRecognizer(
 
                 yield()
 
-                val text = modelRunner.run(
-                    audioChannel.receiveAsFlow().takeUntil(stopSignal),
-                    settings.modelRunConfiguration,
-                    settings.decodingConfiguration,
-                    runnerCallback
-                )
+                val text = try {
+                    modelRunner.run(
+                        audioChannel.receiveAsFlow().takeUntil(stopSignal),
+                        settings.modelRunConfiguration,
+                        settings.decodingConfiguration,
+                        runnerCallback
+                    )
+                } catch(e: InferenceCancelledException) {
+                    // job should already be canceled by this stage
+                    yield()
+                    ""
+                }
 
                 withContext(Dispatchers.Main) {
                     yield()

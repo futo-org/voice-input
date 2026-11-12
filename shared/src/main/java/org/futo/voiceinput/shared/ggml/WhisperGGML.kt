@@ -85,6 +85,7 @@ class WhisperGGML(
         }
     }
 
+    @Throws(BailLanguageException::class, InferenceCancelledException::class)
     private suspend fun offlineInfer(
         sampleFlow: Flow<FloatArray>,
         prompt: String,
@@ -92,6 +93,7 @@ class WhisperGGML(
         bailLanguages: Array<String>
     ) = offlineInfer(sampleFlow.toList(), prompt, languages, bailLanguages)
 
+    @Throws(BailLanguageException::class, InferenceCancelledException::class)
     private suspend fun offlineInfer(
         sampleList: List<FloatArray>,
         prompt: String,
@@ -110,7 +112,7 @@ class WhisperGGML(
         val result = offlineInferNative(handle, samples, prompt, languages, bailLanguages)?.trim()
             ?: throw IllegalStateException("Inference failed")
 
-        if(result.contains("<>CANCELLED<>")) {
+        if(result.startsWith("<>CANCELLED<>")) {
             if(result.contains("flag")) {
                 throw InferenceCancelledException()
             } else if(result.contains("lang=")) {
