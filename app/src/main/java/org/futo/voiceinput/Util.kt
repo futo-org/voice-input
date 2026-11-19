@@ -39,6 +39,7 @@ import org.futo.voiceinput.settings.STREAMING_TIER
 import org.futo.voiceinput.settings.VERBOSE_PROGRESS
 import org.futo.voiceinput.settings.getSetting
 import org.futo.voiceinput.settings.setSetting
+import org.futo.voiceinput.shared.DefaultModelOption
 import org.futo.voiceinput.shared.DefaultModelsByLanguage
 import org.futo.voiceinput.shared.RecognizerViewSettings
 import org.futo.voiceinput.shared.RecordingSettings
@@ -223,7 +224,7 @@ fun Context.loadCurrentModelList() = loadRecognizerSettings().modelRunConfigurat
 }
 
 // upgrade older settings to newer (note: it also runs on fresh install since default migration lvl is 0)
-fun Context.performMigrationsIfNecessary() {
+fun Context.performMigrationsIfNecessary(): Set<String>? {
     val options = getSetting(MODEL_OPTIONS).toMutableSet()
     var multiModelIdx = getSetting(LEGACY_MULTILINGUAL_MODEL_INDEX)
     var englishModelIdx = getSetting(LEGACY_ENGLISH_MODEL_INDEX)
@@ -249,7 +250,7 @@ fun Context.performMigrationsIfNecessary() {
             }
         }
 
-        if(passesSanityCheck) return
+        if(passesSanityCheck) return null
     }
 
     runBlocking { setSetting(MIGRATED_ENGLISH_MODEL, CURRENT_MIGRATION_LEVEL) }
@@ -265,7 +266,7 @@ fun Context.performMigrationsIfNecessary() {
     // Perform migration to new string set system
     if(options.isNotEmpty()) {
         Log.e("MigrationUtils", "expected an empty MODEL_OPTIONS during first migration! got $options")
-        return
+        return null
     }
 
     options.add("multi:" + lookupModelLegacy(true, multiModelIdx)!!.id)
@@ -277,13 +278,14 @@ fun Context.performMigrationsIfNecessary() {
     }
 
     DefaultModelsByLanguage.forEach {
-        val lang = it.key.toWhisperString()
-        if(!options.any { it.startsWith("$lang:") }) {
+        val lang = it.key?.toWhisperString()
+        if(lang != null && !options.any { it.startsWith("$lang:") }) {
             options.add("$lang:${it.value}")
         }
     }
 
     runBlocking { setSetting(MODEL_OPTIONS, options) }
+    return options
 }
 
 /// language == null is guaranteed to be the multilingual model
@@ -298,9 +300,10 @@ fun Iterable<String>.parseModelOptions() = mapNotNull { elem ->
 }
 
 fun Context.loadRecognizerSettings(inlinePartialResult: Boolean = false): RecognizerViewSettings {
-    performMigrationsIfNecessary()
+    val modelOptions = (performMigrationsIfNecessary() ?: getSetting(MODEL_OPTIONS)).parseModelOptions().ifEmpty {
+        DefaultModelOption.parseModelOptions()
+    }
 
-    val modelOptions = getSetting(MODEL_OPTIONS).parseModelOptions()
     val languages = getSetting(LANGUAGE_TOGGLES).mapNotNull { getLanguageFromWhisperString(it) }.toMutableSet()
 
     val relevantModels = modelOptions.filter { it.first in languages || it.first == null }.toMutableList()
@@ -312,7 +315,7 @@ fun Context.loadRecognizerSettings(inlinePartialResult: Boolean = false): Recogn
 
     val languageSpecificModels = mutableMapOf<Language, ModelLoader>()
 
-    if(relevantModels.size == 0) {
+    if(relevantModels.isEmpty()) {
         Log.e("SettingsUtils", "Relevant models are empty!! options=${modelOptions}, languages=${languages} optionsRaw=${getSetting(MODEL_OPTIONS)}")
     }
     val primaryModel = relevantModels.find { it.first == null }?.second ?: relevantModels[0].second

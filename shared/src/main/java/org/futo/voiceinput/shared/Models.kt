@@ -224,7 +224,12 @@ fun lookupModelLegacy(multilingual: Boolean, idx: Int): ModelLoader? = when {
 }
 
 val DefaultModelsByLanguage = mapOf(
+    null to "whisper-multi-base",
     Language.English to "asr4all-m",
     Language.Spanish to "asr4all-m-spanish",
     // could replace unrecommended languages with overrides here for japanese chinese korean etc
 )
+
+val DefaultModelOption: Set<String> = DefaultModelsByLanguage.toList().map {
+    "${it.first ?: "multi"}:${it.second}"
+}.toSet()
